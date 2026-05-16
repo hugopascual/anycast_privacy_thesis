@@ -1,0 +1,159 @@
+\chapter{Background and Related Work}
+\label{ch:background}
+
+The research presented in this thesis lies at the intersection of Internet architecture, network measurements, mobile ecosystems, and data protection regulations. In particular, this work focuses on the implications that anycast-based infrastructures have on geographic control, privacy, and international data transfers.
+
+Understanding these implications requires combining knowledge from multiple domains. Firstly, network knowledge about how anycast routing behaves and its internal characteristics. Secondly, knowledge of the current privacy regulations focused on the international transfer of personal data aspects. Finally, study the tools and practices, such as the use of TPLs, in the Android ecosystem, which is the one used as the case study for this work. Although Android applications are the case study, the knowledge, tools, and regulations apply to all services on the Internet, making it possible to expand this work to other ecosystems like iOS or web services.
+
+\section{Internet Routing and Anycast Communications}
+
+\subsection{Internet Routing Fundamentals}
+
+The Internet is composed of thousands of interconnected ASes that exchange reachability information using BGP. Each AS independently applies routing policies according to business relationships, traffic engineering objectives, operational constraints, and security considerations. Consequently, Internet routing decisions are not exclusively determined by shortest-path metrics but by a highly dynamic combination of economic, administrative, and topological factors.
+
+BGP operates as a policy-based path-vector protocol in which routes are selected according to multiple attributes, including AS path length, local preference, Multi-Exit Discriminator (MED), routing policies, and peering agreements. As a result, the selected path between two endpoints may not correspond to the geographically shortest route. Instead, routing decisions are frequently optimised according to operational or economic objectives such as minimising transit costs, balancing traffic loads, or improving resilience.
+
+This behaviour becomes particularly relevant in large-scale distributed infrastructures, where routing dynamics may significantly affect the geographic path followed by user communications. Phenomena such as traffic engineering, route aggregation, or peering asymmetries may cause communications to traverse jurisdictions that are geographically distant from the user or from the intended service region.
+
+Traditionally, Internet communications followed a unicast paradigm in which a destination IP address uniquely identifies a single host or service instance. Under this model, the logical destination of a communication can generally be associated with a relatively stable physical location, allowing organisations and users to reason about where communications are being processed.
+
+However, modern Internet infrastructures increasingly rely on distributed service architectures in order to improve scalability, resilience, fault tolerance, and latency. Services such as Content Delivery Networks (CDNs), authoritative DNS providers, cloud platforms, and DDoS mitigation systems deploy geographically distributed replicas of the same service across multiple locations worldwide. To efficiently redirect traffic towards these distributed replicas, many of these systems rely on anycast addressing.
+
+These properties have made anycast a fundamental building block of the modern Internet \cite{Abley2006OperationServices,McPherson2014ArchitecturalAnycast}, but they also create significant challenges for privacy, auditing, and regulatory compliance. Understanding how anycast routing interacts with geographic control mechanisms is therefore essential for analysing the privacy implications addressed throughout this thesis.
+
+\subsection{Anycast Routing}
+
+Anycast routing is not a recent concept. The first references to anycast services appeared in RFC 1546 in 1993 \cite{Partridge1993HostService}. Later, anycast addressing was formally incorporated into the IPv6 architecture specification \cite{Hinden2003InternetArchitecture}, while ICMPv6 introduced specific operational considerations for anycast communications \cite{Conta2006InternetSpecification}.
+
+According to the IPv6 specification, an anycast address is defined as:
+
+\begin{quote}
+An anycast address is an address that is assigned to more than one interface (typically belonging to different nodes), with the property that a packet sent to an anycast address is routed to the "nearest" interface having that address, according to the routing protocols' measure of distance. \cite{Hinden2003InternetArchitecture}
+\end{quote}
+
+Unlike unicast communications, where an IP address maps to a single destination, anycast allows multiple geographically distributed nodes to share the same IP address. Routing protocols then determine which replica receives a given communication according to topological distance and routing policies.
+
+This decoupling between logical addressing and physical location constitutes one of the key characteristics of anycast systems. While it enables substantial improvements in scalability and resilience, it also introduces important challenges regarding transparency, geographic determinism, and control over data flows. In particular, the actual physical destination of a communication may dynamically change over time depending on routing updates, network congestion, failures, or operational policies.
+
+Despite these advantages, anycast introduces a major limitation: the physical destination of a communication becomes non-deterministic from the perspective of end users and applications. The actual server instance reached by a communication depends on dynamic BGP decisions, peering relationships, traffic engineering policies, routing failures, and network conditions.
+
+Consequently, two users located in the same country may reach infrastructures deployed in different jurisdictions. Similarly, a communication initially routed towards a nearby region may later be redirected to another country due to routing changes or operational events. This behaviour creates important challenges regarding transparency, auditing, and geographic control of personal data flows.
+
+Furthermore, previous works have shown that anycast routing behaviour may significantly differ from geographic proximity assumptions \cite{Bian2019TowardsPeering,Calder2015AnalyzingCDN}. In practice, the topologically nearest node does not necessarily correspond to the geographically closest infrastructure.
+
+\subsection{Anycast in Modern Internet Services}
+
+The deployment of anycast infrastructures has grown substantially over the last decade. Today, some of the most critical Internet services rely on anycast as a core architectural mechanism.
+
+\subsubsection{Content Delivery Networks}
+
+CDNs distribute content across globally distributed infrastructures in order to reduce latency and improve user experience. Large CDNs extensively employ anycast to redirect users towards nearby edge servers \cite{Calder2015AnalyzingCDN}. These systems continuously optimise routing decisions according to traffic demand, congestion, and infrastructure availability.
+
+Although CDN architectures improve scalability and performance, they also introduce important privacy implications. User requests may traverse multiple jurisdictions depending on routing dynamics, cache placement strategies, or traffic balancing policies.
+
+\subsubsection{DNS Infrastructures}
+
+The Domain Name System (DNS) represents one of the earliest large-scale adopters of anycast. Root DNS servers and authoritative DNS providers commonly use anycast to improve availability and resilience against attacks \cite{Abley2006OperationServices}.
+
+However, DNS communications may reveal sensitive information regarding users' browsing activities, accessed domains, or application behaviours. Consequently, the geographic destination of DNS queries has direct implications for privacy and surveillance.
+
+\subsubsection{Cloud and DDoS Mitigation Services}
+
+Cloud providers and anti-DDoS platforms increasingly rely on anycast infrastructures to absorb large traffic volumes and provide globally distributed protection services. These architectures allow malicious traffic to be distributed across multiple scrubbing centres.
+
+Nevertheless, the geographic dispersion of these infrastructures complicates the determination of where user traffic is actually processed. In many cases, users and organisations are unaware of the jurisdictions involved in the communication path.
+
+\section{Geographic Location and Internet Measurements}
+
+\subsection{IP Geolocation}
+
+Determining the geographic location of Internet hosts is a long-standing challenge in network research. Existing IP geolocation techniques can generally be classified into database-based approaches and measurement-based approaches.
+
+Database-based systems rely on information collected from RIRs, WHOIS records, commercial datasets, routing announcements, or infrastructure metadata. However, previous works have demonstrated that these databases frequently contain outdated, coarse-grained, or inaccurate information \cite{Ding2015AnSub-networks, Dan2021IPInterpolation, Cozar2022ReliabilityTransfers}.
+
+Measurement-based approaches attempt to infer geographic location through active network measurements such as latency estimation, traceroute analysis, or landmark-based triangulation \cite{Cicalese2015AGeolocation,Cicalese2016Latency-BasedSets,Ciavarrini2018GeolocationBound}. These approaches often provide better accuracy, particularly when estimating the location of distributed infrastructures, at the cost of multiple measurements for every desired result.
+
+The work presented in this thesis builds upon these measurement-based approaches to estimate the geographic destinations of anycast communications. However, anycast introduces additional complexity because the same IP address may correspond to multiple geographically distributed replicas.
+
+\subsection{Traceroute and Path Inference}
+
+Traceroute-based methodologies constitute one of the most widely used techniques for studying Internet routing behaviour. By analysing intermediate routers and round-trip times, traceroute allows researchers to estimate routing paths and infer topological properties of the network.
+
+Nevertheless, traceroute measurements suffer from multiple limitations, including:
+
+\begin{itemize}
+    \item ICMP filtering.
+    \item Asymmetric routing.
+    \item MPLS tunnels.
+    \item Load balancing.
+    \item Hidden routers.
+    \item Dynamic routing changes.
+\end{itemize}
+
+Previous studies have analysed these limitations and proposed techniques to improve path inference accuracy \cite{Dainotti2012IssuesClassification}. In the context of anycast, traceroute measurements become even more challenging because routing paths may dynamically change between measurements, and different replicas may respond with the same destination IP address.
+
+\subsection{Latency-Based Geolocation}
+
+Latency-based geolocation techniques estimate geographic distance from network delay measurements. Since signal propagation speed imposes physical limits on communication latency, Round Trip Time (RTT) measurements can be used to infer approximate geographic regions.
+
+Several works have explored the use of multilateration and landmark-based systems to estimate IP locations \cite{Cicalese2015AGeolocation, Cicalese2016Latency-BasedSets}. More recent approaches incorporate probabilistic models and large-scale measurement infrastructures \cite{Kohls2022VerLoc:Systems, Sommese2020MAnycast2:Anycast}.
+
+This thesis leverages these concepts to estimate the likely geographic destination of anycast communications using distributed probing infrastructures and latency constraints.
+
+\section{Privacy, Data Sovereignty, and International Data Transfers}
+
+\subsection{Privacy Regulations}
+
+Over the last decade, privacy and data protection regulations have become increasingly strict worldwide. Regulations such as the General Data Protection Regulation (GDPR) \cite{REGULATIONSRelevance}, the Data Protection Act \cite{Data2018}, the Australian Privacy Principles \cite{ReadOAIC}, and China's Personal Information Protection Law \cite{TheTranslation} establish obligations regarding transparency, user consent, and international data transfers.
+
+A common aspect shared by these regulations is the requirement that organisations maintain control over where personal data is processed and transferred. In many jurisdictions, transfers to foreign countries are only permitted under specific safeguards, adequacy decisions, or contractual mechanisms.
+
+\hugo{Review this sentence, IA suggested}The Court of Justice of the European Union (CJEU) Schrems II ruling significantly reinforced concerns regarding international data transfers by invalidating the EU-US Privacy Shield framework. This decision increased the importance of understanding where personal data is actually routed and processed.
+
+In parallel, governments and regulatory agencies have progressively emphasised the importance of transparency obligations. Organisations are often required to disclose not only what personal data is collected but also the entities involved in their processing, the purposes of the processing activities, and the countries to which the data may be transferred. However, these transparency requirements implicitly assume that organisations possess sufficient knowledge and control over the geographic behaviour of their infrastructures.
+
+This assumption becomes problematic in highly distributed Internet architectures. Modern services frequently rely on complex chains of providers, including cloud infrastructures, CDNs, anti-DDoS systems, analytics services, and third-party APIs. Many of these systems internally employ anycast routing and globally distributed deployments, making the actual destination of communications highly dynamic and difficult to predict.
+
+Consequently, even organisations operating under strict regulatory frameworks may unintentionally trigger international data transfers that are not accurately reflected in their privacy policies or internal compliance procedures. This situation creates a mismatch between legal expectations regarding geographic control and the operational realities of Internet-scale infrastructures.
+
+\subsection{Data Sovereignty}
+
+Data sovereignty refers to the principle that digital information is subject to the laws and governance structures of the jurisdiction where it is stored or processed. The concept has become increasingly relevant as governments attempt to regulate the flow of digital information across borders and reduce dependence on foreign infrastructures.
+
+Traditionally, data sovereignty discussions focused primarily on storage location. Under this perspective, organisations could maintain geographic control by selecting data centres deployed within specific jurisdictions. However, modern distributed architectures challenge this simplified view because communications and processing operations may dynamically traverse multiple countries, even when the primary infrastructure appears to be regionally constrained.
+
+Anycast infrastructures further complicate this scenario. Since multiple geographically distributed replicas share the same IP address, the geographic destination of a communication may change over time depending on routing dynamics, network conditions, or operational policies. As a result, geographic assumptions based solely on administrative configurations or provider declarations may not accurately represent the actual path followed by user data.
+
+This issue is particularly relevant in environments where legal obligations require strict regionalisation of communications. For example, organisations operating under GDPR may attempt to ensure that European user data remains within the European Economic Area. Nevertheless, if communications are routed through anycast infrastructures operated by globally distributed providers, data may transiently or permanently traverse non-European jurisdictions without explicit awareness from either users or service operators.
+
+Moreover, data sovereignty concerns extend beyond regulatory compliance. Geographic routing decisions may expose communications to different surveillance frameworks, intelligence collection programmes, or national security legislation depending on the countries involved in the communication path. Therefore, understanding where communications are actually routed becomes a fundamental requirement not only for compliance purposes but also for broader privacy and trust considerations.
+
+\subsection{International Data Transfers in Distributed Infrastructures}
+
+International data transfers are inherent to the operation of the modern Internet. Cloud computing platforms, CDN infrastructures, and mobile ecosystems continuously exchange information across multiple geographic regions in order to provide scalability, redundancy, and low latency services. While distributed architectures provide substantial technical benefits, they also complicate the identification of where personal data is processed at any given moment. In practice, communications may involve numerous intermediate entities, including DNS providers, CDN edge servers, authentication platforms, telemetry systems, and advertisement infrastructures.
+
+This complexity is further amplified in mobile environments. Modern applications rarely communicate exclusively with infrastructures controlled by the application developer. Instead, they interact with multiple third-party services integrated through SDKs and TPLs. Each of these external dependencies may independently establish communications with globally distributed infrastructures. As a consequence, a single user action performed within a mobile application may trigger multiple parallel communications involving several countries and service providers. These communications are often opaque to users and difficult to audit from the perspective of developers or organisations.
+
+Several studies have demonstrated that privacy disclosures frequently fail to provide accurate information regarding such complex data-sharing ecosystems \cite{DelAlamo2021PrivacyStudy, DelAlamo2022APolicies}. However, most previous analyses focus on organisational relationships and declared third parties rather than on the actual network-level geographic behaviour of communications.
+
+This thesis extends prior work by analysing international data transfers from a network-layer perspective. Instead of exclusively studying contractual or declarative aspects, this work investigates where communications are physically routed when anycast infrastructures participate in the delivery process.
+
+\subsection{Geographic Transparency Limitations}
+
+\hugo{Include more examples of bad practices.} Current transparency mechanisms are generally insufficient to accurately describe the geographic behaviour of modern distributed systems. Privacy policies commonly provide high-level descriptions, such as "data may be processed in different countries", or list potential processing regions without specifying the technical conditions under which data are routed to each jurisdiction.
+
+From a technical perspective, several factors contribute to this lack of transparency:
+
+\begin{itemize}
+    \item Anycast routing decisions are dynamic and may change in real time.
+    \item Service providers often abstract infrastructure details from customers.
+    \item Third-party ecosystems introduce indirect dependencies unknown to end users.
+    \item CDN and cloud providers continuously optimise traffic flows according to operational objectives.
+    \item Existing geolocation databases are insufficiently accurate for distributed infrastructures.
+\end{itemize}
+
+As a result, organisations may not possess reliable mechanisms to verify whether their communications remain within specific geographic regions. Similarly, users are generally unable to determine the actual jurisdictions involved in the processing of their personal data.
+
+This lack of observability creates an important accountability problem. Regulatory frameworks increasingly require organisations to demonstrate compliance regarding international data transfers; however, current Internet infrastructures provide limited support for verifying geographic routing behaviour.
+
+In this context, the development of methodologies capable of tracing and characterising the geographic destinations of anycast communications becomes essential for improving transparency, accountability, and regulatory compliance in modern Internet ecosystems.
