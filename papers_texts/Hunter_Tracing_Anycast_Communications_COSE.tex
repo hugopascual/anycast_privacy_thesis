@@ -1,0 +1,447 @@
+%% 
+%% Copyright 2007-2020 Elsevier Ltd
+%% 
+%% This file is part of the 'Elsarticle Bundle'.
+%% ---------------------------------------------
+%% 
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.2 of this license or (at your option) any
+%% later version.  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.2 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%% 
+%% The list of all files belonging to the 'Elsarticle Bundle' is
+%% given in the file `manifest.txt'.
+%% 
+
+%% Template article for Elsevier's document class `elsarticle'
+%% with numbered style bibliographic references
+%% SP 2008/03/01
+%%
+%% 
+%%
+%% $Id: elsarticle-template-num.tex 190 2020-11-23 11:12:32Z rishi $
+%%
+%%
+\documentclass[preprint,12pt]{elsarticle}
+%\documentclass[final,1p,times,twocolumn]{elsarticle}
+
+%% Use the option review to obtain double line spacing
+%% \documentclass[authoryear,preprint,review,12pt]{elsarticle}
+
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn]{elsarticle}
+%% \documentclass[final,3p,times]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn]{elsarticle}
+%% \documentclass[final,5p,times]{elsarticle}
+%% \documentclass[final,5p,times,twocolumn]{elsarticle}
+
+%% For including figures, graphicx.sty has been loaded in
+%% elsarticle.cls. If you prefer to use the old commands
+%% please give \usepackage{epsfig}
+
+%% The amssymb package provides various useful mathematical symbols
+\usepackage{amssymb}
+%% The amsthm package provides extended theorem environments
+%% \usepackage{amsthm}
+\usepackage{hyperref}
+
+%% The lineno packages adds line numbers. Start line numbering with
+%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
+%% for the whole article with \linenumbers.
+%% \usepackage{lineno}
+
+\journal{Computers and Security}
+
+\begin{document}
+
+\begin{frontmatter}
+
+%% Title, authors and addresses
+
+%% use the tnoteref command within \title for footnotes;
+%% use the tnotetext command for theassociated footnote;
+%% use the fnref command within \author or \address for footnotes;
+%% use the fntext command for theassociated footnote;
+%% use the corref command within \author for corresponding author footnotes;
+%% use the cortext command for theassociated footnote;
+%% use the ead command for the email address,
+%% and the form \ead[url] for the home page:
+%% \title{Title\tnoteref{label1}}
+%% \tnotetext[label1]{}
+%% \author{Name\corref{cor1}\fnref{label2}}
+%% \ead{email address}
+%% \ead[url]{home page}
+%% \fntext[label2]{}
+%% \cortext[cor1]{}
+%% \affiliation{organization={},
+%%             addressline={},
+%%             city={},
+%%             postcode={},
+%%             state={},
+%%             country={}}
+%% \fntext[label3]{}
+
+\title{Hunter: Tracing anycast communications to uncover cross-border personal data transfers}
+
+%% use optional labels to link authors explicitly to addresses:
+%% \author[label1,label2]{}
+%% \affiliation[label1]{organization={},
+%%             addressline={},
+%%             city={},
+%%             postcode={},
+%%             state={},
+%%             country={}}
+%%
+%% \affiliation[label2]{organization={},
+%%             addressline={},
+%%             city={},
+%%             postcode={},
+%%             state={},
+%%             country={}}
+
+\author{Hugo Pascual}
+\author{Jose M. del Alamo\corref{cor1}}
+\ead{jm.delalamo@upm.es}
+\cortext[cor1]{Corresponding author}
+\author{David Rodriguez}
+\author{Juan C. Dueñas}
+
+
+\affiliation{organization={ETSI Telecomunicación, Universidad Politécnica de Madrid},%Department and Organization
+            addressline={Avenida Complutense 30}, 
+            city={Madrid},
+            postcode={28040}, 
+            country={Spain}}
+
+\begin{abstract}
+Cross-border personal data transfers are heavily regulated worldwide, with data protection authorities imposing huge fines on organizations that fail to meet their strict compliance requirements. However, network-level optimizations such as anycast addresses were not designed with personal data in mind, and their use may unwittingly divert personal data out of a legal boundary. This paper describes Hunter, an automated method to trace anycast communications and identify those threatening data protection compliance. We have applied Hunter in the wild to a set of Android apps to discover that all apps observed sending personal data to anycast addresses eventually carry out international transfers but fail to disclose them in their privacy policies. Our findings suggest that using anycast addresses to transmit personal data generally results in data protection compliance issues.
+\end{abstract}
+
+%%Graphical abstract
+%\begin{graphicalabstract}
+%\includegraphics{grabs}
+%\end{graphicalabstract}
+
+%%Research highlights
+%\begin{highlights}
+%\item Research highlight 1
+%\item Research highlight 2
+%\end{highlights}
+
+\begin{keyword}
+%% keywords here, in the form: keyword \sep keyword
+Personal data \sep 
+Data protection \sep 
+International transfers \sep 
+Traceability \sep 
+IP geolocation \sep 
+Anycast \sep
+Transparency \sep
+Privacy \sep
+GDPR \sep
+Compliance \sep
+%% PACS codes here, in the form: \PACS code \sep code
+
+%% MSC codes here, in the form: \MSC code \sep code
+%% or \MSC[2008] code \sep code (2000 is the default)
+
+\end{keyword}
+
+\end{frontmatter}
+
+%% \linenumbers
+
+%% main text
+\section{Introduction}
+Today's information systems are highly distributed and offer the opportunity to develop global services and products. Companies from any country can easily offer their digital services to users worldwide \cite{Razaghpanah2018AppsEcosystem}. This widespread distribution is supported by various Internet technologies and network traffic optimizations, such as anycast routing \cite{Abley2006OperationServices, McPherson2014ArchitecturalAnycast}. 
+
+Anycast routing enables global organizations to bring their services closer to their users by having different servers worldwide sharing the same IP address (also known as anycast address). The packets sent to an anycast address only reach one of the servers but not the others. The server receiving the packets will be the closest according to the network's decision, which depends on the network topology and congestion status, thus reducing the service latency and improving availability. Anycast routing is amply used in well-known online services such as Domain Name Servers (DNS) and Content Delivery Networks (CDNs), which deliver faster responses to their users due to the servers' proximity (in network terms). DNS is the global service that translates Internet domain names into IP addresses the network can route. It keeps copies of the domain name-IP address mapping distributed worldwide to improve its resilience and provide faster access to the service. In turn, CDNs speed up web page loading by keeping copies of web resources at many different locations worldwide. 
+
+While anycast routing greatly enhances global online service delivery, it may also threaten data protection rights if used for transferring personal data. By sending the personal data to an anycast address, it will get to the closest server, wherever it is located. Thus, the data can get to a different country, potentially governed by different data protection laws with varying levels of protection to the users' rights, thus putting the data subject's privacy at risk. For example, recent data protection authorities decisions in the European Union (e.g., \cite{EuropeanDataProtectionSupervisor2020DecisionEDPS}) have banned Google Analytics since by transferring European citizens’ data to the United States “the essentially equivalent level of protection for the transferred data is not effectively ensured.”
+
+Indeed, different data protection laws set strict requirements for cross-border personal data transfers. In the European Economic Area\footnote{The EEA includes the 27 EU countries and Iceland, Liechtenstein, and Norway.} (EEA), the General Data Protection Regulation (GDPR) \cite{REGULATIONSRelevance} set requirements for personal data transfers outside the EEA borders (also named international transfers). The Data Protection Act \cite{Data2018} in the United Kingdom, the Personal Information Protection Law (PIPL) \cite{MainlandsLaw} in China, and the Privacy Act \cite{Act1988} in Australia, among many other data protection laws around the world, set similar constraints. At a minimum, these regulations mandate the data controller (the organization collecting the personal data) to inform the data subjects about international transfers transparently. For example, the GDPR requires (Art. 13-1.f) data controllers to \textit{"provide the data subject with all of the following information: [...] the fact that the controller intends to transfer personal data to a third country"} i.e., data controllers must disclose in their privacy policies their intention to carry out cross-border personal data transfers and their destination.
+
+Methods and tools already exist to assess personal data flow compliance with legal requirements, as explained in Section 2. This research area is based on the contextual integrity paradigm \cite{Nissenbaum2004PrivacyIntegrity}, which aims to determine whether a personal data flow is appropriate within a specific context \cite{Henriksen-Bulmer2019PrivacyIntegrity}. Usually, researchers determine the suitability of personal data flows by referring to relevant regulations such as GDPR (e.g., \cite{Jia2019WhoCompliance}) or to the privacy policies of the system under analysis (e.g., \cite{Lin2022PrivacyPolicies}).
+
+Nevertheless, assessing whether anycast flows meet legal requirements poses its challenges. First, the location of the specific anycast instance receiving the personal data must be determined. Second, this location must be checked against the information the data controller discloses in its privacy policy to find discrepancies that may flag compliance issues. Finally, all these steps must be automated so that supervisory authorities and other relevant stakeholders can use them to cope with the large number of systems to analyze. As stated by the European Union Agency For Network and Information Security (ENISA), \textit{“there is a need for tools to test, verify and audit existing apps, libraries, and services”} \cite{EuropeanUnion.AgencyforNetworkandInformationSecurity.PrivacyGDPR.}.
+
+We have developed Hunter to address these challenges. Hunter is a method to trace anycast communications and flag those threatening data protection compliance. We adopted the Design Science research paradigm \cite{Hevner2004DesignResearch} to implement and evaluate this innovative solution iteratively. We automated the method to allow assessing a large number of systems at scale. 
+
+Hunter improves the related work by dealing with anycast communications. It leverages our prior work on GDPR compliance assessment for international data transfers \cite{Guaman2023AutomatedApplications} and further extends it with an automated approach to locate the destination of anycast communications with 97.67\% precision and 78.09\% accuracy.
+
+Our research contributes to the field of privacy engineering and benefits various stakeholders. For example, supervisory authorities and data controllers can leverage Hunter to assess the privacy practices of different systems. In fact, to demonstrate its applicability, we applied Hunter to a set of Android apps that use anycast communications to transfer personal data. Our findings are concerning: Using anycast addresses for personal data transmission results in data protection compliance issues. 
+
+The remaining of the article is organized as follows. Section 2 reviews previous works on GDPR compliance assessment, focusing on geolocating the destination of anycast communications. Section 3 describes the research methodology we have observed. Section 4 presents the Hunter method and its validation results. Section 5 demonstrates Hunter's usefulness by assessing a set of Google Play Store apps. Finally, Section 6 draws the overall conclusions.
+
+\section{Related Work}\label{sec:RelatedWork}
+To automatically assess the compliance of personal data flows over anycast communications with legal requirements, the data flows need to be identified and their destination geolocated, and this information must be checked against the privacy policy governing the source system.
+
+Different approaches have been developed in the field of privacy policy analysis \cite{DelAlamo2022APolicies}. These approaches mainly rely on annotated corpora, i.e., structured annotations of privacy practices assigned to policy statements. Several corpora have been developed for this purpose, such as those released by the Usable Privacy project at Carnegie Mellon University \footnote{Usable Privacy Policy Project: \url{https://usableprivacy.org/data} [Accessed: 30-10-2023]}. These corpora serve as a ground truth for building automatic classification models. For instance, \cite{Lin2022PrivacyPolicies} proposed a method for auditing website compliance with GDPR transparency requirements, and  \cite{Guaman2023AutomatedApplications} proposed a method for extracting international transfer disclosures from privacy policies, which we utilize in this work to achieve our objectives.
+
+Personal data flow identification has also been the subject of previous research, leveraging static, dynamic, or hybrid techniques \cite{DelAlamo2021PrivacyStudy}. Static analysis techniques analyze any readable representation of the system under analysis, such as the program source code. Dynamic analysis techniques execute the system to observe its real behavior. Hybrid approaches combine static and dynamic techniques. For example, to identify specific systems through static analysis to focus on the dynamic analysis. Similar to previous work \cite{Guaman2023AutomatedApplications, Lin2022PrivacyPolicies}, we leveraged dynamic analysis techniques to intercept and identify personal data flows while minimizing the false-negative rate. However, unlike them, our focus is not only on identifying personal data flows but also on accurately determining the location of these communications destinations to flag discrepancies with the system privacy policy. 
+
+The geolocation of the destination of network communications is a research challenge partially addressed by previous work. Particularly, the geolocation of unicast IP addresses (those assigned to only one equipment in the network) has been addressed by previous studies \cite{Dan2021IPInterpolation, Ciavarrini2018GeolocationBound, Kohls2022VerLoc:Systems}. These previous works apply multilateration techniques, where at least three vantage points (sometimes referred to as probes) whose location is known in advance perform network measurements to understand the distance to the target point, using network measurement tools such as the ping tool \footnote{Ping tool Linux man page: \url{https://linux.die.net/man/8/ping} [Accessed: 30-10-2023]}. Ping measures RTTs (Round Trip Times), i.e., how long it takes for a network message to go to and return from a server using a given IP address. The RTTs to the target IP are analyzed, and taking into account the limitations imposed by the transmission speed, an area where the equipment with this IP address is located is determined.
+
+Unfortunately, geolocating the destination of anycast communications is a tougher challenge. Since multiple servers (anycast instances) worldwide share the same IP address, the previous methodologies are invalid, as the probes may unknowingly get an answer from different instances. Commercial databases, in this case, offer little help since they only return one location for a given IP, and this is not even consistent between databases \cite{Cozar2022ReliabilityTransfers}. Only the IPinfo service \footnote{IPInfo website: \url{https://ipinfo.io/} [Accessed: 30-10-2023]} has been found to return information enough to make this differentiation, although it still returns one single location for an anycast address (probably the closest to the IPInfo's servers).
+
+A few previous works have dealt with the geolocation of anycast addresses \cite{Sommese2020MAnycast2:Anycast}, \cite{Cicalese2015AGeolocation}, and RIPE IPmap \footnote{RIPE IPmap home page: \url{https://ipmap.ripe.net/} [Accessed: 30-10-2023]}. MAnycast2 \cite{Sommese2020MAnycast2:Anycast} is a project focused on performing complete censuses of all IP addresses to find those that are anycast. iGreedy \cite{Cicalese2015AGeolocation} is an open-source tool that determines if a given IP address is anycast and, if so, locates all the servers that share this IP address. The European IP Networks Coordination Center (RIPE) also provides an online tool, RIPE IPmap, for IP geolocation that informs when an IP address has many locations and classifies it as anycast. All these tools are useful for identifying anycast addresses and learning their servers' location. Yet, they cannot determine the server's location reached by a specific communication. In other words, these tools provide a list of anycast instances' locations worldwide but do not provide any support in determining which instance is getting the network packets sent from a given equipment, as this depends on the network congestion status. 
+
+Tracing anycast communications to locate their destinations is a novel problem to solve to assess the compliance of anycast communications with GDPR requirements for international transfers\footnote{Passing data through routers located outside the EEA is not a violation of the GDPR as long as the data is encrypted and the intermediate routers cannot decipher the contents.}. Some techniques used for geolocation of unicast addresses are useful to that end. Specifically, the traceroute tool \footnote{Traceroute tool Linux man page: \url{https://linux.die.net/man/8/traceroute} [Accessed: 30-10-2023]} finds the path followed by network packets on its way to their destination, along with the RTTs to each hop in the route. The use of traceroute in combination with other techniques has already been explored in IP unicast address geolocation with good results \cite{Dan2021IPInterpolation, Ciavarrini2018GeolocationBound, Cicalese2016Latency-BasedSets}. However, to the best of our knowledge, these previous studies have not determined the location of the server receiving a given anycast communication. As a result, this is the first study analyzing the risks posed by anycast addresses to GDPR compliance.
+
+\section{Research Methodology}
+We developed Hunter following the Design Science research methodology \cite{Hevner2004DesignResearch}, which guides the iterative development of artifacts such as the Hunter method through a set of phases.
+
+\subsection{Phase 1: Problem Definition}
+As part of our previous work in the domain \cite{Guaman2021GDPRApps, Guaman2023AutomatedApplications}, we have observed that cross-border personal data transfers are a source of risk for compliance with data protection laws. However, finding the geolocation of the destination of some data transfers demonstrated cumbersome, as different IP geolocation databases output different results (if any) when asked about anycast addresses. Still, organizations such as the EU Agency for Cybersecurity (ENISA) warn of the need for supervisory authorities to have adequate and sufficient tools and methods to carry out their supervisory work \cite{EuropeanUnion.AgencyforNetworkandInformationSecurity.PrivacyGDPR.}. As a result, the compliance assessment for personal data transfers to anycast addresses was identified as a timely, relevant, and unresolved problem. 
+
+Thus, a method capable of obtaining the location of the destination of personal data transfers to anycast addresses is needed. This information would be very useful for data protection supervisors and organizations using anycast addresses to detect communications that threaten data protection compliance.
+
+\subsection{Phase 2: State of the art study}
+Having identified the need for the method and its usefulness to different stakeholders, we investigated previous work on the topic. As detailed in Section \ref{sec:RelatedWork}, the closest related work focused on classifying a given IP address as anycast or unicast and geolocating the different anycast instances distributed worldwide. Therefore, tracing the destination of an anycast communication remained unsolved, and a completely new development was needed.
+
+\subsection{Phase 3: Development Strategy}
+We focused on developing a method to trace the destination of communications to anycast addresses.
+
+Although this problem has not been solved for anycast addresses, it shares characteristics with the trilateration approach to geolocate unicast addresses \cite{Dan2021IPInterpolation, Ciavarrini2018GeolocationBound, Kohls2022VerLoc:Systems} i.e., pinpointing a location by measuring its distance to three or more reference points. Among the techniques we rely on, it is worth mentioning the use of the traceroute tool that provides information on the routers the network packets traverse in their path to the destination, the ping tool to obtain travel times of packets in the network and then compute the distance between the source and the destination, and the modeling of the propagation speed of packets on the Internet.
+
+Combining all of them and our previous knowledge of the operation of the networks and their protocols, we designed a method capable of performing anycast tracing and geolocation. This method can geolocate the destination of a communication to an anycast address at the city level.
+
+\subsection{Phase 4: Iterative development}
+As part of the iterative development, incremental improvements were introduced and validated. For example, we tried different configurations for the distribution and number of vantage points we use, to find a right trade-off between precision and computing time. Also, we tried different propagation speed models for the network packets to improve the method's accuracy. At the end of the process, we validated Hunter's final version against a known ground truth to assess its performance.
+
+\subsection{Phase 5: Revision}
+Once Hunter's performance had been verified against a known ground truth, it was applied in the wild to demonstrate its usefulness. This evaluation, in addition to providing results on the dimension of the compliance issue at hand, gives us an idea of the solution's scalability.
+
+\subsection{Phase 6: Transfer}
+The implementation of transfer media requires the publication of the results obtained and the method used so that it can be consulted by the appropriate audience, such as other researchers, developers, or supervisory authorities. First, access to the results obtained from our experiments is facilitated by publishing them as open-source code\footnote{\url{https://github.com/STRAST-UPM/Hunter_UPM}} and open data\footnote{\url{https://doi.org/10.17632/ggnfwf5gw8}}. The code allows geolocating the destination of packets sent to IPv4 or IPv6 anycast addresses. The data includes details on 197 applications analyzed in our experiment (c.f. Section \ref{sec:Evaluation}) and their privacy policies, the 42 anycast IP addresses identified, and the destinations obtained in each case. This data could be used in further investigations to increase knowledge in the field. Second, the method will be transferred to an online platform under development so stakeholders can use it to check the results obtained in each case. Finally, the results obtained will be communicated to the Spanish Data Protection Authority as our findings suggest there are relevant but still unknown data protection compliance issues at scale.
+
+\section{Hunter: Anycast tracing and location}
+Hunter is an automated method to trace anycast communications and geolocate their destinations. In its simplest form, it takes the IPv4 or IPv6 anycast address of the destination as input. The method consists of 3 steps that are carried out sequentially. First, it traces the network packets to find their route to the destination, particularly their last hop, before reaching the final destination. Second, it performs multilateration from several vantage points closer to the last hop to find an area where the destination is located. Third, it determines the country the area belongs to. Hunter outputs the country where the destination server is or Indeterminate if a valid result cannot be obtained. We detail each step in the following sections.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/hunter_steps_v2.png}
+    \caption{Hunter steps to determine the destination country for anycast communications.}
+    \label{fig:flow_hunter}
+\end{figure}
+
+\subsection{Anycast tracing}\label{sec:AnycastTracing}
+This step geolocates the last hop in the path followed by the network packets' route to the destination. To this end, the traceroute tool is used to obtain the network hops (routers traversed by the packets) as shown in Figure \ref{fig:flow_hunter} (left).
+
+The traceroute tool sends three separate signal packets to the destination, which may or may not follow the same route to the destination, depending on the network conditions. Thus, we have identified different situations for the traceroute results.
+
+First, the signal packets may get to their destination in a different number of hops: As the packets may follow different routes, some may get to the destination sooner (using fewer hops) than others. However, the traceroute tool stops sending signal packets when it receives the first answer from the destination, and if some routes have not reached the destination by that time, then the tool will not show their remaining hops. We decided to discard the uncompleted routes in a trace and retain only those getting to the destination. Our experimental results show that this decision yields less Indeterminate results (accuracy increased by 10.62\%) while few errors are introduced (precision decreased by 1.1\%).
+
+Second, as signal packets may follow different routes, their last hop might be different, too, even though their destination IP address is the same. This might be because they get to the same anycast instance from different routers (following different routes) or even because they are actually getting to different anycast instances (geographically distant). We decided to retain only one (the first) router IP address for further analysis, as our experimental results showed a great improvement in accuracy (+32\%) with very few errors introduced (precision decreased by 1.5\%).
+
+Finally, the traceroute tool may not get any answer from the routers involved (routers can be configured not to answer traceroute requests), thus making it impossible to determine the last hop. In these cases, Hunter outputs an Indeterminate result.
+
+Once the IP address of the last hop is obtained, it is geolocated to obtain the closest possible location to the destination. This location is used in the next step of the method.
+
+\subsection{Multilateration}
+A few vantage points are randomly selected from those within a given distance from the last hop location. The vantage points are selected from all the available probes offered by RIPE Atlas \footnote{RIPE Atlas home: \url{https://atlas.ripe.net/} [Accessed: 30-10-2023]}. The RIPE probes IDs used in every measurement are available in the replication package. Details on a given probe can be obtained via an API request to \url{https://atlas.ripe.net/api/v2/probes/<probe_id>/} or the RIPE Atlas web (\url{https://atlas.ripe.net/probes/public}).
+
+A measurement is made with the ping tool to the destination IP address to obtain the round trip time (RTT) from each RIPE Atlas probe. Knowing the location of the probes (as this information is available for each RIPE Atlas probe), the RTT to get the destination from each probe, and the propagation speed of the packets, the maximum distance traveled by each packet can be computed. As in many previous studies, we started by using the speed of light in optical fiber as a threshold for the propagation speed. However, a recent empirical study has offered a more realistic propagation model \cite{Kohls2022VerLoc:Systems}, which accounts for different network delays. We have leveraged this propagation model to improve Hunter's performance while keeping its accuracy.
+
+A circumference can be built for each probe, as we know their location and the maximum distance traveled by the packets they send to the destination. The destination server should be within the circumferences’ overlapping area. Still, far-away probes may send their packets to different anycast instances, resulting in non-overlapping circumferences. In such rare cases, Hunter would be unable to continue its execution, and the output would be Indeterminate.
+
+Hunter allows setting the number of probes to be used and their maximum distance to the last hop. In contexts where the transmission speed is known, three probes would be enough to geolocate a target, i.e., trilateration. However, we can only set an upper boundary to the transmission speed, and thus, we use several probes to improve the accuracy of the location. Using more probes generally results in smaller overlapping areas but at the cost of computing time (to set up the probes, run the measurements, and get the results). Using larger distances when selecting the probes also reduces the overlapping areas, up to a point when far-away probes send their packets to a different anycast instance closer than the targeted one. Our empirical results show that using 7 probes and a distance of 20 kilometers provides a better trade-off between performance and accuracy.
+
+\subsection{Country determination}
+Once the overlapping area of the circumferences has been obtained, an analysis is performed to establish the city and the country where the destination server is located. 
+
+Anycast IP addresses are used in online services to distribute the load among several distant locations and improve response times, and for this reason, they are usually located near urban centers. With this in mind and inspired by previous work in the field \cite{Cicalese2016Latency-BasedSets}, we used a list of the world's main airports as approximate locations of the cities where the different anycast instances can be found. This argument is reinforced, e.g., by CDNs such as Cloudflare using the IATA code of the nearest airport as an identifier of the city where a given server is located.
+
+Hunter's analysis begins by searching for airports within the overlapping area. When performing this search, there are three possible results: no airport in the area, one single airport in the area, or several airports in the area. In the first case, the centroid of the overlapping area is calculated, and the closest airport to that point is used as a reference airport.
+
+For each airport found, the associated cities and corresponding countries are retrieved. In scenarios with only one airport, there will be only one city and one country, which will be Hunter output. If multiple airports are obtained, then the associated countries are checked. If all airports belong to the same country, this will be the final result. Otherwise, the result will be \textit{Indeterminate}.
+
+\subsection{Validation}
+We have used two anycast IP addresses of the Cloudflare CDN to validate Hunter. The HTTP responses from these IP addresses include a header (CF-RAY)  with the IATA code that identifies the closest airport to the server, thus revealing its location. The first address (192.5.5.241) belongs to a DNS service, and the second one (104.16.123.96) serves Cloudflare's official website.
+
+The tests executed Hunter using the two chosen addresses as the destination. Right before executing Hunter, an HTTP request was made to the destination to compare Hunter's output with the actual destination. This obtained the ground truth to assess Hunter's output.
+
+Since our final goal is to check compliance with the GDPR requirements for international transfers of personal data, we have carried out the tests from nearly all European Economic Area (EEA) countries. To this end, we used a Virtual Private Network (VPN) service to simulate our location (communication source). In particular, each validation with the two destination addresses has been executed from each country belonging to the EEA, except for Liechtenstein, due to the VPN not providing an exit node in that country.
+
+For the assessment, we compared the location of the target server obtained with Hunter and the location declared by the target server in the HTTP request headers. We can obtain 3 possible results: Indeterminate, Positive and Negative. Indeterminate when the method encounters one situation that prevents it from advancing as described in previous sections; Positive if Hunter output equals the one declared by the server; and Negative if Hunter output is different from the one declared by the server. 
+
+Hunter achieves a noteworthy 97.67\% precision and 78.09\% accuracy in determining the destination location. The precision is defined as the ratio between the number of Positives and the sum of Positives and Negatives obtained. The accuracy is defined as the ratio between the number of Positives and the total number of results obtained in that test, whether Positive, Negative, or Indeterminate. These results show Hunter's reliability in identifying the target country of anycast communications.
+
+Building upon Hunter's evaluation, we conducted a comparative analysis with a straightforward approach to anycast location identification, which involves geolocating the IP of the last hop using the IPinfo service. The evaluation of the straightforward approach indicates it can identify more countries (+0.44\%) at the cost of increasing the Negative results (+13.72\%). We aim to assess legal compliance, so we should favor soundness over completeness. Thus, Hunter identifies cross-border transfers while minimizing the occurrence of erroneous identifications, assuming that it may occasionally lead to the omission of certain transfers in favor of ensuring reliability.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/validation_flows.png}
+    \caption{Data flows obtained during Hunter validation (in red, flows crossing the EEA borders) with target 192.5.5.241.}
+    \label{fig:validation_flows}
+\end{figure}
+
+The data flows captured during Hunter validation show many destinations outside the EEA. As shown in Figure \ref{fig:validation_flows}, the non-EEA destination countries for the IP address 192.5.5.241 are the United Kingdom, Switzerland, Moldova, and Russia. We have observed three patterns for these communications: recurrent, frequent, and episodic. Recurrent cross-border data transfers can be seen in countries such as Spain or Iceland, where all the communications to the target address have the United Kingdom as the destination. Frequent cross-border communications are seen, e.g., in Finland, where the destinations are equally distributed between Sweden and Russia. Finally, we observed episodic communications from Italy to Switzerland and from Sweden to the United Kingdom. This indicates that the destination can vary significantly due to the punctual state of the network at the time of the communication. 
+
+Analyzing in detail the Negative results for each origin country, we found that 94.12\% of the Negative results (48 out of 51) were concentrated in Norway and Finland, with an accuracy of 50.72\% and 80.28\%, respectively. However, we also observed that systematically repeating the measurements over time solved this problem. Indeed, Hunter achieves absolute (100\%) accuracy if, when applied over a period of time, only those results with sufficient statistical significance are marked as valid. Our empirical results show that when a country appears in the results over 5\% of times, it can be considered a valid result.
+
+\section{Evaluation} \label{sec:Evaluation}
+
+Hunter traces communications to anycast IP addresses and locates the destination country. This section demonstrates its application to the mobile ecosystem to identify those apps that eventually fail to meet the GDPR requirements for cross-border personal data transfers due to anycast communications. We first detail our experimental setting and then explain our results.
+
+\subsection{Experimental environment}
+
+To identify the anycast connections sending personal data off-device, we have leveraged a platform presented in our previous work \cite{Guaman2023AutomatedApplications}. The platform carries out automated analysis of Android apps, collecting their metadata, including their privacy policy if available, and carrying out a dynamic analysis to observe the app behavior at runtime.
+
+The dynamic analysis performed by the platform works as follows. First, Android apps are downloaded from the Google Play Store and installed on real Xiaomi Redmi 10 devices. Then, an automated interaction with apps triggers network connections. Those network connections are intercepted, and their content is analyzed, looking for personal data. Finally, the details of the connections are logged in a database along with other valuable information, such as the target domain and IP address.
+
+We departed from 3,622 random applications available at the Google Play Store. After carrying out the dynamic analysis, we identified personal data transfers in 1,106 apps, with a subset of 197 apps sending the personal data to 42 different anycast addresses. Our analysis is focused on these 197 apps and 42 anycast addresses.
+
+Hunter was used to trace the personal data transfers to the 42 anycast addresses and identify their destination location. Mirroring our validation approach, a VPN service was employed to emulate the communication source from 29 out of the 30 EEA countries, with Liechtenstein being the sole exception. The process was repeated eight times between the 12th and the 31st of August 2023, so the set of countries detected for every IP direction could be validated by applying the statistical significance criteria described in section 4.4.
+
+Using a VPN allows us to create an IP tunnel between our computer and a server in another country. Thus, we can perform measurements as if we were in that country. Using a VPN only affects the traceroute by adding an extra hop at the beginning of the communication and, therefore, does not affect the final result. In addition, we have chosen a VPN that ensures the use of physical servers in the selected countries.
+
+Finally, we compared Hunter's results with the practices declared in the apps’ privacy policy to understand potential compliance issues to find inconsistencies. The measures taken to verify the destination countries of communications are important, but they do not in themselves demonstrate a GDPR issue. To identify potential compliance issues, we analyzed the privacy policies of the different applications where we observed cross-border personal data transfers. Leveraging previous work in the domain \cite{Guaman2023AutomatedApplications}, we obtained mentions of international transfers of personal data in the apps’ policies and the countries mentioned as possible destinations, among other data. Crossing this information with that of the destination countries, we detected discrepancies that may lead to compliance issues.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/downloads_distribution.png}
+    \caption{Analyzed applications downloads distribution.}
+    \label{apps_distribution}
+\end{figure}
+
+\subsection{Results}
+
+We applied Hunter to trace the communications to the 42 anycast IP addresses from 29 of the 30 EEA countries on 8 different days. We could not assess 9 of these anycast addresses as they do not respond to traceroute requests. Thus, we provide our results for the remaining 33 anycast addresses. These 33 anycast addresses are used by 135 of the 197 apps analyzed.
+
+All the anycast addresses we could analyze are involved in cross-border personal data transfers, i.e., a communication to these addresses from an EEA country ends in a non-EEA country. Indeed, all 33 anycast addresses in our dataset are eventually the destination of a cross-border personal data transfer as they offer instances in countries outside the EEA that are the destination of personal data transfers initiated in an EEA country. The cross-border personal data transfers occur from Iceland to the United Kingdom (33 transfers), from Germany to Switzerland (17 transfers), from Lithuania to Ukraine (6 transfers), and from Finland and Estonia to Russia (5 transfers).
+
+The case of Iceland is particularly relevant, as all the communications to anycast addresses from this EEA country have the United Kingdom as the destination. Thus, Iceland is a source of cross-border personal data transfers when anycast addresses are involved.
+
+Our dynamic analysis captured the domain names behind the 33 anycast addresses. After analyzing them and checking their owners \cite{Rodriguez2023ROI:Data}, we obtained 19 different organizations. Table \ref{tab:destinations_by_organization} presents the non-EEA destination countries detected for every organization identified, and the related domain names and IP addresses.
+
+\begin{table}
+    \resizebox{\textwidth}{!}{
+        \centering
+        \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+            Organization & United Kingdom & Switzerland & Ukraine & Russia & IP directions \\
+        \hline
+            SmartBear Software Inc. (bugsnag.com) & X & & & & 35.186.205.6, 35.190.88.7\\
+        \hline
+            OneSignal (onesignal.com) & X & & & & 104.18.214.59 \\
+        \hline
+            Sentry (sentry.io) & X & X & & & 34.120.195.249 \\
+        \hline
+            Unity Technologies (unity3d.com) & X & X & & & 34.110.229.214, 35.244.205.3\\
+        \hline
+            Mixpanel, Inc.’s (mixpanel.com) & X & X & & & 107.178.240.159, 35.190.25.25, 130.211.34.183 \\
+        \hline
+            Appodeal Inc. (appbaqend.com) & X & & & X & 104.17.72.8 \\
+        \hline
+            Sift Science, Inc. (siftscience.com) & X & X & & & 35.244.208.123 \\
+        \hline
+            Airship (urbanairship.com) & X & X & & & 35.244.184.98 \\
+        \hline
+            Adapty Tech Inc. (adapty.io) & X & & & & 104.18.24.110 \\
+        \hline
+            Chartboost, Inc. (chartboost.com) & X & X & & & 34.107.157.36 \\
+        \hline
+            Leanplum (leanplum.com) & X & X & & & 34.102.193.164 \\
+        \hline
+            Outfit7 Limited (outfit7.com) & X & X & & & 34.102.158.154, 34.117.130.179 \\
+        \hline
+            Rollbar (rollbar.com) & X & X & & & 35.201.81.77 \\
+        \hline
+            Como AI Malta Limited (como.com) & X & X & & & 34.117.226.210 \\
+        \hline
+            AppLovin (applovin.com) & X & X & & & 34.110.179.88 \\
+        \hline
+            TakeTours (taketours.com) & X & & X & & 104.26.5.9, 172.67.71.130 \\
+        \hline
+            Altegio Limited (alteg.io) & X & & & X & 104.22.14.116 \\
+        \hline
+            WonderPush (wonderpush.com) & X & X & & & 130.211.45.215 \\
+        \hline
+            The Toothpick Services (toothpickapp.com) & X & X & & & 104.21.40.79, 172.67.181.120\\
+        \hline
+        \end{tabular}
+    }
+    \caption{Organizations, domains under their control, and anycast addresses receiving cross-border personal data transfers at different non-EEA countries.}
+    \label{tab:destinations_by_organization}
+\end{table}
+
+Our dynamic analysis also differentiates if the communication was triggered during the app launch (i.e., the user has not interacted with the app yet) or as a result of the user interaction. An analysis of these data shows that cross-border personal data transfers were detected in 117 applications at launch time and 88 applications during the interactive phase (some apps carried out data transfers in both phases). It is worth noting that most of the applications that perform cross-border transfers (86.66\%) do so during the non-interactive phase, so the user doesn't need to interact with the application for them to occur, only to execute it.
+
+We used natural language processing techniques to analyze the privacy policies of 121 of the 135 applications with detected cross-border transfers of personal data. We could not retrieve the privacy policy of the remaining 14 applications, which might flag a GDPR compliance issue. For the remaining, our analysis determined that none of the 121 applications properly disclose cross-border personal data transfers in their privacy policy. Among them, only 52 applications mention cross-border transfers in their privacy policy, and only a subset of 31 apps disclose some destination countries. Still, none discloses the countries we observed as destinations for personal data transfers. 
+
+Interestingly, a few organizations receive data from many apps. The largest aggregator is SmartBear Software Inc. \footnote{SmartBear Software Inc. website: \url{https://smartbear.com/} [Accessed: 30-10-2023]}, receiving cross-border personal data transfers from nearly half (n=58) of the apps in our dataset. This company provides software for application performance monitoring, testing, and deployment of APIs with various paid tools and free software. The second and third largest receivers are OneSignal and Sentry, which receive data from 19 and 12 applications. OneSignal \footnote{OneSignal website: \url{https://onesignal.com/} [Accessed: 30-10-2023]} is a service that offers multiplatform and multichannel push communications with users. Sentry \footnote{Sentry website: \url{https://sentry.io/welcome/} [Accessed: 30-10-2023]} is a company that specializes in performance monitoring and error tracking.
+
+Among the 121 apps showing potential GDPR compliance issues, there are three relevant examples, namely, "com.outfit7.mytalkingangelafree" with more than 500 million downloads, "com.kawaii.craft.world" with more than 10 million downloads, and "com.sticksports.spl" with more than 10 million downloads. All of them are video games that are clearly aimed at a child audience due to their aesthetics and theme. The three applications transfer personal data across EEA borders before any user interaction, meaning personal data is sent by merely launching the application. According to our analysis, these apps send personal data, including device features and persistent identifiers, to five different IP addresses whose domains belong to four different organizations.
+
+The three apps fail to disclose the international transfers properly. Only "com.outfit7.mytalkingangelafree" discloses cross-border transfers in its privacy policy, although it does not specify any destination country. The sole mention of the intention to carry out international transfers is insufficient to meet GDPR requirements (Art. 13.1(f)), as the destination countries must be disclosed too. However, as for our observations, "com.outfit7.mytalkingangelafree" and "com.sticksports.spl" transfer personal data from Germany to Switzerland, and from Iceland to the United Kingdom, and "com.kawaii.craft.world" carry out transfers from Iceland to the United Kingdom, and from Finland to Russia.
+
+\section{Threats to validity}
+\subsection{Construct Validity}
+The traceroute tool presents non-ideal situations, such as slightly different routes for each probe packet sent or having incomplete routes to the destination. We have discussed the different scenarios and how we dealt with them in Section \ref{sec:AnycastTracing}. Although the traceroute behavior may impact Hunter's performance, our empirical validation yields excellent accuracy (78.09\%) and performance (97.80\%) results.
+
+\subsection{Internal validity}
+Hunter's validation has been performed only with 2 IP addresses of the same CDN, so we could be biased when validating the method and obtaining good results only because the behavior of both IP addresses is the same.
+
+However, analyzing the data in detail has verified that these two IP addresses have different behaviors. The address 192.5.5.241 belonging to the DNS service has different destinations for the same country of origin than the address 104.16.123.96 used in the web service. These different destinations have been checked for correctness using ground truth, so even if the addresses belong to the same CDN, they behave differently. Hunter adequately captured these different behaviors, demonstrating its reliability as an anycast tracing method.
+
+Both the validation and the experiment have been carried out with IPv4 addresses. Although anycast addresses also exist in IPv6, IPv6 does not introduce changes in anycast routing with respect to IPv4 \cite{Conta2006InternetSpecification}. The novelty introduced by IPv6 concerning anycast is limited to identifying this type of address as it defines a standard form for anycast addresses to improve intermediate routers’ routing performance. Nevertheless, Hunter implementation supports tracing both IPv4 and IPv6.
+
+\subsection{External validity}
+Hunter relies on external tools to perform certain tasks, and thus, it inherits the threats and failures that these may have. The two tools used are RIPE Atlas and IPinfo. 
+
+RIPE Atlas is used for probe selection and network measurements. Since accuracy in the location of the probes is important for Hunter's correct operation, errors in their coordinates could lead to wrong outcomes. This threat has been mitigated by always using a random selection of probes in an area, thus avoiding the repeated use of the same probes in each measurement and selecting a larger number to mitigate inaccuracy. In addition, other authors \cite{Kohls2022VerLoc:Systems} have proposed solutions that organizations such as RIPE Atlas could apply to mitigate these errors in the location declared by the probes. Additional safeguards could be added, e.g., cross-checking the probe's declared location with the geolocation obtained from an alternative service, e.g., IPinfo, or discarding probes that exceed a certain latency limit to the target address or preferring probes with lower latency.
+
+RIPE Atlas has another limitation: it has limited coverage in parts of the world, such as Asia and Africa. The lack of coverage in the experiment area could invalidate the results' precision and accuracy. However, the experiment described in this paper is conducted in and around European countries where RIPE Atlas coverage is very high. Nevertheless, if the target IP is in a low coverage area, the probes would be further away, the intersecting area would be bigger, and more results might be Indeterminate.
+
+On the other hand, IPinfo is used to geolocate the IP addresses before the destination (last hop), and errors in this geolocation may also occur. Nevertheless, previous work \cite{Cozar2022ReliabilityTransfers} has reported high IPInfo accuracy (95.67\%) when geolocating unicast addresses assigned to network equipment.
+
+\section{Conclusions}
+In this paper, we have presented Hunter, a method for tracing anycast communications and geolocating their destination. Having a precision of 97.67\% and an accuracy of 78.09\% (100\% when measures are repeated over time) in locating the destination country of the communication, Hunter has been applied to the assessment of Android apps' compliance with the GDPR requirements for cross-border personal data transfers. Our results suggest that using anycast addresses poses a significant threat to GDPR compliance, as the destination of personal data transfers is unknown at app installation time and thus cannot be transparently disclosed by the data controllers.
+
+Hunter offers benefits to different stakeholders. For instance, data protection authorities can utilize it to assess the privacy compliance of online systems. Similarly, data controllers can understand whether or not their systems meet the data protection regulations. Third-party service providers, such as analytics providers, can also use Hunter to understand the compliance risks of using anycast addresses.
+
+Our future work points towards automating the compliance assessment processes of digital systems and services. Particularly, we are researching Large Language Models as a means to extract relevant privacy practices from privacy policies.
+
+\section{Acknowlegdments}
+This work has been supported by the TED2021-130455A-I00 project funded by MCIN/AEI/10.13039/501100011033 and by the European Union “NextGenerationEU”/PRTR. 
+
+Thanks to RIPE for granting access to the Atlas platform, which has been used to select the probes needed to implement the method, Hunter. 
+
+Thanks to Katherina Kohls and Claudia Diaz, authors of \cite{Kohls2022VerLoc:Systems}, for kindly sharing their model of the travel speed of packets on the Internet.
+
+\section{Declaration of generative AI and AI-assisted technologies in the writing process}
+During the preparation of this work, the authors used Grammarly in order to improve the language and readability. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the publication.
+
+%% The Appendices part is started with the command \appendix;
+%% appendix sections are then done as normal sections
+%% \appendix
+
+%% \section{}
+%% \label{}
+
+%% If you have bibdatabase file and want bibtex to generate the
+%% bibitems, please use
+%%
+\bibliographystyle{elsarticle-num} 
+\bibliography{references}
+
+%% else use the following coding to input the bibitems directly in the
+%% TeX file.
+
+%\begin{thebibliography}{00}
+
+%% \bibitem{label}
+%% Text of bibliographic item
+
+%\bibitem{}
+
+%\end{thebibliography}
+\end{document}
+\endinput
+%%
+%% End of file `elsarticle-template-num.tex'.

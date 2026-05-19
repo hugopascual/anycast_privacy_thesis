@@ -1,0 +1,489 @@
+%%
+%% This is file `sample-acmsmall.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% samples.dtx  (with options: `all,journal,bibtex,acmsmall')
+%% 
+%% IMPORTANT NOTICE:
+%% 
+%% For the copyright see the source file.
+%% 
+%% Any modified versions of this file must be renamed
+%% with new filenames distinct from sample-acmsmall.tex.
+%% 
+%% For distribution of the original source see the terms
+%% for copying and modification in the file samples.dtx.
+%% 
+%% This generated file may be distributed as long as the
+%% original source files, as listed above, are part of the
+%% same distribution. (The sources need not necessarily be
+%% in the same archive or directory.)
+%%
+%%
+%% Commands for TeXCount
+%TC:macro \cite [option:text,text]
+%TC:macro \citep [option:text,text]
+%TC:macro \citet [option:text,text]
+%TC:envir table 0 1
+%TC:envir table* 0 1
+%TC:envir tabular [ignore] word
+%TC:envir displaymath 0 word
+%TC:envir math 0 word
+%TC:envir comment 0 0
+%%
+%% The first command in your LaTeX source must be the \documentclass
+%% command.
+%%
+%% For submission and review of your manuscript please change the
+%% command to \documentclass[manuscript, screen, review]{acmart}.
+%%
+%% When submitting camera ready or to TAPS, please change the command
+%% to \documentclass[sigconf]{acmart} or whichever template is required
+%% for your publication.
+%%
+%%
+\documentclass[acmsmall]{acmart}
+
+%% Authors custom
+\usepackage{graphicx} % Required for inserting images
+\usepackage{hyperref}
+\usepackage{subcaption}
+
+%%
+%% \BibTeX command to typeset BibTeX logo in the docs
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    Bib\TeX}}}
+
+%% Rights management information.  This information is sent to you
+%% when you complete the rights form.  These commands have SAMPLE
+%% values in them; it is your responsibility as an author to replace
+%% the commands and values with those provided to you when you
+%% complete the rights form.
+\setcopyright{acmlicensed}
+\copyrightyear{2026}
+\acmYear{2026}
+\acmDOI{XXXXXXX.XXXXXXX}
+
+%%
+%% These commands are for a JOURNAL article.
+\acmJournal{JACM}
+\acmVolume{37}
+\acmNumber{4}
+\acmArticle{111}
+\acmMonth{8}
+
+%%
+%% Submission ID.
+%% Use this when submitting an article to a sponsored event. You'll
+%% receive a unique submission ID from the organizers
+%% of the event, and this ID should be used as the parameter to this command.
+%%\acmSubmissionID{123-A56-BU3}
+
+%%
+%% For managing citations, it is recommended to use bibliography
+%% files in BibTeX format.
+%%
+%% You can then either use BibTeX with the ACM-Reference-Format style,
+%% or BibLaTeX with the acmnumeric or acmauthoryear sytles, that include
+%% support for advanced citation of software artefact from the
+%% biblatex-software package, also separately available on CTAN.
+%%
+%% Look at the sample-*-biblatex.tex files for templates showcasing
+%% the biblatex styles.
+%%
+
+%%
+%% The majority of ACM publications use numbered citations and
+%% references.  The command \citestyle{authoryear} switches to the
+%% "author year" style.
+%%
+%% If you are preparing content for an event
+%% sponsored by ACM SIGGRAPH, you must use the "author year" style of
+%% citations and references.
+%% Uncommenting
+%% the next command will enable that style.
+%%\citestyle{acmauthoryear}
+
+
+%%
+%% end of the preamble, start of the body of the document source.
+\begin{document}
+
+%%
+%% The "title" command has an optional parameter,
+%% allowing the author to define a "short title" to be used in page headers.
+\title{Where Does Your Data Really Go? Rethinking Geographic Control in Anycast Systems}
+
+%%
+%% The "author" command and its associated commands are used to define
+%% the authors and their affiliations.
+%% Of note is the shared affiliation of the first two authors, and the
+%% "authornote" and "authornotemark" commands
+%% used to denote shared contribution to the research.
+\author{Hugo Pascual}
+\orcid{0009-0003-8357-9037}
+\email{hugo.pascual.adan@upm.es}
+\affiliation{
+  \institution{Information Processing and Telecommunications Center, Universidad Politécnica de Madrid}
+  \city{Madrid}
+  \country{Spain}
+}
+
+\author{Ignacio Castro}
+\orcid{0000-0002-7739-6184}
+\email{i.castro@qmul.ac.uk}
+\affiliation{
+  \institution{Queen Mary University of London}
+  \city{London}
+  \country{United Kingdom}
+}
+
+\author{Jose M. del Alamo}
+\orcid{0000-0002-6513-0303}
+\email{jm.delalamo@upm.es}
+\affiliation{
+  \institution{Information Processing and Telecommunications Center, Universidad Politécnica de Madrid}
+  \city{Madrid}
+  \country{Spain}
+}
+
+%%
+%% By default, the full list of authors will be used in the page
+%% headers. Often, this list is too long, and will overlap
+%% other information printed in the page headers. This command allows
+%% the author to define a more concise list
+%% of authors' names for this purpose.
+\renewcommand{\shortauthors}{Pascual, Del Alamo and Castro}
+
+%%
+%% The abstract is a short summary of the work to be presented in the
+%% article.
+\begin{abstract}
+Anycast routing is widely used by major web services to achieve global reach, load balancing, and resilience against denial-of-service attacks. However, the same mechanism that optimizes performance can complicate data protection and data sovereignty requirements. However, its design prioritizes network efficiency over geographic determinism: user traffic is directed to the topologically nearest server, which may reside outside the user’s legal or jurisdictional region.This behavior challenges assumptions underlying modern data protection and data sovereignty frameworks, which often require control over where data is processed. Our measurements across a globally distributed set of anycast deployments show that cross-border routing is not an edge case but a systemic property of today’s Internet. In practice, user data frequently traverses jurisdictional boundaries, often without explicit awareness by service providers. To address this gap, we propose a simple, deployable approach that combines DNS-based regionalization with controlled anycast deployments. This design enables service providers to enforce explicit geographic constraints on data processing while preserving the operational benefits of anycast. Our results suggest that the tension between performance and jurisdictional control is not inherent to anycast itself, but to how it is currently deployed. Achieving meaningful geographic control requires making such constraints explicit at the architectural level, rather than relying on default, performance-driven configurations.
+\end{abstract}
+
+%%
+%% The code below is generated by the tool at http://dl.acm.org/ccs.cfm.
+%% Please copy and paste the code instead of the example below.
+%%
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10002978.10003029.10011150</concept_id>
+       <concept_desc>Security and privacy~Privacy protections</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10003033.10003083.10011739</concept_id>
+       <concept_desc>Networks~Network privacy and anonymity</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10003033.10003034.10003035.10003037</concept_id>
+       <concept_desc>Networks~Naming and addressing</concept_desc>
+       <concept_significance>300</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Security and privacy~Privacy protections}
+\ccsdesc[500]{Networks~Network privacy and anonymity}
+\ccsdesc[300]{Networks~Naming and addressing}
+
+%%
+%% Keywords. The author(s) should pick words that accurately describe
+%% the work being presented. Separate the keywords with commas.
+\keywords{Anycast, DNS, Data Protection, Data Sovereignty, Privacy}
+
+\received{28 March 2026}
+\received[revised]{1 Month 2026}
+\received[accepted]{1 Month 2026}
+
+%%
+%% This command processes the author and affiliation and title
+%% information and builds the first part of the formatted document.
+\maketitle
+
+\section{Where Does Your Data Really Go?}\label{sec:Introduction}
+
+Anycast routing is a fundamental building block of today’s Internet services, enabling low latency, high availability, and resilience at a global scale. By allowing multiple geographically distributed servers to share the same IP address, anycast directs user traffic to a nearby instance according to network topology, simplifying service deployment and improving performance.
+
+However, anycast provides little control over where user traffic is ultimately processed. Routing decisions depend solely on network topology and do not account for the physical or jurisdictional location of the destination server. As a result, neither users nor service operators can reliably predict where a given communication will be handled. In practice, topological proximity does not always align with geographic proximity~\cite{Bian2019TowardsPeering}. For example, traffic originating in Finland may be routed to infrastructure in Russia despite the presence of closer nodes.
+
+This mismatch has important implications for data sovereignty, broadly understood as the ability to control where data is processed. Many data protection frameworks require organizations to ensure that personal data remains within specific jurisdictions or is transferred only under well-defined conditions. When routing decisions dynamically cross jurisdictional boundaries, these requirements become difficult to enforce in practice.
+
+The problem is exacerbated by the widespread use of third-party infrastructure and content delivery networks (CDNs). While these platforms provide powerful abstractions for global deployment, they prioritize performance over geographic control. Default configurations are typically global in scope, and restricting traffic to specific regions often requires additional mechanisms or manual intervention. As a result, service providers may lack clear visibility into where user data is processed.
+
+Two fundamental challenges emerge: \textit{visibility} and \textit{control}. Service providers must be able to understand the geographic behavior of their systems, but also to enforce constraints on where data is handled. Transparency alone is insufficient without mechanisms that provide deterministic control over routing outcomes. At the same time, any solution must preserve the scalability and resilience that make anycast attractive in the first place.
+
+Existing approaches to influence routing  offer only partial solutions \cite{Zhu2022TheWorlds}, often relying on coordination across networks or on imperfect geolocation techniques \cite{Cozar2022ReliabilityTransfers}. Therefore, they cannot guarantee strict geographic boundaries.
+
+In this article, we present a simple and deployable approach to address this gap. By combining region-specific DNS records with controlled anycast deployments, our design enables service providers to enforce explicit geographic constraints on data processing while preserving the benefits of anycast. The approach requires no changes to routing protocols and can be implemented using existing DNS and CDN infrastructure.
+
+\section{How Anycast Works in Practice}\label{sec:Background}
+
+A substantial body of research has examined anycast from the perspectives of performance, scalability, and operational reliability. Prior work has evaluated global deployments across critical Internet infrastructures such as root DNS services and large-scale CDNs, considering metrics including latency, routing stability, and user-to-server mapping dynamics \cite{Li2023EvaluatingScope, Calder2015AnalyzingCDN, Koch2021AnycastContext}. These studies highlight how routing policies, infrastructure distribution, and peering arrangements shape the regional performance of anycast services \cite{Zhou2023RegionalPotentials}.
+
+Complementary work has explored how to influence or optimize anycast behavior through routing and deployment strategies, including approaches that adjust BGP path selection or adapt infrastructure placement to application-level performance goals \cite{Zhu2022TheWorlds, Jia2019DeployingInternet}. Other studies have proposed methodologies for evaluating and comparing anycast deployments \cite{Evang2024AnycastTuning}. Collectively, these efforts have made anycast infrastructures faster, more resilient, and operationally efficient.
+
+However, anycast routing decisions depend solely on network topology, which means that traffic may be processed in jurisdictions different from the user’s region. This behavior creates tensions with modern data protection frameworks that regulate international transfers of personal data. Despite the growing importance of these constraints, the interaction between anycast routing and legal jurisdiction has received limited attention in the networking literature.
+
+These regulatory concerns have become increasingly prominent in recent years. Frameworks such as the General Data Protection Regulation (GDPR) in the European Economic Area (EEA) \cite{REGULATIONSRelevance}, the UK GDPR and Data Protection Act \cite{Data2018}, and similar regulations in the United States, Australia, and China \cite{Rep.Pallone2024Text2024, ReadOAIC, TheTranslation} require organizations to ensure that cross-border data transfers comply with specific safeguards and to inform users about where their data is processed.
+
+Empirical evidence suggests that these requirements are not always satisfied in practice. Previous studies show that privacy policies often fail to accurately disclose the jurisdictions in which personal data may be processed when services rely on anycast infrastructures \cite{Pascual2025AnycastDisaster}. This lack of transparency partly stems from the absence of mechanisms that allow service providers to deterministically control the geographic destinations of anycast communications. At the same time, the operational advantages of anycast—such as resilience against denial-of-service attacks and efficient load distribution—make it a fundamental component of modern Internet services.
+
+\subsection{Comparison with Existing Approaches}
+
+Several techniques have been proposed to influence the geographic behavior of anycast services. However, existing approaches offer limited control over the final destination of traffic, particularly when strict jurisdictional constraints must be enforced.
+
+One approach relies on fine-grained control of BGP announcements, allowing operators to selectively advertise prefixes from specific autonomous systems or geographic regions. Although effective in controlled environments, this strategy requires coordination across multiple networks and offers limited application-level control, which complicates the enforcement of regulatory constraints.
+
+Another widely used technique is GeoDNS, in which DNS responses are adapted based on the inferred geographic location of the client. However, GeoDNS depends on IP geolocation databases that are known to contain inaccuracies \cite{Poese2011IPUnreliable}, and its decisions can be circumvented through proxies or VPNs. As a result, it provides only probabilistic guarantees regarding data localization.
+
+A third class of mechanisms relies on firewall-based filtering or ISP-level blocking of traffic from specific regions. These techniques are designed to restrict access rather than to control where traffic is processed: they can block requests from certain locations but cannot ensure that accepted traffic is served from infrastructure within a compliant jurisdiction. In addition, they often require cooperation from network operators and still depend on imperfect geolocation inference.
+
+In practice, infrastructure providers often combine these techniques; however, empirical studies indicate that they remain insufficient to fully control the geographic behavior of anycast deployments \cite{Zhou2023RegionalPotentials}. In contrast, the approach proposed in this article aims to provide deterministic geographic control while remaining deployable on existing Internet infrastructure and transparent to end users.
+
+\section{Putting boundaries to regions with anycast}\label{sec:Solution}
+
+We present Region-Constrained Anycast over DNS (RCA-DNS), a simple and deployable approach that enables service providers to retain the benefits of anycast while enforcing geographic constraints on where user data is processed. 
+
+The key idea is to decouple two concerns that are traditionally intertwined: determining a user’s region and controlling where traffic is routed. RCA-DNS separates these functions by combining region-specific DNS records with controlled anycast deployments, introducing explicit geographic boundaries into otherwise unconstrained anycast systems.
+
+\subsection{Region-Constrained Anycast over DNS (RCA-DNS)}
+
+The approach defines multiple DNS records for the same service, each corresponding to a distinct geographic region. Each record resolves to a different anycast IP address, and each IP is announced exclusively by servers located within the corresponding region. As a result, traffic directed to a given DNS record is confined to infrastructure within the predefined geographic boundary, regardless of how the user’s location is determined.
+
+For example, consider a user in Finland whose traffic might otherwise be routed to infrastructure in Russia. If the service instead directs the user to \textit{eea.application.com}, the request is guaranteed to be served by infrastructure within the EEA. The same principle can be extended to other regions (e.g., \textit{usa.application.com}), allowing providers to enforce jurisdiction-specific constraints \cite{Rep.Pallone2024Text2024, ECFRAdversaries.}.
+
+At the source of the communication (e.g., a mobile application), the service selects the appropriate DNS record based on the region associated with the user or the traffic. This decision may rely on user-declared information, coarse geolocation, or other policy-relevant attributes. Once the DNS resolution is completed, traffic delivery relies entirely on standard anycast routing, preserving scalability and performance while ensuring regional confinement.
+
+\subsection{User Region Determination}
+
+Selecting the appropriate DNS record is conceptually independent from routing control. In this work, we adopt a user-confirmed region selection approach. Before using the service, users are presented with applicable terms and privacy policies, and a coarse geolocation may be used to suggest a likely region. The user then confirms this selection, which is subsequently used to determine the DNS record for all communications.
+
+Importantly, this mechanism operates independently from routing control, reinforcing the separation between region selection and traffic delivery in RCA-DNS. This design avoids continuous location tracking while enabling deterministic regional routing.
+
+Users may attempt to circumvent this mechanism—for example, by selecting a different region or using external DNS resolvers. Such behavior falls outside our threat model, which focuses on ensuring jurisdictional consistency for users who intend their data to remain within a specific region.
+
+\subsection{Deployment Considerations and Summary}
+
+RCA-DNS requires multiple anycast IP addresses, one per region-specific DNS record. In practice, this requirement is manageable. IPv6 provides a sufficiently large address space for region-specific deployments, while IPv4 addresses can be shared across services, as is common among infrastructure providers. Incoming traffic can be internally demultiplexed using higher-layer information, such as the destination domain name, while ensuring that each IP address is only announced within its intended region.
+
+Similarly, although RCA-DNS introduces multiple DNS records for a single service, it does not increase the load on the DNS root or top-level infrastructure. Region-specific records are managed within authoritative DNS zones under the service provider’s control, a capability already supported by existing platforms.
+
+Overall, RCA-DNS provides deterministic control over where anycast traffic is processed while remaining fully compatible with today’s Internet infrastructure. By combining DNS-based regionalization with controlled anycast announcements, it introduces explicit geographic constraints without modifying routing protocols or end-user devices. At the same time, it preserves the scalability, performance, and resilience that make anycast attractive for large-scale services.
+
+\section{Real world measurements}\label{sec:Experiment} 
+
+We empirically evaluate both the prevalence of cross-border routing in current anycast deployments and the practical cost of enforcing geographic constraints. 
+
+Our results show that cross-border routing is widespread—occurring in more than half of observed paths—and that enforcing regional boundaries using our approach introduces limited latency overhead within the target region.
+
+To support reproducibility, the analysis code and datasets used in this study are publicly available\footnote{Analysis Code: \url{https://github.com/STRAST-UPM/experiments_hunter}. Complete Data: \url{https://doi.org/10.17632/n93r278vzy.1}.} 
+
+\subsection{Global Measurement of Cross-Border Anycast Routing}
+
+\subsubsection{Methodology} 
+
+To quantify how often anycast routing results in cross-border data transfers, we conducted a large-scale measurement campaign using \emph{Hunter}, an anycast measurement framework \cite{Pascual2025AnycastDisaster}.
+
+\paragraph{Application analysis}
+
+We analyzed 195 anycast IP addresses from android apps used for the transmission of personal data. These IPs represent service endpoints observed in real-world deployments rather than a comprehensive sample of all anycast deployments. Applications were selected from popular categories in the Google Play ecosystem, and IPs were prioritized based on application download counts.
+
+\paragraph{Measurement infrastructure and scale}
+
+For each IP address, we conducted 10 measurement rounds using RIPE Atlas probes distributed across 183 countries. In each round, 10 probes were randomly selected as measurement origins. Due to probe availability and network conditions, the number of observations per IP varies. In total, the campaign generated 6,156,591 raw measurements. Measurements were conducted during two six-day periods in July and September 2025, with irregular intervals to capture routing variability under different network conditions.
+
+\subsubsection{Results}
+
+After processing the raw network measurements, we obtained structured routing observations suitable for systematic analysis. The structured data has also been filtered, removing incomplete traces and non-responsive paths. We retained only origin–destination pairs with at least three successful measurements to reduce the impact of transient routing anomalies. As a result of this filtering, we obtained a total of 504,690 valid routing tracks from this campaign. Each track represents the observed path between a probe location and a specific instance of an anycast address.
+
+\begin{figure}[h]
+    \centering
+
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \begin{tabular}{lr}
+            \hline
+                Metric & Value \\
+            \hline
+                Applications analyzed & 379 \\
+                Anycast IP addresses & 195 \\
+                Countries covered & 183 \\
+                Raw measurements & 6,156,591 \\
+                Valid routing tracks & 504,690 \\
+                Cross-border tracks & 58.36\% \\
+                IPs cross-border routing & 99.49\% \\
+            \hline
+        \end{tabular}
+        \caption{Metrics summary table.}
+        \label{tab:global_hunter_summary}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{visualization_tracks_destinations_color_from_usa_no_scale.png}
+        \caption{Destinations for traffic originated in USA.}
+        \label{fig:destinations_from_usa}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{visualization_tracks_destinations_color_from_eea_no_scale.png}
+        \caption{Destinations for traffic originated in EEA.}
+        \label{fig:destinations_from_eea}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{visualization_tracks_destinations_color_from_japan_no_scale.png}
+        \caption{Destinations for traffic originated in Japan.}
+        \label{fig:destinations_from_japan}
+    \end{subfigure}
+
+    \caption{Visualization and summary of the global anycast cross-border measurement campaign.}
+    \label{fig:visualization_global_hunter}
+\end{figure}
+
+\paragraph{Prevalence of cross-border routing}
+
+Cross-border routing events were common throughout the dataset. Among all valid tracks, 58.36\% involved traffic originating in one country and terminating in infrastructure located in another country. This indicates that cross-border routing is the norm rather than the exception in anycast deployments. At the IP level, the phenomenon was even more widespread: 99.49\% of the analyzed anycast IP addresses exhibited at least one cross-border routing event, suggesting that this behavior is pervasive across providers and regions. Table~\ref{tab:global_hunter_summary} summarizes the overall scale of the measurement campaign. These results show that cross-border routing is not an occasional anomaly in anycast deployments, but rather a common characteristic of current large-scale infrastructure.
+
+\paragraph{Regional routing patterns}
+
+Several structural routing patterns also emerged across regions. Across Latin America, routing paths frequently terminate in infrastructure located in the USA, highlighting the central role of that infrastructure in servicing traffic across the region. As can be seen in Figure~\ref{fig:destinations_from_usa}, traffic originating in the USA that crosses its borders ends in countries like Brazil, Japan, South Africa, or some EEA countries. However, the more important result from this analysis is the part of the traffic that is detected to have Cuba as a destination because it is designated as a \textit{foreign adversary country}\cite{ECFRAdversaries.}. On the other hand, Europe has a significant number of transfers outside the region. Specifically, 34.88\% of the communications originating in the EEA end outside the region. As seen in Figure~\ref{fig:destinations_from_eea}, the destination countries from the EEA include Russia, South Africa, or India, which do not provide a level of data protection equivalent to that of the EU.
+
+In contrast, several regions exhibit stronger internal routing retention. Countries such as Japan (Figure~\ref{fig:destinations_from_japan}), India, and South Korea frequently terminate traffic within national or nearby regional infrastructure, although international routing still occurs in a non-negligible fraction of observations.
+
+Finally, African routing shows a marked asymmetry: while African infrastructure serves local traffic, a significant portion of outgoing traffic is routed to Europe, indicating structural dependence on external infrastructure.
+
+\paragraph{Measurement limitations}
+
+Some regions exhibited limitations related to measurement visibility. China, for example, produced significantly fewer valid routing observations than expected based on probe availability. This discrepancy is consistent with known restrictions affecting network measurement protocols in the region. Consequently, routing observations involving China should be interpreted with caution.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Performance of Region-Constrained Anycast}
+
+\subsubsection{Methodology}
+
+The second experiment evaluates the latency impact of enforcing geographic routing constraints using the DNS-based approach proposed in this article. To emulate a region-constrained service architecture, we deployed an experimental infrastructure on Google Cloud consisting of five virtual machine instances located in five different countries within the EEA. Each instance hosted an identical HTTP service to eliminate application-level variability. This configuration simulates a service deployment in which traffic is intentionally restricted to infrastructure located within a specific jurisdiction.
+
+Latency measurements were performed using RIPE Atlas probes. Up to 1000 probes were randomly selected within each RIPE Atlas macro-region (Africa, America, Asia, Europe, and Oceania), subject to probe availability. Measurements were conducted between December 15 and December 17, 2025, at six-hour intervals. During each round, probes issued HTTP requests to the deployed infrastructure, and the round-trip time (RTT) was recorded. RTT was selected as the primary performance metric because it captures both network propagation delay and server responsiveness.
+
+\subsubsection{Results}
+
+\begin{figure}[h]
+    \begin{subfigure}{0.38\textwidth}
+        \begin{tabular}{lrr}
+            \hline
+                Region & Median & P90 \\
+            \hline
+                Europe & 57.20 ms & 128.04 ms \\
+                America & 166.39 ms & 560.80 ms \\
+                Asia & 358.45 ms & 1254.10 ms \\
+                Africa & 512.26 ms & 645.32 ms \\
+                Oceania & 383.48 ms & 715.65 ms \\
+            \hline
+        \end{tabular}
+        \caption{RTT by source region.}
+        \label{tab:table_rtts_rca-dns}
+    \end{subfigure}
+    \hspace{0.02\textwidth}
+    \begin{subfigure}{0.58\textwidth}
+        \includegraphics[width=\textwidth]{cdf_rtt_ms_eea_countries.png}
+        \caption{RTT CDF of HTTP measurements from EEA.}
+        \label{fig:cdf_rtt_ms_eea_rca-dns}
+    \end{subfigure}
+    \caption{Visualization and summary of the EEA-constrained anycast measurements.}
+\end{figure}
+
+Latency measurements show clear geographic patterns consistent with physical distance and intercontinental routing. Probes located within Europe experienced the lowest latency values overall. For European probes, the median RTT was 57.20 ms, the mean 85.14 ms, and the 90th percentile is 128.04 ms. When restricting the analysis to countries within the EEA, the median latency decreased slightly to 51.80 ms. The lowest latency values were observed in the subset of countries hosting deployed infrastructure. In these locations, the median RTT was 32.29 ms, and the 90th percentile was 67.70 ms, reflecting the expected performance benefit of geographic proximity. Outside Europe, latency increased in proportion to the geographical distance from the deployed infrastructure. 
+
+While we do not directly compare against unconstrained global anycast, these results suggest that the performance cost of regionalization is modest in well-provisioned environments. In order to put the results in perspective, the RTT values observed within the defined region, EEA, fall within the latency ranges typically reported for commercial CDN-backed services \cite{Bauer2023EvaluatingThroughput, Akhtar2016DBit:Performance}. Also, they remain close to common thresholds for responsive human–computer interaction, often estimated to be around 100 ms \cite{Liu2023DefiningInteraction, ResponseNN/G}. This can be seen in Figure~\ref{fig:cdf_rtt_ms_eea_rca-dns}, where three different colored zones are shown, considering the values for responsive human–computer interaction. In green, we have the zone from 0 to 100 ms; in yellow, the values between 100 ms and 150 ms; and in red, the rest. In the case of the EEA, 88.13\% of RTTs are smaller than 100 ms, and 94.92\% of RTTs are smaller than 150 ms. If all of Europe is considered, the percentages are 81.3\% and 92.25\%, respectively, slightly smaller than for the EEA but not enough to be significant.
+
+\section{Implications for stakeholders and limitations}\label{sec:Discussion}
+
+Our results show that cross-border routing in anycast infrastructures is widespread, as nearly all analyzed anycast IP addresses exhibited at least one cross-border routing event. International data transfers are not inherently unlawful. Many regulatory frameworks allow them under specific legal mechanisms. However, the prevalence and dynamic nature of the routing patterns observed in this study raise important questions regarding transparency, accountability, and effective control. When routing decisions are delegated entirely to global anycast optimization mechanisms, service providers may lack precise knowledge of where personal data is processed at any given moment.
+
+This uncertainty complicates compliance with modern data protection and data sovereignty requirements. Even when service providers intend to restrict processing to specific jurisdictions, the absence of deterministic geographic constraints makes it difficult to ensure that traffic consistently remains within defined legal boundaries.
+
+A second experiment shows that regional enforcement through DNS-based routing is technically feasible and does not impose prohibitive performance penalties within the protected region. Latency increases primarily affect users located outside the constrained region, while users inside the region experience performance comparable to conventional CDN-backed deployments.
+
+\paragraph{Implications for Service Providers.}
+
+Service providers should not assume that anycast routing respects geographic intent. Instead, they should explicitly constrain infrastructure exposure when jurisdiction matters.
+
+The DNS-based regionalization strategy evaluated in this work offers a practical approach to introducing deterministic regional boundaries without modifying routing protocols. By separating routing control from global anycast optimization, service providers can retain the operational advantages of anycast while introducing explicit jurisdictional constraints where required.
+
+\paragraph{Implications for Infrastructure Providers.}
+
+Cloud and CDN platforms should expose first-class support for region-scoped anycast services. Some platforms allow customers to select the geographic location of deployed infrastructure, while others abstract these details entirely. Greater transparency and configurable regional controls would allow service providers to better align technical deployments with legal and regulatory obligations.
+
+Given the growing emphasis on data sovereignty in digital infrastructure policy, providing explicit mechanisms for geographic service scoping may become an important differentiating feature for infrastructure platforms.
+
+\paragraph{User Location and Jurisdiction Determination.}
+
+Determining a user's jurisdiction is a complex problem that can be addressed through multiple mechanisms, including IP-based geolocation, device-level location signals, or explicit user declarations. Each approach presents trade-offs between accuracy, deployability, and privacy.
+
+Rather than embedding a specific geolocation method into the routing architecture, the framework proposed in this work intentionally separates these concerns. The system provides deterministic control over where traffic is processed once a region has been selected, while leaving the method used to determine the user's region to higher-layer policy decisions.
+
+This separation allows service providers to adopt region determination strategies that best align with their legal, operational, and privacy requirements.
+
+\paragraph{Limitations.}
+
+This study focuses on routing-level observations and does not assess application-layer processing, storage practices, or contractual safeguards that may also influence regulatory compliance. Measurement visibility also varies across countries, as illustrated by the case of China, which limits interpretability in certain jurisdictions.
+
+In addition, the latency evaluation reflects controlled deployments and may differ in large-scale production environments with more extensive infrastructure distribution.
+
+Despite these limitations, the combined evidence from both experiments indicates that international routing in anycast systems is widespread and that introducing deterministic regional constraints is technically achievable with a bounded performance impact.
+
+\section{Conclusion}\label{sec:Conclusion}
+
+Anycast remains a fundamental mechanism for scalable and resilient global service delivery. Its ability to distribute load, improve latency, and mitigate denial-of-service attacks has made it a core component of modern cloud platforms and content delivery infrastructures.
+
+Our measurements show that current anycast deployments frequently produce cross-border routing of personal data. Because routing decisions are driven purely by network topology rather than jurisdictional considerations, traffic may be processed in regions different from those intended by service providers or expected by users, creating challenges for transparency and regulatory compliance.
+
+We demonstrate that this lack of control can be mitigated using a simple DNS-based design that constrains routing to predefined regions. More broadly, our results highlight a gap between performance-oriented network abstractions and the growing need for geographic accountability in distributed systems.
+
+
+%%%%%%%%%
+
+% \section{Declaration of generative AI and AI-assisted technologies in the writing process}
+
+% During the preparation of this work, the authors used AI tools like Grammarly in order to improve the language and readability. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the publication.
+
+%%%%%%%%%
+
+%%
+%% The acknowledgments section is defined using the "acks" environment
+%% (and NOT an unnumbered section). This ensures the proper
+%% identification of the section in the article metadata, and the
+%% consistent spelling of the heading.
+\begin{acks}
+Thanks to RIPE for granting access to the Atlas platform, which has been used to perform all the measurements needed for the experiments.
+\end{acks}
+
+%%
+%% The next two lines define the bibliography style to be used, and
+%% the bibliography file.
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+
+%%
+%% If your work has an appendix, this is the place to put it.
+\appendix
+
+
+\end{document}
+\endinput
+%%
+%% End of file `sample-acmsmall.tex'.
