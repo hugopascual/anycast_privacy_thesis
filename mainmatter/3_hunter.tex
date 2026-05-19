@@ -72,12 +72,12 @@ To reduce the impact of transient congestion and network variability, Hunter con
 
 The previous formulation assumes that packets travel through geographically optimal paths at the maximum propagation speed supported by optical fiber. However, real Internet routing paths rarely satisfy these conditions. Routing policies, peering agreements, traffic engineering mechanisms, and physical infrastructure constraints often introduce significant path inflation, causing packets to traverse substantially longer distances than the direct geographic path between source and destination.
 
-\subsubsection{VerLoc-based Distance Approximation}
+\subsubsection{VerLoc Distance Approximation}
 \label{sc:hunter_multilateration_distance_estimation_verloc}
 
-To account for this behaviour, Hunter incorporates the approximation proposed by VerLoc \cite{VerLocVerifiableLocation}. VerLoc empirically observed that the effective propagation distance travelled by Internet traffic is typically larger than the geographic great-circle distance between endpoints due to routing inefficiencies and network detours. Instead of assuming ideal propagation conditions, VerLoc introduces a correction factor that models the average inflation observed in operational Internet paths, providing a more realistic upper bound for latency-based geographic inference.
+To account for this behaviour, Hunter incorporates the approximation proposed by VerLoc \cite{Kohls2022VerLoc:Systems}. VerLoc empirically observed that the effective propagation distance travelled by Internet traffic is typically larger than the geographic great-circle distance between endpoints due to routing inefficiencies and network detours. Instead of assuming ideal propagation conditions, VerLoc introduces a correction factor that models the average inflation observed in operational Internet paths, providing a more realistic upper bound for latency-based geographic inference.
 
-Hunter incorporates the option of using this approximation into the multilateration process in order to reduce the probability of underestimating the geographic region compatible with the observed RTT measurements. Consequently, the obtained multilateration regions better reflect the uncertainty introduced by real-world Internet routing behaviour while still maintaining sufficiently constrained geographic estimations for country-level inference.
+Hunter incorporates the option of using this approximation into the multilateration process to reduce the probability of underestimating the geographic region compatible with the observed RTT measurements. Consequently, the obtained multilateration regions better reflect the uncertainty introduced by real-world Internet routing behaviour while still maintaining sufficiently constrained geographic estimations for country-level inference.
 
 Based on the empirical results presented by VerLoc, a logistic regression model was derived to approximate the relationship between RTT and geographic distance under realistic Internet routing conditions. Formally, the obtained relation can be expressed as:
 
@@ -87,7 +87,7 @@ Based on the empirical results presented by VerLoc, a logistic regression model 
 
 where $d$ represents the travelled distance, $RTT$ the measured Round-Trip Time, and $c$ the speed of light in a vacuum.
 
-The resulting expression does not admit a closed-form analytic inverse that allows directly deriving the distance from an observed RTT value. Consequently, distance estimation must be performed numerically by approximating the inverse relation through precomputed RTT-distance mappings.
+The resulting expression does not admit a closed-form analytic inverse that allows for the direct derivation of the distance from an observed RTT value. Consequently, distance estimation must be performed numerically by approximating the inverse relation through precomputed RTT-distance mappings.
 
 Since the model itself constitutes an approximation of real Internet routing behaviour, the obtained distance estimations inherently introduce a certain degree of error. Nevertheless, experimental evaluations show that this approach provides substantially more realistic geographic constraints than ideal propagation models based solely on optical fiber transmission speed.
 
@@ -104,17 +104,11 @@ The proposed methodology is based on the observation that large-scale anycast in
 
 This assumption is additionally reinforced by operational practices adopted by several large-scale providers. For example, some CDNs identify server locations using the IATA code of the nearest airport, effectively associating replicas with metropolitan airport regions.
 
-Once the multilateration region has been obtained, Hunter searches for airports located within the estimated overlapping area. Three possible situations may occur.
-
-First, if a single airport is identified within the region, the associated city and country are directly assigned as the inferred destination of the communication.
-
-Second, if multiple airports are identified but all belong to the same country, the communication is attributed to that country. Although the exact metropolitan area may remain ambiguous, the jurisdictional inference remains valid because all candidate regions belong to the same national domain.
-
-Finally, if the overlapping area contains airports associated with multiple countries, the inference is classified as \textit{Indeterminate}. This conservative approach avoids assigning potentially incorrect jurisdictions when the geographic uncertainty region spans multiple national boundaries.
+Once the multilateration region has been obtained, Hunter searches for airports located within the estimated overlapping area. Three possible situations may occur. First, if a single airport is identified within the region, the associated city and country are directly assigned as the inferred destination of the communication. Second, if multiple airports are identified but all belong to the same country, the communication is attributed to that country. Although the exact metropolitan area may remain ambiguous, the jurisdictional inference remains valid because all candidate regions belong to the same national domain. Finally, if the overlapping area contains airports associated with multiple countries, the inference is classified as \textit{Indeterminate}. This conservative approach avoids assigning potentially incorrect jurisdictions when the geographic uncertainty region spans multiple national boundaries.
 
 In certain cases, no airport may be located directly within the overlapping area. Under these conditions, Hunter computes the centroid of the estimated region and selects the nearest airport as a geographic reference. Although this approximation may introduce additional uncertainty, it enables the methodology to maintain a consistent jurisdictional inference process even when the multilateration region does not directly overlap a metropolitan reference point.
 
-By prioritizing conservative country-level attribution over precise coordinate estimation, Hunter minimizes false positive geographic assignments while maintaining sufficient accuracy for the analysis of international data transfers and jurisdictional exposure in anycast communications.
+By prioritising conservative country-level attribution over precise coordinate estimation, Hunter minimises false positive geographic assignments while maintaining sufficient accuracy for the analysis of international data transfers and jurisdictional exposure in anycast communications.
 
 \section{Limitations}
 \label{sc:hunter_limitations}
@@ -206,10 +200,10 @@ When such inconsistencies are detected, the inference is classified as indetermi
 
 The network measurements described in the previous sections could theoretically be performed from a single personal computer. However, such an approach would severely limit the geographic diversity of the measurements, since the location of the measurement host would remain fixed. As the objective of Hunter is to infer the potential geographic destinations of anycast communications on a continental and global scale, it is necessary to employ a distributed measurement infrastructure that provides geographically diverse vantage points.
 
-For this purpose, the implementation of Hunter relies on RIPE Atlas \cite{HomeAtlas}, a large-scale Internet measurement platform composed of thousands of distributed probes deployed worldwide. RIPE Atlas enables researchers and network operators to perform active measurements such as ping, traceroute, DNS, TLS, HTTP, or NTP from multiple geographic locations. These probes are hosted by volunteers, organisations, universities, Internet Service Providers (ISPs), and research institutions, providing broad visibility into the global Internet infrastructure.
+For this purpose, the implementation of Hunter relies on RIPE Atlas \cite{HomeAtlas}, a large-scale Internet measurement platform composed of thousands of distributed probes deployed worldwide. RIPE Atlas enables researchers and network operators to perform active measurements such as ping, traceroute, DNS, TLS, HTTP, and NTP from multiple geographic locations. These probes are hosted by volunteers, organisations, universities, Internet Service Providers (ISPs), and research institutions, providing broad visibility into the global Internet infrastructure.
 
 The platform is publicly accessible and community-driven, allowing participants to contribute probes and perform measurements through a credit-based system. RIPE Atlas is maintained by the RIPE Network Coordination Centre (RIPE NCC), the Regional Internet Registry responsible for Europe, the Middle East, and parts of Central Asia. As one of the major organisations involved in Internet coordination and infrastructure management, RIPE NCC provides a reliable and widely adopted platform for Internet-scale measurement studies.
 
 Several alternative Internet measurement platforms exist, including Ark CAIDA \cite{ArkCAIDA}, perfSONAR \cite{PerfSONAR}, and PlanetLab \cite{HomePlanetLab}. However, RIPE Atlas was selected for this work due to its large number of active probes, extensive geographic coverage, measurement flexibility, and widespread adoption within the network research community.
 
-These characteristics make RIPE Atlas particularly suitable for the objectives of Hunter, as the method requires executing traceroute and latency measurements from multiple distributed vantage points in order to estimate the geographic regions potentially reached by anycast communications.
+These characteristics make RIPE Atlas particularly suitable for the objectives of Hunter, as the method requires executing traceroute and latency measurements from multiple distributed vantage points in order to estimate the geographic regions potentially reachable by anycast communications.
