@@ -192,20 +192,22 @@ When such inconsistencies are detected, the inference is classified as indetermi
 \subsection{Geographic Uncertainty}
 \label{sc:hunter_limitations_geographic_uncertainty}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{Validation}
 \label{sc:hunter_validation}
 
-The proposed methodology and its software implementation, Hunter, were validated under real-world Internet conditions in order to evaluate their capability to correctly infer the geographic destination of anycast communications. Since the primary objective of Hunter is to determine the jurisdiction associated with a communication, the validation process focuses on country-level attribution rather than precise coordinate-level geolocation.
+\hugo{I need to evaluate the option of making a new and more reproducible and rigorous validation of Hunter. This first evaluation was make with the first paper and I am not very pleased with the procedure and the lack of proper methodology.}
 
-Validating anycast geolocation mechanisms presents an important challenge, as obtaining reliable ground truth information regarding the serving replica is generally difficult in operational infrastructures. To address this problem, the validation process leverages specific Cloudflare services whose HTTP responses expose location-related metadata associated with the serving infrastructure.
+The proposed methodology and its software implementation, Hunter, were validated under real-world Internet conditions in order to evaluate their capability to infer the geographic destination of anycast communications. Since the primary objective of Hunter is to determine the jurisdiction associated with a communication, the validation process focuses on country-level attribution rather than precise coordinate-level geolocation.
 
-In particular, two anycast IP addresses belonging to the Cloudflare CDN were selected as validation targets. The first address, 192.5.5.241, belongs to a root DNS service, while the second address, 104.16.123.96, serves Cloudflare's official website. HTTP responses from these services include the \textit{CF-RAY} header, which contains the IATA airport code associated with the Cloudflare datacenter serving the request. Since this code identifies the metropolitan region handling the communication, it can be used as a reliable approximation of the actual destination reached by the traffic.
+Validating anycast geolocation mechanisms presents an important challenge, as obtaining reliable ground-truth information regarding the serving replica is generally difficult in operational infrastructures. To address this problem, the validation process leverages specific Cloudflare services whose HTTP responses expose location-related metadata associated with the serving infrastructure.
+
+In particular, two anycast IP addresses belonging to the Cloudflare CDN were selected as validation targets. The first address, 192.5.5.241, belongs to a root DNS service, while the second address, 104.16.123.96, serves Cloudflare's official website. HTTP responses from these services include the \textit{CF-RAY} header, which contains the IATA airport code associated with the Cloudflare datacenter handling the request. Since this code identifies the metropolitan region serving the communication, it can be used as a reliable approximation of the actual destination reached by the traffic.
 
 For each validation experiment, Hunter was executed using one of the selected IP addresses as the target destination. Immediately before running Hunter, an HTTP request was sent to the destination service in order to retrieve the \textit{CF-RAY} header and obtain the corresponding ground-truth location. The inferred country produced by Hunter was then compared against the country associated with the airport code declared by Cloudflare.
 
-Since one of the main goals of this thesis is to analyze compliance with GDPR requirements regarding international transfers of personal data, the validation was specifically conducted from countries belonging to the European Economic Area (EEA). To emulate communications originating from different European jurisdictions, a commercial VPN provider was used to establish exit nodes in nearly all EEA member states. Each validation experiment was therefore repeated from multiple European countries in order to evaluate the behavior of Hunter under different routing conditions and geographic origins. Liechtenstein could not be included in the validation because the selected VPN provider did not offer an exit node in that country.
+Since one of the main goals of this thesis is to analyze compliance with GDPR requirements regarding international transfers of personal data, the validation was intentionally designed around European jurisdictions rather than as a globally exhaustive evaluation. The experiments were therefore conducted from 29 countries belonging to the European Economic Area (EEA). To emulate communications originating from different European jurisdictions, a commercial VPN provider was used to establish exit nodes in all except one EEA member states. Each validation experiment was repeated from multiple European countries in order to evaluate the behavior of Hunter under different routing conditions and geographic origins. Liechtenstein could not be included in the validation because the selected VPN provider did not provide an exit node in that country.
+
+\hugo{Maybe is counter productive that it was focused in european territory.} \hugo{One of the main weakness of this validation is to have used a VPN for the traceroute instead of RIPE Atlas probes. But I can not make the HTTP request at the same time of executing Hunter if I use RIPE Altas probes as origins because I do not discovered yet how to obtain the headers of an HTTP measurement made from a RIPE Altas probe.} \hugo{Include additional details regarding the VPN provider and measurement repetition strategy}
 
 \subsection{Validation Metrics}
 
@@ -229,21 +231,42 @@ Accuracy is defined as the ratio between the number of Positive results and the 
 
 This distinction is particularly important in the context of Hunter because the methodology deliberately prioritizes conservative inference decisions over aggressive geographic attribution. Consequently, returning an \textit{Indeterminate} result is considered preferable to assigning an incorrect jurisdiction, especially in scenarios involving legal compliance and international data transfer analysis.
 
-In addition to evaluating the complete Hunter methodology, the validation process also compares Hunter against a simpler baseline approach consisting of directly geolocating the last hop IP address using the IPinfo service. This comparison allows assessing the benefits introduced by multilateration and conservative inference mechanisms beyond straightforward IP geolocation techniques.
+In addition to evaluating the complete Hunter methodology, the validation process also compares Hunter against a simpler baseline approach consisting of directly geolocating the last-hop IP address using the IPinfo service. This comparison allows assessing the benefits introduced by multilateration and conservative inference mechanisms beyond straightforward IP geolocation techniques.
 
 \subsection{Results}
 
-The obtained results demonstrate that Hunter provides highly reliable country-level inference for anycast communications under real-world Internet conditions. Across all evaluated scenarios, Hunter achieves a precision of 97.67\% and an accuracy of 78.09\%.
+\hugo{Include total number of experiments executed during the validation process.}
+
+The obtained results indicate that Hunter provides highly reliable country-level inference for anycast communications under real-world Internet conditions. Across all evaluated scenarios, Hunter achieves a precision of 97.67\% and an accuracy of 78.09\%.
+
+\hugo{Include the number of Positive, Negative and Indeterminate results, number of measurements and number of countries.}
+
+\begin{table}[h]
+    \centering
+    \caption{Summary of Hunter validation results.}
+    \label{tab:hunter_validation_results}
+    \begin{tabular}{lc}
+        \toprule
+        Metric & Value \\
+        \midrule
+        Precision & 97.67\% \\
+        Accuracy & 78.09\% \\
+        Negative results & 51 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 These results indicate that Hunter successfully minimizes incorrect country attributions while still identifying the geographic destination of a substantial proportion of communications. The difference between precision and accuracy reflects the conservative nature of the methodology, which intentionally prioritizes soundness over completeness by returning \textit{Indeterminate} results whenever sufficient confidence cannot be achieved.
 
-The comparison against the baseline last-hop geolocation approach further highlights the benefits of the proposed methodology. Directly geolocating the last hop IP address using the IPinfo service slightly increases the number of identified countries (+0.44\%), but also produces a substantially larger number of incorrect attributions (+13.72\%).
+The comparison against the baseline last hop geolocation approach further highlights the benefits of the proposed methodology. Directly geolocating the last hop IP address using the IPinfo service slightly increases the number of identified destinations (+0.44\%), but also produces a substantially larger number of incorrect attributions (+13.72\%).
 
-This result demonstrates that simple last-hop geolocation techniques may improve completeness at the cost of significantly reducing reliability. In the context of privacy analysis and legal compliance assessment, incorrectly assigning communications to a jurisdiction may lead to erroneous conclusions regarding international data transfers. Consequently, Hunter deliberately favors conservative inference decisions that minimize false positives even if certain transfers remain unresolved.
+This result demonstrates that simple last hop geolocation techniques may improve completeness at the cost of significantly reducing reliability. In the context of privacy analysis and legal compliance assessment, incorrectly assigning communications to a jurisdiction may lead to erroneous conclusions regarding international data transfers. Consequently, Hunter deliberately favors conservative inference decisions that minimize false positives even if certain transfers remain unresolved.
 
 A detailed analysis of the Negative results reveals that 94.12\% of all incorrect attributions (48 out of 51) are concentrated in Norway and Finland, where Hunter achieves accuracies of 50.72\% and 80.28\%, respectively. These observations suggest that the routing behavior associated with Northern European networks introduces substantial instability in the geographic association between probes and anycast replicas.
 
-However, additional experiments showed that repeatedly executing measurements over time significantly mitigates these inconsistencies. In practice, Hunter achieves 100\% accuracy when only destinations exhibiting sufficient temporal stability are considered valid results. Empirical observations indicate that destinations appearing in more than 5\% of repeated executions can be considered statistically stable and therefore reliable for country-level attribution.
+\hugo{Clarify this effect of 100\% accuracy and respect to what effect is considered. Includemore detail about the exact number of repetitions. Maybe a figure table summarizing Positive, Negative, and Indeterminate distributions by country.}
+
+Additional experiments further showed that repeatedly executing measurements over time significantly mitigates these inconsistencies. Under repeated measurements and after filtering statistically unstable destinations, no incorrect attributions were observed in the evaluated scenarios. Empirical observations indicate that destinations appearing in more than 5\% of repeated executions can be considered statistically stable and therefore reliable for country-level attribution.
 
 \subsection{Cross-border Communications during Validation}
 
@@ -268,7 +291,7 @@ Finally, episodic transfers correspond to occasional routing deviations observed
 
 These observations demonstrate that the geographic destination of anycast communications may vary substantially depending on transient routing conditions, traffic engineering decisions, and BGP dynamics. Consequently, determining the actual jurisdiction reached by a communication requires continuous observation and active measurement rather than relying exclusively on static infrastructure assumptions or conventional IP geolocation databases.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The obtained validation results confirm that Hunter provides sufficiently reliable geographic inference capabilities for studying international data transfers over anycast infrastructures. Building upon these results, the following chapters employ Hunter to analyze real-world mobile ecosystems and evaluate the impact of anycast communications on data protection and jurisdictional exposure.
 
 \section{Measurement Infrastructure}
 \label{sc:hunter_measurement_infrastructure}
