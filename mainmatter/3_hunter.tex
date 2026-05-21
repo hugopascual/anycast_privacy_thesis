@@ -126,6 +126,13 @@ First of all, traceroute can be used with UDP, ICMP, or TCP protocols, producing
 
 This execution of traceroute with the three different protocols used under the same conditions shows the differences:\hugo{This example is here to show the behaviour it but I do not know what format to use.}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{figures/traceroute_protocols_examples.png}
+    \caption{Example of traceroute execution using all three different protocols.}
+    \label{fig:traceroute_protocols_examples}
+\end{figure}
+
 \begin{Verbatim}[
     breaklines=true,
     breakanywhere=true,
@@ -174,13 +181,6 @@ traceroute to google.com (142.251.142.142), 30 hops max, 60 byte packets
 13  142.250.232.27 (142.250.232.27)  2.425 ms  2.415 ms  2.435 ms
 14  lcmada-ag-in-f14.1e100.net (142.251.142.142)  2.242 ms  2.236 ms  2.338 ms
 \end{Verbatim}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{figures/traceroute_protocols_examples.png}
-    \caption{Example of traceroute execution using all three different protocols.}
-    \label{fig:traceroute_protocols_examples}
-\end{figure}
 
 Second, modern Internet infrastructures frequently employ technologies such as MPLS tunnelling, Equal-Cost Multi-Path (ECMP) routing, and traffic load balancing mechanisms. These technologies may obscure the actual forwarding path followed by packets or produce different traceroute paths for packets belonging to the same communication flow. Additionally, these technologies, instead of obscuring the path, produce multipathing. This multipathing situation is produced when multiple paths can be recognised in the traceroute, indicating that two anycast replicas were involved in the measurement. If this effect is produced, Hunter takes the different paths as distinct and analyses them separately.
 
@@ -236,8 +236,6 @@ These limitations highlight the inherent uncertainty associated with Internet-sc
 \section{Validation}
 \label{sc:hunter_validation}
 
-
-
 The proposed methodology and its software implementation, Hunter, were validated under real-world Internet conditions in order to evaluate their capability to infer the geographic destination of anycast communications. Since the primary objective of Hunter is to determine the jurisdiction associated with a communication, the validation process focuses on country-level attribution rather than precise coordinate-level geolocation.
 
 Validating anycast geolocation mechanisms presents an important challenge, as obtaining reliable ground-truth information regarding the serving replica is generally difficult in operational infrastructures. To address this problem, the validation process leverages specific Cloudflare services whose HTTP responses expose location-related metadata associated with the serving infrastructure.
@@ -254,7 +252,7 @@ However, during the development of this work, no mechanism was identified to ret
 
 Consequently, the validation required executing both the HTTP request and Hunter from the same controlled environment, which was achieved through the use of VPN exit nodes located in different EEA countries. Although this approach may introduce slight differences with respect to native residential or RIPE Atlas routing conditions, it guarantees that the ground-truth HTTP request and the Hunter measurements observe the same anycast routing behaviour at the time of execution.
 
-\hugo{Maybe is counter productive that it was focused in european territory.}\hugo{Include additional details regarding the VPN provider and measurement repetition strategy}\hugo{I need to evaluate the option of making a new and more reproducible and rigorous validation of Hunter.}
+\hugo{Maybe is counter productive that it was focused in european territory. Include additional details regarding the VPN provider and measurement repetition strategy. I need to evaluate the option of making a new and more reproducible and rigorous validation of Hunter.}
 
 \subsection{Validation Metrics}
 
