@@ -9,13 +9,13 @@ To address these challenges, this chapter presents a methodology capable of infe
 
 The proposed methodology is composed of three sequential stages. First, the routing path towards the anycast destination is analysed in order to identify the network elements traversed by the communication. Particular attention is devoted to the last hop before the destination, as this network element provides critical topological information regarding the potential location of the serving anycast replica. Second, multilateration techniques are applied using geographically distributed vantage points located near the last hop. By combining latency measurements from multiple probes, the methodology estimates the geographic region where the destination infrastructure is likely deployed. Finally, the obtained region is analysed to infer the corresponding city and country associated with the communication destination. When executed through Hunter, the methodology outputs the most likely geographic destination of the anycast communication or returns an indeterminate result if sufficient confidence cannot be achieved.
 
-Figure~\ref{fig:hunter_steps} summarises the different stages of the Hunter methodology.
+Figure~\ref{fig:hunter_flow_with_map} summarises the different stages of the Hunter methodology.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\textwidth]{figures/hunter_steps.png}
+    \includegraphics[width=\textwidth]{figures/hunter_flow_with_map.png}
     \caption{Hunter methodology for determining the destination country of anycast communications.}
-    \label{fig:hunter_steps}
+    \label{fig:hunter_flow_with_map}
 \end{figure}
 
 \section{Tracing the Anycast Path}
@@ -128,9 +128,9 @@ This execution of traceroute with the three different protocols used under the s
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\textwidth]{figures/traceroute_protocols_examples.png}
+    \includegraphics[width=\textwidth]{figures/hunter_traceroute_protocols_examples.png}
     \caption{Example of traceroute execution using all three different protocols.}
-    \label{fig:traceroute_protocols_examples}
+    \label{fig:hunter_traceroute_protocols_examples}
 \end{figure}
 
 \begin{Verbatim}[
@@ -315,13 +315,13 @@ Additional experiments further showed that repeatedly executing measurements ove
 
 \subsection{Cross-border Communications during Validation}
 
-The communications observed during the validation process already reveal a significant number of international data transfers associated with anycast infrastructures. Figure~\ref{fig:validation_flows} illustrates the communication flows obtained during the validation experiments targeting the IP address 192.5.5.241. Flows crossing the borders of the European Economic Area are highlighted in red.
+The communications observed during the validation process already reveal a significant number of international data transfers associated with anycast infrastructures. Figure~\ref{fig:hunter_validation_flows} illustrates the communication flows obtained during the validation experiments targeting the IP address 192.5.5.241. Flows crossing the borders of the European Economic Area are highlighted in red.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{figures/validation_flows.png}
+    \includegraphics[width=\textwidth]{figures/hunter_validation_flows.png}
     \caption{Data flows obtained during Hunter validation for the target 192.5.5.241. Communications crossing EEA borders are highlighted in red.}
-    \label{fig:validation_flows}
+    \label{fig:hunter_validation_flows}
 \end{figure}
 
 The validation experiments identified multiple destination countries outside the EEA, including the United Kingdom, Switzerland, Moldova, and Russia. These observations confirm that anycast routing may direct communications towards jurisdictions outside the expected regulatory domain, even when the communication originates within the EEA.
