@@ -1,6 +1,8 @@
 \chapter{Hunter: Tracing Anycast}
 \label{ch:hunter}
 
+\hugo{Añadir código y datasets en los resúmenes.}
+
 As discussed in previous chapters, anycast infrastructures introduce significant challenges regarding geographic transparency and control over Internet communications. Since multiple geographically distributed servers share the same IP address, determining the actual physical destination of a communication becomes substantially more complex than in traditional unicast environments. Routing decisions depend on dynamic BGP policies, peering relationships, traffic engineering mechanisms, and network conditions, making the geographic behaviour of anycast communications difficult to predict and verify. This lack of geographic determinism has direct implications for privacy, data protection, and data sovereignty. In particular, organisations and users may be unable to determine whether personal data remains within specific jurisdictions or is unintentionally transferred across national borders. Consequently, understanding the actual geographic destinations reached by anycast communications becomes a fundamental requirement for evaluating compliance with modern data protection regulations.
 
 However, identifying the physical destination of anycast communications is a non-trivial problem. Traditional IP geolocation databases are insufficient in this context because a single anycast IP address corresponds to multiple geographically distributed replicas, while conventional geolocation databases associate the address with a single geographic location. Furthermore, the destination reached by a communication may dynamically vary depending on the origin network and current routing conditions.
