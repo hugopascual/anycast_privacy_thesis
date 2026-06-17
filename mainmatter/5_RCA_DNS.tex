@@ -13,12 +13,12 @@ Existing approaches to geographic traffic control typically rely on application-
 
 To address this problem, this chapter presents \textit{Region-Constrained Anycast over DNS (RCA-DNS)}, a mechanism designed to introduce geographic constraints into anycast service delivery while preserving the scalability, resilience, and performance characteristics that motivate the use of anycast in the first place. The key idea behind RCA-DNS is to combine DNS-based request steering with region-specific anycast deployments, allowing service providers to restrict communications to predefined geographic regions without requiring modifications to client devices or to the global routing infrastructure.
 
-The remainder of this chapter is organised as follows. First, the motivation behind RCA-DNS and the design requirements guiding its development are presented. Next, the architecture and operation of the proposed regionalized anycast system are described in detail. Finally, an experimental evaluation is conducted to assess the effectiveness of the proposal in confining communications within predefined geographic regions while analysing its impact on service performance and operational deployment.
+The remainder of this chapter is organised as follows. First, the motivation behind RCA-DNS and the design requirements guiding its development are presented. Next, the architecture and operation of the proposed regionalised anycast system are described in detail. Finally, an experimental evaluation is conducted to assess the effectiveness of the proposal in confining communications within predefined geographic regions while analysing its impact on service performance and operational deployment.
 
 \section{Motivation and Design Requirements}
 \label{sc:rcadns_motivation}
 
-The results presented in Chapter~\ref{ch:measurements} demonstrate that anycast infrastructures introduce a significant loss of geographic transparency and control over Internet communications. The experiments revealed that communications involving personal data may reach different destination countries depending on the origin network, routing conditions, and the operational state of the anycast infrastructure. Furthermore, many of these destination countries are not explicitly disclosed in the corresponding privacy policies, making it difficult for users and organizations to determine where their data are actually processed.
+The results presented in Chapter~\ref{ch:anycast_experiments} demonstrate that anycast infrastructures introduce a significant loss of geographic transparency and control over Internet communications. The experiments revealed that communications involving personal data may reach different destination countries depending on the origin network, routing conditions, and the operational state of the anycast infrastructure. Furthermore, many of these destination countries are not explicitly disclosed in the corresponding privacy policies, making it difficult for users and organisations to determine where their data are actually processed.
 
 This lack of geographic predictability creates important challenges from both technical and regulatory perspectives. From a technical standpoint, service operators have limited control over the jurisdictions reached by user traffic once routing decisions are delegated to the global inter-domain routing system. From a regulatory perspective, organisations may be unable to guarantee that communications remain within specific geographic regions, potentially leading to unintentional cross-border transfers of personal data.
 
@@ -31,8 +31,6 @@ To address these limitations, this chapter presents \textit{Region-Constrained A
 The design of RCA-DNS is guided by the following requirements:
 
 \begin{itemize}
-    \item \textbf{Geographic confinement.} Communications originating from a given region should be directed only towards replicas deployed within the same region whenever possible.
-
     \item \textbf{Compatibility with existing infrastructures.} The solution should operate using standard Internet protocols and require minimal modifications to client devices and applications.
 
     \item \textbf{Incremental deployability.} Service providers should be able to adopt the mechanism without requiring changes to the global routing infrastructure or coordination with third-party network operators.
@@ -45,6 +43,8 @@ The design of RCA-DNS is guided by the following requirements:
 \end{itemize}
 
 Based on these requirements, RCA-DNS combines DNS-based request steering with region-specific anycast deployments, enabling service operators to constrain communications to predefined geographic areas while retaining the operational advantages of anycast infrastructures. The architecture and operation of the proposed mechanism are described in the following section.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{RCA-DNS Architecture}
 \label{sc:rcadns_architecture}
@@ -66,3 +66,21 @@ Based on these requirements, RCA-DNS combines DNS-based request steering with re
 
 \section{Limitations and Discussion}
 \label{sc:rcadns_discussion}
+
+The results presented in the previous section show that RCA-DNS can effectively constrain anycast communications to a predefined geographic region while preserving the operational advantages that motivate the use of anycast infrastructures. By introducing an additional regionalization layer during DNS resolution, the proposed architecture enables service providers to influence the geographic destinations reached by user communications without requiring modifications to existing routing protocols or changes in client applications.
+
+From a regulatory perspective, RCA-DNS addresses one of the fundamental challenges identified throughout this thesis: the lack of deterministic geographic control in traditional anycast deployments. Whereas conventional anycast infrastructures delegate replica selection entirely to Internet routing dynamics, RCA-DNS allows service providers to define explicit geographic boundaries and restrict communications to infrastructures deployed within a desired region. Consequently, the approach offers a practical mechanism for reducing jurisdictional exposure and facilitating compliance with geographic processing requirements.
+
+Despite these advantages, RCA-DNS does not completely eliminate the challenges associated with geographic control in large-scale distributed systems. First, the effectiveness of the mechanism depends on the availability of a sufficient number of replicas within each protected region. Regions with limited infrastructure deployments may experience a reduction in performance or resilience compared with global anycast configurations. In practice, the achievable level of regional confinement depends on the geographic distribution of the service infrastructure itself.
+
+Second, RCA-DNS relies on DNS-based steering decisions. Although DNS resolution is the standard mechanism used by modern CDNs and large-scale Internet services to direct users towards specific infrastructures, the final path followed by packets remains subject to Internet routing dynamics. As a consequence, RCA-DNS can constrain the selection of replicas but cannot provide strict guarantees regarding the physical path traversed by packets after the destination replica has been selected.
+
+Third, the proposed architecture assumes that geographic regions can be defined through relatively stable jurisdictional boundaries. While this assumption is appropriate for many regulatory frameworks, such as the European Economic Area, other deployment scenarios may require more granular policies involving specific countries, legal agreements, or administrative domains. Extending RCA-DNS to support more complex policy models constitutes an interesting direction for future work.
+
+\hugo{If available, include here quantitative observations regarding the operational overhead introduced by the additional DNS resolution process, such as latency impact, cache efficiency, or scalability considerations.}
+
+Another limitation of the current evaluation is that it focuses primarily on demonstrating geographic confinement and feasibility. Although the obtained results show that the architecture successfully reduces jurisdictional exposure, a broader deployment would be required to assess its behaviour under large-scale operational conditions, including failures, routing incidents, and highly dynamic traffic patterns.
+
+Nevertheless, the proposed approach demonstrates that geographic control and anycast are not inherently incompatible objectives. The widespread use of anycast throughout the Internet has traditionally prioritised performance, availability, and operational simplicity, often at the expense of geographic predictability. RCA-DNS shows that introducing geographic awareness into the service selection process can substantially improve jurisdictional control while retaining the scalability and resilience properties that make anycast attractive.
+
+More broadly, this work suggests that future Internet infrastructures may need to incorporate geographic considerations as first-class design requirements rather than treating location as an incidental consequence of routing behaviour. As regulatory requirements related to data sovereignty and international data transfers continue to evolve, mechanisms capable of providing explicit geographic control over communications are likely to become increasingly important for both service providers and regulatory compliance processes.
