@@ -79,7 +79,7 @@ The previous formulation assumes that packets travel through geographically opti
 
 To account for this behaviour, Hunter incorporates the approximation proposed by VerLoc \cite{Kohls2022VerLoc:Systems}. VerLoc empirically observed that the effective propagation distance travelled by Internet traffic is typically larger than the geographic great-circle distance between endpoints due to routing inefficiencies and network detours. Instead of assuming ideal propagation conditions, VerLoc introduces a correction factor that models the average inflation observed in operational Internet paths, providing a more realistic upper bound for latency-based geographic inference.
 
-Hunter incorporates the option of using this approximation into the multilateration process to reduce the probability of underestimating the geographic region compatible with the observed RTT measurements. Consequently, the obtained multilateration regions better reflect the uncertainty introduced by real-world Internet routing behaviour while still maintaining sufficiently constrained geographic estimations for country-level inference.
+Hunter incorporates the option of using this approximation into the multilateration process to reduce the probability of overestimating the geographic region compatible with the observed RTT measurements. Consequently, the obtained multilateration regions better reflect the uncertainty introduced by real-world Internet routing behaviour while still maintaining sufficiently constrained geographic estimations for country-level inference.
 
 Based on the empirical results presented by VerLoc, a logistic regression model was derived to approximate the relationship between RTT and geographic distance under realistic Internet routing conditions. Formally, the obtained relation can be expressed as:
 
@@ -186,7 +186,7 @@ traceroute to google.com (142.251.142.142), 30 hops max, 60 byte packets
 
 Second, modern Internet infrastructures frequently employ technologies such as MPLS tunnelling, Equal-Cost Multi-Path (ECMP) routing, and traffic load balancing mechanisms. These technologies may obscure the actual forwarding path followed by packets or produce different traceroute paths for packets belonging to the same communication flow. Additionally, these technologies, instead of obscuring the path, produce multipathing. This multipathing situation is produced when multiple paths can be recognised in the traceroute, indicating that two anycast replicas were involved in the measurement. If this effect is produced, Hunter takes the different paths as distinct and analyses them separately.
 
-These limitations may affect the identification of the actual last hop router before the anycast infrastructure. In certain scenarios, the last observable hop may correspond to an upstream transit provider or an intermediate routing element located relatively far from the serving replica. Consequently, the geographic reference obtained from the traceroute analysis may not perfectly correspond to the physical location of the destination infrastructure.
+These limitations may affect the identification of the actual last hop router before the anycast replica. In certain scenarios, the last observable hop may correspond to an upstream transit provider or an intermediate routing element located relatively far from the serving replica. Consequently, the geographic reference obtained from the traceroute analysis may not perfectly correspond to the physical location of the destination infrastructure.
 
 To mitigate these effects, Hunter does not rely exclusively on traceroute observations for geographic attribution. Instead, traceroute information is combined with multilateration constraints obtained from geographically distributed measurements. Furthermore, paths exhibiting inconsistent or unreliable routing behaviour are conservatively discarded during the inference process.
 
@@ -254,7 +254,7 @@ However, during the development of this work, no mechanism was identified to ret
 
 Consequently, the validation required executing both the HTTP request and Hunter from the same controlled environment, which was achieved through the use of VPN exit nodes located in different EEA countries. Although this approach may introduce slight differences with respect to native residential or RIPE Atlas routing conditions, it guarantees that the ground-truth HTTP request and the Hunter measurements observe the same anycast routing behaviour at the time of execution.
 
-\hugo{Maybe is counter productive that it was focused in european territory. Include additional details regarding the VPN provider and measurement repetition strategy. I need to evaluate the option of making a new and more reproducible and rigorous validation of Hunter.}
+\hugo{Include additional details regarding the VPN provider and measurement repetition strategy. I need to evaluate the option of making a new and more reproducible and rigorous validation of Hunter.}
 
 \subsection{Validation Metrics}
 

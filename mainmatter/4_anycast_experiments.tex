@@ -87,7 +87,7 @@ The final phase of the methodology focuses on determining the geographic destina
 
 For each anycast IP address identified during the dynamic analysis phase, distributed measurements were executed from geographically distributed vantage points across the EEA using RIPE Atlas probes \cite{HomeAtlas}. The experiments focused on EEA countries because the GDPR establishes explicit transparency and adequacy requirements regarding international transfers of personal data outside the EEA jurisdictional space.
 
-The source probes were selected by dividing the EEA territory into geographic cells of three degrees latitude and longitude. For each cell, a random RIPE Atlas probe belonging to an EEA country was selected. Approximately 110 probes were used during each measurement campaign, providing broad geographic coverage across the EEA.
+The source probes were selected by dividing the EEA territory into geographic cells of three degrees of latitude and longitude. For each cell, a random RIPE Atlas probe belonging to an EEA country was selected. Approximately 110 probes were used during each measurement campaign, providing broad geographic coverage across the EEA.
 
 For every source probe and anycast IP pair, Hunter inferred the destination country reached by the communication. The measurements were repeated ten times for each IP in order to capture routing variability and identify potential changes in the selected anycast replica caused by network fluctuations, BGP routing dynamics, or traffic engineering mechanisms.
 

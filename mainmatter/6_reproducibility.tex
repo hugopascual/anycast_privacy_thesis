@@ -1,0 +1,83 @@
+\chapter{Reproducibility and Open Science}
+\label{ch:reproducibility}
+
+The methodologies and experiments presented throughout this thesis were developed following the principles of reproducible research and open science. Whenever permitted by ethical, legal, and licencing constraints, the software artefacts, experimental datasets, and processing tools developed during this work have been made publicly available to facilitate independent verification, comparison, and future research.
+
+Beyond the scientific results themselves, this thesis aims to provide reusable artefacts that may support further investigations on anycast infrastructures, geographic control, and data sovereignty. The use of publicly accessible measurement platforms and the release of software components seek to maximise transparency and improve the reproducibility of the presented results.
+
+\section{Research Artifacts}
+\label{sc:reproducibility_artifacts}
+
+Several software components, datasets, and experimental artefacts were developed throughout this thesis.
+
+The first artefact is Hunter, the methodology, and software implementation presented in Chapter~\ref{ch:hunter}. Hunter combines traceroute analysis, last-hop identification, latency-based multilateration, and geographic inference techniques to determine the destination country associated with communications towards anycast infrastructures. The implementation includes the algorithms used throughout the validation and experimental campaigns.
+
+The second set of artefacts corresponds to the experimental deployment and evaluation of the RCA-DNS architecture presented in Chapter~\ref{ch:rcadns}. These artefacts include the deployment configuration, measurement procedures, scripts, and experimental data used to assess the feasibility and performance implications of geographically constrained anycast deployments.
+
+Additional artefacts include the software developed to collect and process RIPE Atlas measurements, the analysis tools used throughout the Android traffic studies, and the software employed to correlate network measurements, destination inference results, and privacy policy information.
+
+Several datasets generated during this work have also been preserved and released. These include the data collected during the validation of Hunter, the measurement campaigns used to study jurisdictional exposure in operational anycast infrastructures, and the datasets associated with the Android traffic analysis experiments.
+
+The complete source code of this dissertation, including the \LaTeX{} sources and the figures used throughout the manuscript, has also been maintained under version control in a public repository to facilitate transparency and long-term preservation. The repository additionally contains the text associated with the articles published during the PhD.
+
+\begin{table}[ht]
+    \centering
+    \caption{Publicly available artifacts associated with this thesis.}
+    \label{tab:research_artifacts}
+    \begin{tabularx}{\textwidth}{X X}
+        \toprule
+        Artifact & Repository / Reference \\
+        \midrule
+        \midrule
+        Hunter source code &
+        \url{github.com/STRAST-UPM/Hunter} \\
+        \midrule
+
+        Hunter validation analysis source code &
+        \url{github.com/STRAST-UPM/hunter_cose_data} \\
+        \midrule
+
+        Hunter validation dataset &
+        \url{doi.org/10.17632/ggnfwf5gw8.1} \\
+        \midrule
+
+        Europe anycast cross-border experiment source code &
+        \url{github.com/STRAST-UPM/hunter_experiment_anycast_europe} \\
+        \midrule
+
+        Europe anycast cross-border experiment datasets &
+        \url{doi.org/10.17632/7y627xjdzd.2} \\
+        \midrule
+
+        Global anycast cross-border experiment source code &
+        \url{github.com/STRAST-UPM/experiments_hunter} \\
+        \midrule
+
+        Global anycast cross-border experiment datasets &
+        \url{doi.org/10.17632/n93r278vzy.1} \\
+        \midrule
+
+        RCA-DNS deployment documentation &
+        \url{github.com/STRAST-UPM/base_service_js} \\
+        \midrule
+
+        RCA-DNS validation datasets &
+        \url{doi.org/10.17632/n93r278vzy.1} \\
+        \midrule
+
+        Thesis source code &
+        \url{github.com/hugopascual/anycast_privacy_thesis} \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{Reproducibility Considerations}
+\label{sc:reproducibility_considerations}
+
+The methodologies presented throughout this thesis were intentionally designed to maximise reproducibility. Most experiments rely on publicly accessible infrastructures, open datasets, and standard measurement tools. In particular, RIPE Atlas was used as the main measurement platform for both the validation of Hunter and the large-scale measurement campaigns, allowing independent researchers to reproduce the measurements under comparable conditions.
+
+The availability of the developed software and datasets enables the reproduction of the complete processing pipeline used in this work, from raw measurements to the generation of the final results. In addition, the source code used to analyse the data and produce the figures included in this dissertation has been preserved and made publicly available. This allows not only the verification of the presented results but also the extension of the experiments to new scenarios or datasets.
+
+Nevertheless, reproducing Internet-scale measurements presents inherent challenges. Routing dynamics, changes in cloud deployments, modifications in RIPE Atlas probe availability, and the continuous evolution of Android applications imply that repeating the experiments at a different point in time may produce results that differ from those reported in this thesis. Such variations are expected and reflect the dynamic nature of operational Internet infrastructures rather than limitations of the proposed methodologies.
+
+Consequently, reproducibility in this context should not be understood as obtaining identical measurements, but rather as the ability to independently execute the same methodologies, process comparable data, and validate the conclusions under equivalent experimental conditions. The availability of the software artefacts, datasets, and experimental procedures developed during this work provides a foundation for such independent verification and facilitates future extensions of the presented research.
