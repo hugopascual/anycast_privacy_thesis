@@ -1,19 +1,21 @@
 \chapter{Introduction}
 \label{ch:introduction}
 
-\hugo{Change references to be properly formated}
-
 \section{Context and Motivation}
-
-\hugo{I do not know if I should make it bigger an with more detail. Maybe all the detail should be in the background.}
 
 The rapid evolution of digital services has led to an increasingly distributed Internet architecture. To ensure high availability, low latency, scalability, and resilience against large-scale DDoS attacks, modern Internet services rely heavily on anycast routing \cite{Abley2006OperationServices,McPherson2014ArchitecturalAnycast}. Anycast allows multiple geographically dispersed servers to share a single IP address, directing user traffic to the nearest instance according to Internet routing topology. This paradigm has become fundamental for critical Internet services such as Content Delivery Networks (CDNs), Domain Name System (DNS) infrastructures, cloud providers, anti-DDoS platforms, and edge computing services.
 
 Despite its operational advantages, anycast introduces a critical side effect: the logical destination of a communication no longer maps deterministically to a predictable physical location. The actual geographic endpoint reached by a user depends on highly dynamic routing decisions influenced by BGP policies, network congestion, peering agreements, failures, or traffic engineering strategies \cite{Calder2015AnalyzingCDN, Zhou2023RegionalPotentials}. Consequently, users, organisations, and even service providers may lose effective control and visibility over the countries through which personal data transits or where it is ultimately processed.
 
-This issue becomes particularly relevant in the current regulatory landscape, where privacy, data protection, and data sovereignty have become major concerns for governments and regulatory bodies worldwide. Regulations such as the GDPR in the European Economic Area \cite{REGULATIONSRelevance}, China's Personal Information Protection Law \cite{TheTranslation}, the Australian Privacy Principles \cite{ReadOAIC}, the United Kingdom GDPR and the Data Protection Act \cite{RegulationRelevance,Data2018}, or the Protecting Americans' Data from Foreign Adversaries Act in the United States \cite{Rep.Pallone2024Text2024} establish strict conditions regarding the collection, processing, storage, and international transfer of personal data.
+This issue becomes particularly relevant in the current regulatory landscape, where privacy, data protection, and data sovereignty have become major concerns for governments and regulatory bodies worldwide. Regulations such as the General Data Protection Regulation (GDPR) in the European Economic Area \cite{REGULATIONSRelevance}, China's Personal Information Protection Law \cite{TheTranslation}, the Australian Privacy Principles \cite{ReadOAIC}, the United Kingdom GDPR and the Data Protection Act \cite{RegulationRelevance,Data2018}, or the Protecting Americans' Data from Foreign Adversaries Act in the United States \cite{Rep.Pallone2024Text2024} establish strict conditions regarding the collection, processing, storage, and international transfer of personal data.
 
-Although these regulations differ in scope and implementation, they share a common principle: organisations must maintain a certain level of control and transparency regarding where personal data is transferred and processed. However, the inherent routing dynamics of anycast challenge this assumption. A service logically deployed within a specific geographic region may silently redirect user communications to infrastructures located in foreign jurisdictions without the explicit knowledge of users, developers, or even the organisations operating the service itself.\hugo{Add the example of GDPR about the treatment of international trasnfers}
+Although these regulations differ in scope and implementation, they share a common principle: organisations must maintain a certain level of control and transparency regarding where personal data is transferred and processed. However, the inherent routing dynamics of anycast challenge this assumption. A service logically deployed within a specific geographic region may silently redirect user communications to infrastructures located in foreign jurisdictions without the explicit knowledge of users, developers, or even the organisations operating the service itself.
+
+In the case of the GDPR, international transfers of personal data are regulated by Chapter V (Articles 44--50), while Article 13 establishes transparency obligations towards the data subject. Article 13(f) requires controllers to inform users whenever personal data are intended to be transferred to a third country or an international organisation, including the existence or absence of an adequacy decision and, where applicable, the safeguards applied to such transfers This information is mandatory even if the \textit{data subject} does not need to explicitly accept the transfer because there are enough warranties of protection due to adequacy decisions, safeguards, or any other condition specified in Article 49. 
+\begin{quote}
+    ''(f) where applicable, the fact that the controller intends to transfer personal data to a third country or international organisation and the existence or absence of an adequacy decision by the Commission, or in the case of transfers referred to in Article 46 or 47, or the second subparagraph of Article 49(1), reference to the appropriate or suitable safeguards and the means by which to obtain a copy of them or where they have been made available.''
+\end{quote}
+\hfill --- GDPR, Article 13 \cite{REGULATIONSRelevance}
 
 This conflict between Internet-scale routing optimisation and legal requirements for geographic control creates a new category of privacy and compliance risks. Importantly, such risks are often invisible to end users and difficult to detect using conventional network analysis techniques. Existing privacy policies and transparency disclosures typically describe data processing from an organisational or contractual perspective, while the actual physical routing of communications remains opaque and largely uncontrolled.
 
@@ -23,6 +25,17 @@ As a consequence, application developers may unintentionally delegate sensitive 
 
 In this context, understanding the relationship between anycast infrastructures, third-party ecosystems, and data protection regulations becomes essential. This thesis addresses this challenge from three complementary perspectives. First, it develops methodologies capable of accurately tracing the geographic destinations of anycast communications. Second, it evaluates the real-world privacy implications of anycast within mobile ecosystems and third-party dependencies. Finally, it proposes new architectural frameworks aimed at restoring deterministic geographic control over anycast communications while preserving the scalability and resilience benefits that motivated anycast adoption in the first place.
 
+\section{Relevance}
+\label{sc:introduction_relevance}
+
+The research presented in this thesis addresses problems whose importance extends beyond the specific study of anycast routing. The increasing reliance on Cloud Computing, Content Delivery Networks (CDNs), edge infrastructures, and globally distributed services has transformed anycast into a fundamental building block of the modern Internet. As more applications and services depend on geographically distributed infrastructures, understanding the actual destinations reached by communications becomes increasingly relevant not only from the perspective of performance and resilience but also in terms of privacy, data protection, international data transfers, and data sovereignty.
+
+These concerns are reflected in several regulatory initiatives and public policies. The GDPR establishes obligations regarding international transfers of personal data and transparency towards data subjects, while broader European initiatives, including the European Strategy for Data \cite{2020AData}, the Data Governance Act \cite{2022DataActb}, and the Data Act \cite{2022DataAct}, emphasise the importance of trusted data sharing, digital sovereignty, and maintaining control over the processing of information. Although these frameworks do not prescribe specific networking mechanisms, they implicitly assume that organisations can determine and document where data are processed. The dynamic nature of anycast routing challenges these assumptions and motivates the need for mechanisms capable of providing visibility and control over the geographic destinations reached by communications.
+
+The objectives pursued in this thesis are also aligned with broader research priorities identified by international and European strategic agendas. Recent initiatives associated with Horizon Europe \cite{StrategicCommission} and the development of European digital infrastructures emphasise trustworthy and sovereign infrastructures as key enablers of future digital ecosystems. In this context, the results presented in this thesis suggest that geographic control should be considered a first-class design property of distributed systems rather than a secondary consequence of routing behaviour. As the cloud-edge continuum, data spaces, and globally distributed services continue to evolve, understanding and controlling the geographic behaviour of Internet infrastructures emerges as a promising research area at the intersection of networking, cybersecurity, cloud computing, and data protection.
+
+From this perspective, the contributions of this thesis extend beyond the study of a particular routing mechanism. By analysing how anycast routing influences the jurisdictions reached by communications and by proposing mechanisms capable of introducing geographic constraints into service deployments, this work contributes to the broader objective of enabling distributed Internet infrastructures that simultaneously satisfy performance, resilience, transparency, and geographic control requirements. As data sovereignty and international data governance become increasingly relevant topics, understanding and controlling the geographic behaviour of Internet infrastructures is likely to become an important research challenge for both academia and industry.
+
 \section{Research Questions}
 
 To address the aforementioned problem, this thesis seeks to answer the following research questions:
@@ -31,15 +44,13 @@ To address the aforementioned problem, this thesis seeks to answer the following
 
     \item \textbf{RQ1 (Detection):} How can we accurately and automatically trace the geographic destination of anycast-based communications in order to identify potential cross-border personal data transfers?
 
-    \item \textbf{RQ2 (Compliance):} To what extent do the actual geographic destinations of anycast communications align with the transparency and disclosure requirements established by current data protection legislations?
-
-    \item \textbf{RQ3 (Ecosystem Risk):} How do Third-Party Libraries (TPLs) within the Android ecosystem contribute to the risk of unintended or non-compliant international data transfers through anycast infrastructures?
+    \item \textbf{RQ2 (Compliance):} To what extent do the actual geographic destinations of anycast communications align with the transparency and disclosure requirements established by current data protection legislation?
+    
+    \item \textbf{RQ3 (Ecosystem Risk):} Which software components and external dependencies contribute to the risk of unintended or non-compliant international data transfers through anycast infrastructures?
 
     \item \textbf{RQ4 (Mitigation):} What architectural frameworks or mechanisms can provide deterministic geographic control over anycast communications without significantly compromising scalability, performance, and resilience?
 
 \end{itemize}
-
-\hugo{Incluir metodología "Design Science"}
 
 \section{Thesis Objectives}
 
@@ -63,20 +74,40 @@ To achieve the main objective, the following specific goals are pursued:
     \begin{itemize}
         \item Analyse discrepancies between the actual geographic destinations of communications and the locations disclosed in privacy policies or transparency documents.
         \item Identify the prevalence of cross-border personal data transfers enabled by anycast infrastructures.
-        \item Study the implications of anycast routing under current data protection and sovereignty regulations.
+        \item Investigate how the geographic behaviour of anycast routing may affect geographic control, international data transfers, and broader data sovereignty concerns.
     \end{itemize}
-
-    \item \textbf{Analyse the role of Third-Party Libraries (TPLs) in privacy risks}
+    
+    \item \textbf{Analyse the role of software ecosystems and external dependencies in international data transfers}
     \begin{itemize}
-        \item Investigate how TPLs integrated into Android applications interact with anycast-enabled infrastructures.
-        \item Characterise the extent to which TPLs facilitate unintended international transfers of user data.
-        \item Assess the systemic privacy risks introduced by third-party supply chains in mobile ecosystems.
+        \item Investigate how software components and external dependencies interact with anycast-enabled infrastructures.
+        \item Identify the entities responsible for communications involving international transfers of personal data.
+        \item Assess the risks that software ecosystems and third-party supply chains introduce with respect to geographic control and data protection.
     \end{itemize}
-
-    \item \textbf{Design and evaluate mechanisms for geographic control in systems which uses anycast communications}
+    
+    \item \textbf{Design and evaluate mechanisms for geographic control in systems relying on anycast communications}
     \begin{itemize}
         \item Propose architectural frameworks capable of enforcing geographic constraints on anycast communications.
         \item Evaluate the feasibility and effectiveness of the proposed mechanisms from technical, operational, and regulatory perspectives.
         \item Analyse the trade-offs between geographic determinism, network performance, scalability, and resilience.
     \end{itemize}
 \end{enumerate}
+
+\section{Original Contributions and Research Methodology}
+\label{sc:introduction_contributions}
+
+The research presented in this thesis addresses the questions introduced above through a combination of active network measurements, dynamic traffic analysis, large-scale experimentation, and prototype implementation. Following the Design Science Research methodology \cite{Hevner2004DesignResearch}, the development and evaluation of artefacts are complemented by empirical measurement campaigns and large-scale studies of operational anycast infrastructures.
+
+The first contribution of this thesis is the design and validation of Hunter, a method capable of inferring the destination country associated with communications towards anycast replicas. Hunter combines traceroute analysis, last-hop identification, latency-based multilateration, and geographic inference techniques to provide country-level attribution of anycast destinations. This contribution addresses RQ1 and provides the measurement capabilities required for the remainder of the thesis.
+
+Building upon these capabilities, the second contribution consists of a large-scale empirical study of international transfers involving personal data and anycast infrastructures. By combining dynamic analysis of Android applications, privacy policy inspection, and destination inference, this work characterises the prevalence of international transfers and evaluates the extent to which the jurisdictions reached by communications are transparently disclosed to users. This contribution primarily addresses RQ2.
+
+The third contribution concerns the analysis of software ecosystems and external dependencies. The results reveal that a significant fraction of the observed communications originates from third-party software components, highlighting the role of software supply chains in generating international transfers and exposing personal data to multiple jurisdictions. This contribution addresses RQ3 and extends the analysis beyond individual applications.
+
+Finally, the thesis proposes Region-Constrained Anycast over DNS (RCA-DNS), an architecture designed to introduce geographic constraints into anycast service deployments. Through experimental evaluation, the proposed architecture demonstrates that meaningful geographic control can be introduced while preserving the scalability and resilience properties that motivate the use of anycast infrastructures. This contribution addresses RQ4.
+
+Taken together, these contributions provide both a measurement framework for studying the geographic behaviour of anycast systems and a practical mechanism for improving geographic control over communications in environments subject to data protection and sovereignty concerns.
+
+\section{Thesis Outline}
+\label{sc:introduction_outline}
+
+The remainder of this dissertation is organised as follows. Chapter~\ref{ch:background} introduces the background concepts required for the rest of the thesis, covering anycast routing, international data transfers, data protection regulations, and related work. Chapter~\ref{ch:hunter} presents Hunter, a methodology for inferring the geographic destinations reached by communications towards anycast infrastructures, together with its design and validation. Chapter~\ref{ch:anycast_experiments} applies this methodology to study international data transfers involving personal data, analysing the prevalence of anycast communications, transparency issues, the role of software ecosystems and external dependencies, and the broader implications of jurisdictional exposure. Chapter~\ref{ch:rcadns} introduces Region-Constrained Anycast over DNS (RCA-DNS), a mechanism designed to improve geographic control over anycast services, and evaluates its feasibility through experimental deployments. Chapter~\ref{ch:reproducibility} describes the software artefacts, datasets, and experimental resources released to facilitate reproducibility and open research. Finally, Chapter~\ref{ch:conclusion} summarises the main findings of this work, discusses its limitations, and outlines future research directions.
