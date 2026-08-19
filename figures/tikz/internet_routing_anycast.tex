@@ -1,0 +1,309 @@
+\begin{tikzpicture}[
+    >=Latex,
+    font=\small,
+    node distance=8mm and 12mm
+]
+
+% ============================================================
+% PANEL (a)
+% ============================================================
+
+\node[
+    anchor=west,
+    font=\bfseries
+] (titlea) at (0,0)
+    {(a) Internet routing: geographic distance vs.\ routing path};
+
+% Endpoints
+\node[
+    endpoint,
+    below=7mm of titlea,
+    xshift=-65mm
+] (sourceA)
+    {Source\\(host / AS X)};
+
+\node[
+    endpoint,
+    right=110mm of sourceA
+] (destA)
+    {Destination\\(host / AS Y)};
+
+% Autonomous systems
+\node[
+    autonomoussystem,
+    right=10mm of sourceA
+] (as1) {AS 1};
+
+\node[
+    autonomoussystem,
+    right=17mm of as1,
+    yshift=10mm
+] (as2) {AS 2};
+
+\node[
+    autonomoussystem,
+    right=17mm of as2
+] (as4) {AS 4};
+
+\node[
+    autonomoussystem,
+    right=17mm of as4,
+    yshift=-10mm
+] (as5) {AS 5};
+
+% Transit AS
+\node[
+    autonomoussystem,
+    below=15mm of as4
+] (as6) {AS 6\\(transit)};
+
+% IXP
+\node[
+    ixp,
+    right=8mm of as2
+] (ixp) {IXP};
+
+% Links
+\draw[link] (sourceA) -- (as1);
+\draw[link] (as1) -- (as2);
+\draw[link] (as2) -- (ixp);
+\draw[link] (ixp) -- (as4);
+\draw[link] (as4) -- (as5);
+\draw[link] (as5) -- (destA);
+
+% Transit path
+\draw[transit] (as1) -- (as6);
+\draw[transit] (as6) -- (as5);
+
+% Actual BGP-selected path
+\draw[bgppath] (as1) -- (as2);
+\draw[bgppath] (as2) -- (ixp);
+\draw[bgppath] (ixp) -- (as4);
+\draw[bgppath] (as4) -- (as5);
+
+% Geographic shortest path
+\draw[shortest]
+    (sourceA.north east)
+    .. controls
+        +(25mm,12mm)
+        and +(-25mm,12mm)
+    ..
+    (destA.north west);
+
+\node[
+    text=green!45!black,
+    font=\footnotesize\bfseries,
+    align=center
+] at (
+    $(sourceA.north)!0.5!(destA.north)+(0,15mm)$
+)
+{
+    Geographically shortest path\\
+    (not necessarily used)
+};
+
+\node[
+    text=blue!80!black,
+    font=\footnotesize\bfseries,
+    align=center
+] at (
+    $(as2.south)!0.5!(as4.south)+(0,-9mm)$
+)
+{
+    Actual routing path selected by BGP\\
+    based on policies, peering, and traffic engineering
+};
+
+% ============================================================
+% Key concepts box
+% ============================================================
+
+\node[
+    draw,
+    rounded corners=3pt,
+    fill=blue!3,
+    text width=61mm,
+    align=left,
+    inner sep=5pt,
+    font=\footnotesize
+] at (
+    $(sourceA.south)!0.5!(as6.south)+(-2mm,-17mm)$
+)
+{
+    \textbf{Key concepts}
+    \begin{itemize}
+        \setlength{\itemsep}{1pt}
+        \setlength{\parskip}{0pt}
+        \item Internet routing (e.g., BGP) selects paths according
+        to routing policies, not physical distance.
+        
+        \item Peering relationships and traffic engineering may
+        lead to longer geographic paths.
+        
+        \item Network proximity does not necessarily imply
+        geographic proximity.
+    \end{itemize}
+};
+
+% Separator
+\draw[
+    gray!50,
+    line width=0.7pt
+] (-88mm,-67mm) -- (88mm,-67mm);
+
+% ============================================================
+% PANEL (b)
+% ============================================================
+
+\node[
+    anchor=west,
+    font=\bfseries
+] (titleb) at (-88mm,-73mm)
+{
+    (b) Anycast routing: one IP, multiple geographically
+    distributed replicas
+};
+
+% Source
+\node[
+    endpoint,
+    below=7mm of titleb,
+    xshift=-65mm
+] (sourceB)
+    {Source\\(host / AS X)};
+
+% ASes
+\node[
+    autonomoussystem,
+    right=10mm of sourceB
+] (bas1) {AS 1};
+
+\node[
+    autonomoussystem,
+    right=17mm of bas1,
+    yshift=10mm
+] (bas2) {AS 2};
+
+\node[
+    autonomoussystem,
+    right=17mm of bas2
+] (bas4) {AS 4};
+
+\node[
+    autonomoussystem,
+    right=17mm of bas4,
+    yshift=-10mm
+] (bas5) {AS 5};
+
+% IXP
+\node[
+    ixp,
+    right=8mm of bas2
+] (bixp) {IXP};
+
+% Anycast IP
+\node[
+    anycastip,
+    right=12mm of bas5
+] (ip)
+{
+    Anycast IP\\
+    \texttt{203.0.113.1}
+};
+
+% Replicas
+\node[
+    replica,
+    right=16mm of ip,
+    yshift=13mm
+] (r1)
+{
+    Replica 1\\
+    Madrid, Spain
+};
+
+\node[
+    replica,
+    right=16mm of ip
+] (r2)
+{
+    Replica 2\\
+    Paris, France
+};
+
+\node[
+    replica,
+    right=16mm of ip,
+    yshift=-13mm
+] (r3)
+{
+    Replica 3\\
+    New York, USA
+};
+
+% Links
+\draw[link] (sourceB) -- (bas1);
+\draw[link] (bas1) -- (bas2);
+\draw[link] (bas2) -- (bixp);
+\draw[link] (bixp) -- (bas4);
+\draw[link] (bas4) -- (bas5);
+\draw[link] (bas5) -- (ip);
+
+% Selected routing path
+\draw[bgppath]
+    (bas1) -- (bas2)
+    -- (bixp)
+    -- (bas4)
+    -- (bas5);
+
+% Anycast replicas
+\draw[replicaLink] (ip) -- (r1);
+\draw[replicaLink] (ip) -- (r2);
+\draw[replicaLink] (ip) -- (r3);
+
+% Replica annotation
+\node[
+    align=left,
+    font=\footnotesize
+] at (
+    $(r2.east)+(20mm,0)$
+)
+{
+    Multiple replicas\\
+    sharing the same\\
+    anycast IP address
+};
+
+% ============================================================
+% Anycast principle box
+% ============================================================
+
+\node[
+    draw,
+    rounded corners=3pt,
+    fill=violet!3,
+    text width=68mm,
+    align=left,
+    inner sep=5pt,
+    font=\footnotesize
+] at (
+    $(sourceB.south)!0.5!(bas5.south)+(-2mm,-18mm)$
+)
+{
+    \textbf{Anycast principle}
+    \begin{itemize}
+        \setlength{\itemsep}{1pt}
+        \setlength{\parskip}{0pt}
+        \item Multiple geographically distributed replicas share
+        the same IP address.
+        
+        \item Routing protocols deliver packets to the replica
+        selected according to routing policies and current
+        network conditions.
+        
+        \item The selected replica, and therefore the geographic
+        destination, may vary across sources and over time.
+    \end{itemize}
+};
+
+\end{tikzpicture}

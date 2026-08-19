@@ -15,10 +15,12 @@ Figure~\ref{fig:hunter_flow_with_map} summarises the different stages of the Hun
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\textwidth]{figures/hunter_flow_with_map.png}
+    \includegraphics[width=\textwidth]{figures/images/hunter_flow_with_map.png}
     \caption{Hunter methodology for determining the destination country of anycast communications.}
     \label{fig:hunter_flow_with_map}
 \end{figure}
+
+Hunter relies on RIPE Atlas to perform the active measurements required by the methodology. The characteristics of RIPE Atlas and other Internet measurement infrastructures were introduced in Section~\ref{sc:background_location_measurements_infraestructures}. The availability of geographically distributed probes enables Hunter to execute traceroute and latency measurements from multiple vantage points and infer the geographic destinations associated with anycast communications.
 
 \section{Tracing the Anycast Path}
 \label{sc:hunter_tracing_anycast_path}
@@ -130,7 +132,7 @@ This execution of traceroute with the three different protocols used under the s
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\textwidth]{figures/hunter_traceroute_protocols_examples.png}
+    \includegraphics[width=\textwidth]{figures/images/hunter_traceroute_protocols_examples.png}
     \caption{Example of traceroute execution using all three different protocols.}
     \label{fig:hunter_traceroute_protocols_examples}
 \end{figure}
@@ -321,7 +323,7 @@ The communications observed during the validation process already reveal a signi
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{figures/hunter_validation_flows.png}
+    \includegraphics[width=\textwidth]{figures/images/hunter_validation_flows.png}
     \caption{Data flows obtained during Hunter validation for the target 192.5.5.241. Communications crossing EEA borders are highlighted in red.}
     \label{fig:hunter_validation_flows}
 \end{figure}
@@ -339,16 +341,3 @@ Finally, episodic transfers correspond to occasional routing deviations observed
 These observations demonstrate that the geographic destination of anycast communications may vary substantially depending on transient routing conditions, traffic engineering decisions, and BGP dynamics. Consequently, determining the actual jurisdiction reached by a communication requires continuous observation and active measurement rather than relying exclusively on static infrastructure assumptions or conventional IP geolocation databases.
 
 The obtained validation results confirm that Hunter provides sufficiently reliable geographic inference capabilities for studying international data transfers over anycast infrastructures. Building upon these results, the following chapters employ Hunter to analyse real-world mobile ecosystems and evaluate the impact of anycast communications on data protection and jurisdictional exposure.
-
-\section{Measurement Infrastructure}
-\label{sc:hunter_measurement_infrastructure}
-
-The network measurements described in the previous sections could theoretically be performed from a single personal computer. However, such an approach would severely limit the geographic diversity of the measurements, since the location of the measurement host would remain fixed. As the objective of Hunter is to infer the potential geographic destinations of anycast communications on a continental and global scale, it is necessary to employ a distributed measurement infrastructure that provides geographically diverse vantage points.
-
-For this purpose, the implementation of Hunter relies on RIPE Atlas \cite{HomeAtlas}, a large-scale Internet measurement platform composed of thousands of distributed probes deployed worldwide. RIPE Atlas enables researchers and network operators to perform active measurements such as ping, traceroute, DNS, TLS, HTTP, and NTP from multiple geographic locations. These probes are hosted by volunteers, organisations, universities, Internet Service Providers (ISPs), and research institutions, providing broad visibility into the global Internet infrastructure.
-
-The platform is publicly accessible and community-driven, allowing participants to contribute probes and perform measurements through a credit-based system. RIPE Atlas is maintained by the RIPE Network Coordination Centre (RIPE NCC), the Regional Internet Registry responsible for Europe, the Middle East, and parts of Central Asia. As one of the major organisations involved in Internet coordination and infrastructure management, RIPE NCC provides a reliable and widely adopted platform for Internet-scale measurement studies.
-
-Several alternative Internet measurement platforms exist, including Ark CAIDA \cite{ArkCAIDA}, perfSONAR \cite{PerfSONAR}, and PlanetLab \cite{HomePlanetLab}. However, RIPE Atlas was selected for this work due to its large number of active probes, extensive geographic coverage, measurement flexibility, and widespread adoption within the network research community.
-
-These characteristics make RIPE Atlas particularly suitable for the objectives of Hunter, as the method requires executing traceroute and latency measurements from multiple distributed vantage points in order to estimate the geographic regions that are potentially reachable by anycast communications.

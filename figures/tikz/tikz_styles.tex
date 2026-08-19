@@ -1,0 +1,120 @@
+% ============================================================
+% TikZ styles
+% ============================================================
+
+% ------------------------------------------------------------
+% Nodes
+% ------------------------------------------------------------
+
+\tikzset{
+    endpoint/.style={
+        draw,
+        rounded corners=2pt,
+        minimum width=18mm,
+        minimum height=10mm,
+        align=center,
+        fill=gray!8
+    }
+}
+
+\tikzset{
+    autonomoussystem/.style={
+        draw,
+        rounded corners=4pt,
+        minimum width=18mm,
+        minimum height=9mm,
+        align=center,
+        fill=blue!5
+    }
+}
+
+\tikzset{
+    router/.style={
+        draw,
+        circle,
+        minimum size=6mm,
+        inner sep=0pt,
+        fill=blue!15
+    }
+}
+
+\tikzset{
+    ixp/.style={
+        draw,
+        rounded corners=2pt,
+        minimum width=13mm,
+        minimum height=7mm,
+        align=center,
+        fill=orange!15
+    }
+}
+
+\tikzset{
+    replica/.style={
+        draw,
+        rounded corners=2pt,
+        minimum width=29mm,
+        minimum height=9mm,
+        align=center,
+        fill=green!8
+    }
+}
+
+\tikzset{
+    anycastip/.style={
+        draw,
+        rounded corners=2pt,
+        minimum width=25mm,
+        minimum height=11mm,
+        align=center,
+        fill=violet!10
+    }
+}
+
+% ------------------------------------------------------------
+% Links
+% ------------------------------------------------------------
+
+\tikzset{
+    link/.style={
+        draw=black!70,
+        line width=0.7pt
+    }
+}
+
+\tikzset{
+    transit/.style={
+        draw=black!55,
+        dashed,
+        line width=0.7pt
+    }
+}
+
+\tikzset{
+    bgppath/.style={
+        draw=blue!80!black,
+        line width=2pt,
+        ->,
+        >=Latex
+    }
+}
+
+\tikzset{
+    shortest/.style={
+        draw=green!60!black,
+        dashed,
+        line width=1.2pt,
+        ->,
+        >=Latex
+    }
+}
+
+\tikzset{
+    replicaLink/.style={
+        draw=violet!70!black,
+        dashed,
+        line width=1pt,
+        ->,
+        >=Latex
+    }
+}
