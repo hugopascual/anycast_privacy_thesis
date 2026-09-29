@@ -1,15 +1,13 @@
 \chapter{Hunter: Tracing Anycast}
 \label{ch:hunter}
 
-\hugo{Añadir código y datasets en los resúmenes.}
+As discussed in previous chapters, anycast infrastructures introduce significant challenges regarding geographic transparency and control over Internet communications. Since multiple geographically distributed servers share the same IP address, determining the actual physical destination of a communication becomes substantially more complex than in traditional unicast environments. Routing decisions may change over time as routing policies, connectivity, and network conditions evolve, making the geographic behaviour of anycast communications difficult to predict and verify. This lack of geographic determinism has direct implications for privacy, data protection, and data sovereignty. In particular, organisations and users may be unable to determine whether personal data remains within specific jurisdictions or is unintentionally transferred across national borders. Consequently, understanding the actual geographic destinations reached by anycast communications becomes a fundamental requirement for evaluating compliance with modern data protection regulations.
 
-As discussed in previous chapters, anycast infrastructures introduce significant challenges regarding geographic transparency and control over Internet communications. Since multiple geographically distributed servers share the same IP address, determining the actual physical destination of a communication becomes substantially more complex than in traditional unicast environments. Routing decisions depend on dynamic BGP policies, peering relationships, traffic engineering mechanisms, and network conditions, making the geographic behaviour of anycast communications difficult to predict and verify. This lack of geographic determinism has direct implications for privacy, data protection, and data sovereignty. In particular, organisations and users may be unable to determine whether personal data remains within specific jurisdictions or is unintentionally transferred across national borders. Consequently, understanding the actual geographic destinations reached by anycast communications becomes a fundamental requirement for evaluating compliance with modern data protection regulations.
+However, identifying the physical destination of anycast communications is a non-trivial problem. Traditional IP geolocation databases are insufficient to determine the geographic destination of individual communications to anycast services. A single anycast IP address corresponds to multiple geographically distributed replicas, whereas IP geolocation databases typically associate the address with a single representative geographic location. Some modern databases, such as IPinfo \cite{IPIPinfo}, explicitly identify IP addresses as anycast, but this classification does not resolve the geographic ambiguity: the reported location still represents a single location for the IP address rather than the replica that served a particular communication. Consequently, IP geolocation alone cannot determine which geographic destination was reached by a specific anycast communication. Furthermore, the destination reached by a communication may dynamically vary depending on the origin network and current routing conditions.
 
-However, identifying the physical destination of anycast communications is a non-trivial problem. Traditional IP geolocation databases are insufficient in this context because a single anycast IP address corresponds to multiple geographically distributed replicas, while conventional geolocation databases associate the address with a single geographic location. Furthermore, the destination reached by a communication may dynamically vary depending on the origin network and current routing conditions.
+To address these challenges, this chapter presents a methodology for inferring the potential geographic destinations of anycast communications from a given origin network. The proposed approach combines active network measurements, traceroute analysis, latency-based distance estimation, and multilateration to estimate the geographic regions where anycast replicas are likely deployed. Based on this methodology, an automated framework named Hunter was developed to enable large-scale analysis of anycast infrastructures. Hunter operationalises this methodology by coordinating distributed measurements from multiple vantage points, analysing routing paths towards anycast destinations, estimating geographic constraints using latency measurements, and ultimately determining the most likely destination countries associated with the communication.
 
-To address these challenges, this chapter presents a methodology capable of inferring the potential geographic destinations of anycast communications from a given origin network. The proposed approach combines active network measurements, traceroute \cite{Traceroute8Page} analysis, latency-based distance estimation, and multilateration techniques to estimate the physical regions where anycast replicas are likely deployed. Based on this methodology, an automated framework named Hunter was developed to enable large-scale analysis of anycast infrastructures. Hunter operationalises this methodology by coordinating distributed measurements from multiple vantage points, analysing routing paths towards anycast destinations, estimating geographic constraints using latency measurements, and ultimately determining the most likely destination countries associated with the communication.
-
-The proposed methodology is composed of three sequential stages. First, the routing path towards the anycast destination is analysed in order to identify the network elements traversed by the communication. Particular attention is devoted to the last hop before the destination, as this network element provides critical topological information regarding the potential location of the serving anycast replica. Second, multilateration techniques are applied using geographically distributed vantage points located near the last hop. By combining latency measurements from multiple probes, the methodology estimates the geographic region where the destination infrastructure is likely deployed. Finally, the obtained region is analysed to infer the corresponding city and country associated with the communication destination. When executed through Hunter, the methodology outputs the most likely geographic destination of the anycast communication or returns an indeterminate result if sufficient confidence cannot be achieved.
+The proposed methodology consists of three sequential stages. First, the routing path towards the anycast destination is analysed in order to identify the network elements traversed by the communication. Particular attention is devoted to the last hop before the destination, as this network element provides critical topological information regarding the potential location of the serving anycast replica. Second, multilateration techniques are applied using geographically distributed vantage points located near the last hop. By combining latency measurements from multiple probes, the methodology estimates the geographic region where the destination infrastructure is likely deployed. Finally, the obtained region is analysed to infer the corresponding city and country associated with the communication destination. When executed through Hunter, the methodology outputs the most likely geographic destination of the anycast communication or returns an indeterminate result if sufficient confidence cannot be achieved.
 
 Figure~\ref{fig:hunter_flow_with_map} summarises the different stages of the Hunter methodology.
 
@@ -20,23 +18,21 @@ Figure~\ref{fig:hunter_flow_with_map} summarises the different stages of the Hun
     \label{fig:hunter_flow_with_map}
 \end{figure}
 
-Hunter relies on RIPE Atlas to perform the active measurements required by the methodology. The characteristics of RIPE Atlas and other Internet measurement infrastructures were introduced in Section~\ref{sc:background_location_measurements_infraestructures}. The availability of geographically distributed probes enables Hunter to execute traceroute and latency measurements from multiple vantage points and infer the geographic destinations associated with anycast communications.
-
 \section{Tracing the Anycast Path}
 \label{sc:hunter_tracing_anycast_path}
 
-The first step required to estimate the geographic destination of anycast communication consists of analysing the routing path followed by packets towards the target infrastructure. Unlike traditional unicast services, anycast destinations may correspond to multiple geographically distributed replicas sharing the same IP address. Consequently, identifying the physical destination reached by a communication requires inferring which replica is effectively serving the traffic from a given origin network.
+The first step of Hunter consists of analysing the routing path followed by packets towards the target infrastructure. Because multiple anycast replicas share the same destination IP address, the objective is to identify the network elements closest to the replica that serves the traffic from a given origin network.
 
-A direct geolocation of anycast IP addresses is generally insufficient for this purpose. Commercial geolocation databases typically associate a single geographic location with each IP address, while anycast infrastructures may simultaneously operate replicas across multiple regions or countries. Furthermore, the geographic destination reached by a communication may dynamically vary according to BGP routing policies, traffic engineering decisions, or network conditions.
+To address this problem, Hunter analyses the routing path towards the anycast destination using traceroute measurements. The objective of this phase is not to fully reconstruct the end to-end topology, but rather to identify the network elements closest to the actual destination infrastructure. In particular, the methodology focuses on determining the last hop before the anycast replica, since this router provides valuable information regarding the geographic region where the destination is likely deployed. Although the exact physical location of the serving replica remains unknown, routers located near the edge of the destination infrastructure are expected to exhibit a strong geographic correlation with the final service location. Consequently, identifying these routers enables the methodology to constrain the set of possible geographic regions associated with the destination of the communication.
 
-To address this problem, Hunter analyses the routing path towards the anycast destination using traceroute measurements. The objective of this phase is not to fully reconstruct the end-to-end topology but rather to identify the network elements closest to the actual destination infrastructure. In particular, the methodology focuses on determining the last hop before the anycast replica, since this router provides valuable information regarding the geographic region where the destination is likely deployed. Although the exact physical location of the serving replica remains unknown, routers located near the edge of the destination infrastructure typically exhibit strong geographic correlation with the final service location. Consequently, identifying these routers enables the methodology to constrain the set of possible geographic regions associated with the communication destination.
+Hunter relies on RIPE Atlas to perform the active measurements required by the methodology. The characteristics of RIPE Atlas and other Internet measurement infrastructures were introduced in Section~\ref{sc:background_location_measurements_infraestructures}. The availability of geographically distributed probes enables Hunter to perform traceroute and latency measurements from multiple vantage points and infer the geographic destinations associated with anycast communications.
 
 \subsection{Last Hop Identification}
 \label{sc:hunter_tracing_anycast_path_last_hop_identification}
 
-Hunter relies on traceroute measurements to analyse the path followed by packets towards the anycast destination. Traceroute operates by sending packets with progressively increasing Time-To-Live (TTL) values, forcing intermediate routers to generate ICMP 'Time Exceeded' responses when the TTL reaches zero. By collecting these responses, traceroute reveals the sequence of routers traversed by the communication path. The obtained traceroute paths are analysed to determine the routers located closest to the destination infrastructure.
+Hunter relies on traceroute measurements to analyse the path followed by packets towards the anycast destination. Traceroute operates by sending packets with progressively increasing Time-To-Live (TTL) values, forcing intermediate routers to generate ICMP 'Time Exceeded' responses when the TTL reaches zero. By collecting these responses, traceroute reveals the sequence of routers traversed by the communication path. The traceroute paths obtained are analysed to determine the routers located closest to the destination infrastructure.
 
-One of the key assumptions underlying the proposed methodology is that the last hop before the anycast destination is topologically close to the serving replica \hugo{Add cite that supports this assumption}. Hunter therefore identifies the router appearing immediately before the destination IP address in the traceroute path and designates it as the \textit{last hop}. This router constitutes the primary reference point used to estimate the geographic region associated with the communication destination.
+One of the key assumptions underlying the proposed methodology is that the last hop is geographically close to the serving replica. Here, the last hop refers to the network element topologically closest to the serving replica along the observed traceroute path. Hunter therefore identifies the router that appears immediately before the destination IP address in the traceroute path and designates it as the \textit{last hop}. This router constitutes the primary reference point used to estimate the geographic region associated with the communication destination. The last hop is not necessarily geographically close to the serving replica, as the intermediate network infrastructure or routing characteristics may violate this assumption. In such cases, the distance constraints derived from the last hop may be less precise, which will reduce the accuracy of the subsequent multilateration step.
 
 The rationale behind this assumption is that routers located near the edge of the destination infrastructure are commonly deployed within the same metropolitan area, Internet Exchange Point (IXP), or regional network environment as the serving replica. Although the exact internal topology of anycast providers generally remains unknown, the geographic distance between the last observable router and the destination infrastructure is typically significantly smaller than the overall end-to-end communication path. Consequently, the last hop provides a substantially more constrained geographic reference than the anycast IP address itself.
 
@@ -45,36 +41,32 @@ The rationale behind this assumption is that routers located near the edge of th
 
 After identifying the last hop associated with the anycast communication, the methodology estimates the geographic region where the serving replica is likely deployed. This estimation is performed through multilateration techniques using latency measurements collected from geographically distributed vantage points.
 
-The rationale behind this approach is that the latency observed between a probe and the destination imposes a physical constraint on the maximum distance that packets may have travelled. By combining latency-derived constraints from multiple probes, it becomes possible to delimit the geographic region compatible with all the observed measurements.\cite{Cicalese2016Latency-BasedSets}
+The rationale behind this approach is that the latency observed between a probe and the destination imposes a physical constraint on the maximum distance that packets may have travelled. By combining latency-derived constraints from multiple probes, it becomes possible to delimit the geographic region compatible with all the observed measurements\cite{Cicalese2016Latency-BasedSets}.
 
-The multilateration process begins by geolocating the IP address associated with the last hop using commercial geolocation databases. Although these databases cannot reliably geolocate anycast addresses themselves, they generally provide accurate geographic information for stable network infrastructure elements such as routers or aggregation devices. The obtained location is therefore used as a geographic reference for selecting nearby vantage points.
+Although these databases cannot reliably geolocate anycast addresses themselves, geographic information about network infrastructure elements such as routers and Internet Exchange Points can often be obtained from publicly available infrastructure datasets and measurement platforms \cite{RIPEIPmap, Candela2025UsingInfrastructure}. Such information is used in Internet measurement studies to associate routers and other infrastructure elements with geographic locations \cite{CAIDAITK}.
 
-Once the reference region has been determined, a set of geographically distributed vantage points  located near the last hop are selected to perform active measurements towards the anycast destination. Each probe executes ping \cite{Ping8Page} measurements, obtaining the Round-Trip Time (RTT) associated with the communication.
+Once the reference region has been determined, a set of geographically distributed vantage points  located near the last hop are selected to perform active measurements towards the anycast destination. Each probe performs ping measurements to obtain the RTT to the target. The measured RTT values are subsequently transformed into geographic distance constraints. Assuming an upper bound on packet propagation speed, the RTT observed from a given probe defines the maximum distance between the probe and the serving replica. Consequently, each probe constrains the destination to a bounded geographic region centred around the probe location.
 
-The measured RTT values are subsequently transformed into geographic distance constraints. Assuming an upper bound on packet propagation speed, the RTT observed from a given probe defines the maximum distance between the probe and the serving replica. Consequently, each probe constrains the destination to a bounded geographic region centred around the probe location.
-
-By combining the constraints obtained from multiple probes, the methodology estimates the overlapping geographic area compatible with all latency observations. This intersection region constitutes the estimated deployment area of the serving anycast replica.
+By combining the constraints obtained from multiple probes, the methodology estimates the overlapping geographic area that is compatible with all latency observations. This intersection region constitutes the estimated deployment area of the serving anycast replica.
 
 \subsection{Distance Estimation}
 \label{sc:hunter_multilateration_distance_estimation}
 
 The conversion of RTT measurements into geographic distance constraints requires estimating the maximum physical distance that packets may have travelled between the probe and the destination infrastructure.
 
-Assuming a maximum propagation speed close to the speed of light in optical fiber, the measured RTT can be transformed into an upper bound on the end-to-end communication distance. Since the RTT includes both forward and return propagation times, only half of the measured latency contributes to estimating the one-way distance between the probe and the destination.
+Assuming a maximum propagation speed close to the speed of light in optical fibre, the measured RTT can be transformed into an upper bound on the end-to-end communication distance. Since the RTT includes both forward and return propagation times, only half of the measured latency contributes to estimating the one-way distance between the probe and the destination.
 
-Formally, the maximum distance associated with a vantage point can be estimated as:
+Formally, the maximum distance associated with a vantage point can be estimated as follows:
 
 \begin{equation*}
     d = (RTT/2) * (c/n)   
 \end{equation*}
 
-where $d$ represents the maximum distance between the probe and the destination, $RTT$ corresponds to the measured round-trip time, $c$ denotes the speed of light in a vacuum, and $n$ is the refractive index of the optic fibre, 1.468.
+where $d$ represents the maximum distance between the probe and the destination, $RTT$ corresponds to the measured round-trip time, $c$ denotes the speed of light in vacuum, and $n$ is the refractive index of the optical fibre, \textit{1.468}.
 
 In practice, Internet routing paths rarely follow geographically optimal trajectories. Routing policies, peering agreements, congestion, and traffic engineering decisions may introduce substantial detours that increase latency independently of physical distance. Consequently, the obtained distance estimations should not be interpreted as exact geographic distances but rather as upper-bound constraints limiting the possible location of the destination infrastructure.
 
-To reduce the impact of transient congestion and network variability, Hunter considers the minimum RTT observed across repeated measurements. This approach minimises the influence of temporary queuing delays and provides a more stable approximation of the propagation component of the communication latency.
-
-The previous formulation assumes that packets travel through geographically optimal paths at the maximum propagation speed supported by optical fibre. However, real Internet routing paths rarely satisfy these conditions. Routing policies, peering agreements, traffic engineering mechanisms, and physical infrastructure constraints often introduce significant path inflation, causing packets to traverse substantially longer distances than the direct geographic path between the source and destination.
+The previous formulation assumes that the packets travel through optimal geographical paths at the maximum propagation speed supported by optical fibre. However, real Internet routing paths rarely satisfy these conditions. Routing policies, peering agreements, traffic engineering mechanisms, and physical infrastructure constraints often introduce significant path inflation, causing packets to traverse substantially longer distances than the direct geographic path between the source and destination.
 
 \subsubsection{VerLoc Distance Approximation}
 \label{sc:hunter_multilateration_distance_estimation_verloc}
@@ -89,11 +81,11 @@ Based on the empirical results presented by VerLoc, a logistic regression model 
     RTT = \frac{2*d}{c*(0.0061699 * d^{0.480214} + 0.0497791)}
 \end{equation*}
 
-where $d$ represents the travelled distance, $RTT$ the measured Round-Trip Time, and $c$ the speed of light in a vacuum.
+where $d$ represents the distance travelled, $RTT$ the measured Round-Trip Time, and $c$ the speed of light in a vacuum.
 
 The resulting expression does not admit a closed-form analytic inverse that allows for the direct derivation of the distance from an observed RTT value. Consequently, distance estimation must be performed numerically by approximating the inverse relation through precomputed RTT-distance mappings.
 
-Since the model itself constitutes an approximation of real Internet routing behaviour, the obtained distance estimations inherently introduce a certain degree of error. Nevertheless, experimental evaluations show that this approach provides substantially more realistic geographic constraints than ideal propagation models based solely on optical fibre transmission speed.
+Since the model itself constitutes an approximation of real Internet routing behaviour, the distance estimations obtained inherently introduce a certain degree of error. Nevertheless, the results shown in section \textit{6.2. Results} of the VerLoc paper \cite{Kohls2022VerLoc:Systems}, show that this approach provides substantially more realistic geographic constraints than ideal propagation models based solely on optical fibre transmission speed.
 
 \section{Country Determination}
 \label{sc:hunter_country_determination}
@@ -102,11 +94,11 @@ Once the multilateration phase produces a geographic region compatible with the 
 
 The primary objective of Hunter is not to obtain precise coordinate-level geolocation, but rather to identify the country where the serving anycast replica is likely deployed. This distinction is particularly important in the context of data protection and international data transfers, where jurisdictional boundaries constitute the relevant element for regulatory compliance analyses.
 
-The geographic regions obtained during the multilateration phase may vary substantially in size depending on probe distribution, routing behaviour, and latency consistency. Consequently, an additional inference step is required to transform the estimated geographic area into a country-level attribution.
+The geographic regions obtained during the multilateration phase may vary substantially in size depending on the distribution of the probes, the routing behaviour, and the latency consistency. Consequently, an additional inference step is required to transform the estimated geographic area into a country-level attribution.
 
-The proposed methodology is based on the observation that large-scale anycast infrastructures are typically deployed near major metropolitan and interconnection areas. This behaviour is common among Content Delivery Networks (CDNs), cloud providers, and distributed Internet services, whose infrastructures are frequently located close to Internet Exchange Points (IXPs) and major population centres. Inspired by previous work in the field \cite{Cicalese2016Latency-BasedSets}, Hunter therefore uses major airports as geographic references approximating the metropolitan regions where anycast replicas are likely to be deployed.
+The proposed methodology is based on the observation that large-scale anycast infrastructures are typically deployed near major metropolitan and interconnection areas. This behaviour is common among Content Delivery Networks (CDNs), cloud providers, and distributed Internet services, whose infrastructures are frequently located close to Internet Exchange Points (IXPs) and major population centres. Inspired by previous work in the field \cite{Cicalese2016Latency-BasedSets}, Hunter therefore uses major airports as geographic references that approximate metropolitan regions where anycast replicas are likely to be deployed.
 
-This assumption is additionally reinforced by operational practices adopted by several large-scale providers. For example, some CDNs identify server locations using the IATA code of the nearest airport, effectively associating replicas with metropolitan airport regions.
+This assumption is also reinforced by the operational practices adopted by several large-scale providers. For example, some CDNs identify server locations using the IATA code of the nearest airport, effectively associating replicas with metropolitan airport regions.
 
 Once the multilateration region has been obtained, Hunter searches for airports located within the estimated overlapping area. Three possible situations may occur. First, if a single airport is identified within the region, the associated city and country are directly assigned as the inferred destination of the communication. Second, if multiple airports are identified but all belong to the same country, the communication is attributed to that country. Although the exact metropolitan area may remain ambiguous, the jurisdictional inference remains valid because all candidate regions belong to the same national domain. Finally, if the overlapping area contains airports associated with multiple countries, the inference is classified as \textit{Indeterminate}. This conservative approach avoids assigning potentially incorrect jurisdictions when the geographic uncertainty region spans multiple national boundaries.
 
@@ -117,7 +109,7 @@ By prioritising conservative country-level attribution over precise coordinate e
 \section{Limitations}
 \label{sc:hunter_limitations}
 
-The methodology proposed in this chapter relies on active Internet measurements, routing-path analysis, and latency-based geographic inference to estimate the destination jurisdictions associated with anycast communications. While the obtained validation results demonstrate that Hunter provides reliable country-level inference under real-world conditions, the methodology is inherently affected by several limitations associated with Internet-scale measurements and operational routing infrastructures.
+The methodology proposed in this chapter relies on active Internet measurements, routing-path analysis, and latency-based geographic inference to estimate the destination jurisdictions associated with anycast communications. Although the validation results obtained \ref{sc:hunter_validation} demonstrate that Hunter provides reliable country-level inference under real-world conditions, the methodology is inherently affected by several limitations associated with measurements at the Internet-scale and operational routing infrastructures.
 
 These limitations do not constitute implementation flaws specific to Hunter, but rather intrinsic constraints imposed by the decentralised and dynamic nature of the Internet. Consequently, Hunter incorporates conservative inference mechanisms designed to minimise incorrect jurisdictional attributions whenever sufficient confidence cannot be achieved.
 
@@ -126,17 +118,18 @@ These limitations do not constitute implementation flaws specific to Hunter, but
 
 Hunter relies on traceroute measurements to identify the last observable network element before the anycast destination. However, traceroute is affected by several well-known limitations that may reduce the visibility of the actual routing path.
 
-First of all, traceroute can be used with UDP, ICMP, or TCP protocols, producing different behaviours depending on the protocol selected. The default and traditional protocol used is UDP. Packets sent with UDP are directed to a port, in the Linux implementation 33434, that has no usage in the common network services deployed on the Internet. This type of packet could be filtered by firewalls, producing a path limited to the network element prior to the firewall. If ICMP packets are selected, then standard ICMP echo packets are used, the same as those used for ping. These packets could have an advantage over UDP since ICMP packets are usually not filtered by network elements, as they are used by the owners of these elements for diagnosis. However, some very restrictive organisations do not reply to this protocol, or the ICMP packets are discarded. Finally, when TCP packets are selected, they are sent to the destination port 80, the same one used for HTTP. Since the HTTP port is rarely filtered, these TCP packets are not filtered either. Although TCP could be the most convenient protocol, this is not true in all cases. Since the TCP option is used, the packets sent are treated as HTTP. Therefore, the routing could be different, with fewer intermediate network elements or network elements behaving differently in various ways because of a quality of service policy, resulting in hidden network elements.
+First, traceroute can be used with UDP, ICMP, or TCP protocols, producing different behaviours depending on the protocol selected. The default and traditional protocol used is UDP. The packets sent with UDP are directed to a port, in the Linux implementation \cite{Traceroute8Page} 33434, which has no usage in the common network services deployed on the Internet. This type of packet could be filtered by firewalls, producing a path limited to the network element prior to the firewall. If ICMP packets are selected, then standard ICMP echo packets are used, the same as those used for ping. These packets could have an advantage over UDP, as ICMP packets could be less filtered by network elements, as they are used by the owners of these elements for diagnosis. However, some very restrictive organisations do not reply to this protocol, or the ICMP packets are discarded. Finally, when the TCP protocol is selected, packets are sent to destination port 80, the same as the one used for HTTP. Since the HTTP port is rarely filtered, these TCP packets are also not filtered. Although TCP could be the most convenient protocol, this is not true in all cases. Since the TCP option is used, the packets sent are treated as HTTP. Therefore, the routing could be different, with fewer intermediate network elements or network elements acting differently in various ways due to a quality of service policy, resulting in hidden network elements.
 
-This execution of traceroute with the three different protocols used under the same conditions shows the differences:\hugo{This example is here to show the behaviour it but I do not know what format to use.}
+The different behaviours of the three protocols can be observed in the measurements shown in Figure~\ref{fig:hunter_traceroute_protocols_examples}. Although all measurements target the same destination from the same source network, the observable paths differ depending on the selected protocol. UDP and ICMP reach the destination at hop 14, whereas TCP reaches it at hop 7. The measurements also contain non-responsive hops, which indicate that the corresponding probes did not elicit a response rather than that the network element is necessarily absent from the forwarding path.
 
-\begin{figure}[h]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\textwidth]{figures/images/hunter_traceroute_protocols_examples.png}
-    \caption{Example of traceroute execution using all three different protocols.}
+    \input{figures/tikz/hunter_traceroute_protocols_example}
+    \caption{Comparison of traceroute measurements using UDP, ICMP, and TCP probes towards the same destination. The measurements exhibit different observable paths depending on the selected protocol.}
     \label{fig:hunter_traceroute_protocols_examples}
-\end{figure}
+\end{figure*}
 
+\begin{comment}
 \begin{Verbatim}[
     breaklines=true,
     breakanywhere=true,
@@ -185,8 +178,9 @@ traceroute to google.com (142.251.142.142), 30 hops max, 60 byte packets
 13  142.250.232.27 (142.250.232.27)  2.425 ms  2.415 ms  2.435 ms
 14  lcmada-ag-in-f14.1e100.net (142.251.142.142)  2.242 ms  2.236 ms  2.338 ms
 \end{Verbatim}
+\end{comment}
 
-Second, modern Internet infrastructures frequently employ technologies such as MPLS tunnelling, Equal-Cost Multi-Path (ECMP) routing, and traffic load balancing mechanisms. These technologies may obscure the actual forwarding path followed by packets or produce different traceroute paths for packets belonging to the same communication flow. Additionally, these technologies, instead of obscuring the path, produce multipathing. This multipathing situation is produced when multiple paths can be recognised in the traceroute, indicating that two anycast replicas were involved in the measurement. If this effect is produced, Hunter takes the different paths as distinct and analyses them separately.
+Second, modern Internet infrastructures frequently employ technologies such as MPLS tunnelling, Equal-Cost Multi-Path (ECMP) routing, and traffic load balancing mechanisms. These technologies may obscure the actual forwarding path followed by packets or produce different traceroute paths for packets belonging to the same communication flow. Additionally, these technologies, instead of obscuring the path, produce multipathing. This multipath situation occurs when multiple paths can be recognised in the traceroute, indicating that two anycast replicas were involved in the measurement. If this effect is produced, Hunter takes the different paths as distinct and analyses them separately.
 
 These limitations may affect the identification of the actual last hop router before the anycast replica. In certain scenarios, the last observable hop may correspond to an upstream transit provider or an intermediate routing element located relatively far from the serving replica. Consequently, the geographic reference obtained from the traceroute analysis may not perfectly correspond to the physical location of the destination infrastructure.
 
@@ -199,13 +193,13 @@ The multilateration phase of Hunter relies on RTT measurements to estimate upper
 
 In operational networks, packets rarely traverse geographically optimal paths. Routing policies, peering agreements, congestion avoidance mechanisms, and traffic engineering decisions frequently produce significant routing inflation, increasing the effective distance travelled by packets independently of the actual geographic separation between endpoints.
 
-Additionally, RTT measurements include multiple delay components beyond propagation latency, including transmission delays, processing delays, queuing delays, and access-network overhead. Temporary congestion conditions may further increase latency variability, particularly in heavily utilised networks or long-distance international links.
+Additionally, RTT measurements include multiple delay components beyond propagation latency, including transmission delays, processing delays, queueing delays, and access-network overhead. Temporary congestion conditions may further increase latency variability, particularly in heavily utilised networks or long-distance international links.
 
-The last-mile infrastructure associated with probes and destination networks may also introduce additional variability. Consumer broadband connections, mobile networks, or access technologies with heterogeneous performance characteristics may contribute non-negligible latency components unrelated to geographic distance.
+The last-mile infrastructure associated with probes and destination networks can also introduce additional variability. Consumer broadband connections, mobile networks, or access technologies with heterogeneous performance characteristics may contribute non-negligible latency components unrelated to geographic distance.
 
-To reduce the impact of these phenomena, Hunter uses the minimum RTT observed across repeated measurements, minimising the influence of transient queuing delays and temporary congestion conditions. Furthermore, the methodology incorporates the VerLoc approximation \cite{Kohls2022VerLoc:Systems}, which models the empirical inflation commonly observed in real Internet paths and produces more realistic geographic constraints than ideal optical propagation assumptions.
+To reduce the impact of these phenomena, Hunter uses the minimum RTT observed across repeated measurements, minimising the influence of transient queuing delays and temporary congestion conditions. Furthermore, the methodology incorporates the VerLoc approximation \cite{Kohls2022VerLoc:Systems}, which models the empirical inflation commonly observed in real Internet paths and produces more realistic geographic constraints than the ideal optical propagation assumptions.
 
-Nevertheless, latency-derived distances should not be interpreted as exact geographic estimations. The obtained constraints only define upper-bound regions compatible with the observed communication latency. Consequently, Hunter does not attempt precise coordinate-level geolocation but instead focuses on conservative country-level inference.
+Nevertheless, latency-derived distances should not be interpreted as exact geographic estimations. The obtained constraints only define upper-bound regions compatible with the observed communication latency. Consequently, Hunter does not attempt precise coordinate-level geolocation, but instead focuses on conservative country-level inference.
 
 \subsection{Anycast Routing Dynamics}
 \label{sc:hunter_limitations_anycast_routing_dynamics}
@@ -216,47 +210,56 @@ As a consequence, nearby probes selected around the same last hop region may occ
 
 These behaviours may produce inconsistent multilateration constraints, excessively large overlapping regions, or the absence of valid geographic intersections altogether. Such situations are particularly frequent in highly distributed CDN infrastructures, where traffic engineering mechanisms dynamically optimise latency and load balancing across multiple regions.
 
-The validation experiments presented in the previous section illustrate the practical impact of these routing dynamics, particularly in Northern European countries such as Finland and Norway, where substantial variability in destination attribution was observed across repeated measurements.
+Validation experiments \ref{sc:hunter_validation} illustrate the practical impact of these routing dynamics, particularly in Northern European countries such as Finland and Norway, where substantial variability in destination attribution was observed in repeated measurements.
 
-Importantly, these situations do not necessarily indicate incorrect operation of the methodology but rather reflect the intrinsic instability of the underlying anycast routing system. In practice, the geographic destination of an anycast communication may genuinely change over time depending on the operational state of the network.
+Importantly, these situations do not necessarily indicate an incorrect operation of the methodology but rather reflect the intrinsic instability of the underlying anycast routing system. In practice, the geographic destination of an anycast communication may genuinely change over time depending on the operational state of the network.
 
-To address these scenarios, Hunter deliberately prioritises conservative inference decisions over aggressive geographic attribution. When routing instability prevents the methodology from confidently associating the communication with a single jurisdiction, the result is classified as \textit{Indeterminate}. The objective of Hunter is therefore not to maximise the number of resolved destinations but to minimise incorrect jurisdictional attributions.
+To address these scenarios, Hunter deliberately prioritises conservative inference decisions over aggressive geographic attribution. When routing instability prevents the methodology from confidently associating the communication with a single jurisdiction, the result is classified as \textit{Indeterminate}. The objective of Hunter is therefore not to maximise the number of resolved destinations, but to minimise incorrect jurisdictional attributions.
 
 \subsection{Geographic Uncertainty}
 \label{sc:hunter_limitations_geographic_uncertainty}
 
 The final stage of Hunter infers the destination jurisdiction associated with an anycast communication by analysing the multilateration region obtained from the latency measurements. However, this process is also affected by several sources of geographic uncertainty.
 
-First, the methodology depends partially on commercial IP geolocation databases to estimate the location of the last hop router. Although router infrastructure is generally more stable than end-user or cloud-server addresses, geolocation databases may still contain outdated or inaccurate information. Inaccurate last hop geolocation may affect the selection of nearby vantage points and increase the uncertainty of the resulting multilateration region.
+First, the methodology partially depends on commercial IP geolocation databases to estimate the location of the last hop router. Although the router infrastructure is generally more stable than the end-user or cloud-server addresses, geolocation databases may still contain outdated or inaccurate information. Inaccurate last hop geolocation may affect the selection of nearby vantage points and increase the uncertainty of the resulting multilateration region.
 
-Second, Hunter approximates destination metropolitan areas using airport locations inspired by previous work \cite{Cicalese2016Latency-BasedSets}. While this approach provides practical and scalable geographic references, airports do not necessarily correspond exactly to the physical location of the serving infrastructure. Large metropolitan regions may contain multiple datacenters distributed across tens of kilometres, introducing additional uncertainty into city-level inference.
+Second, Hunter approximates destination metropolitan areas using airport locations inspired by previous work \cite{Cicalese2016Latency-BasedSets}. Although this approach provides practical and scalable geographic references, airports do not necessarily correspond exactly to the physical location of the serving infrastructure. Large metropolitan regions may contain multiple datacenters distributed across tens of kilometres, introducing additional uncertainty into city-level inference.
 
-Furthermore, certain multilateration regions may overlap multiple metropolitan areas or cross national borders. This situation is particularly relevant in densely interconnected regions, where neighbouring countries may be separated by relatively small geographic distances. Under these circumstances, small variations in latency measurements or routing behaviour may produce ambiguity regarding the final jurisdiction associated with the communication.
+Furthermore, certain multilateration regions may overlap multiple metropolitan areas or cross national borders. This situation is particularly relevant in densely interconnected regions, where cities may be geographically close despite being subject to different jurisdictional frameworks. Under these circumstances, small variations in latency measurements or routing behaviour may produce ambiguity regarding the final jurisdiction associated with the communication.
 
 Consequently, Hunter does not attempt highly precise geographic attribution and instead focuses on determining the most likely country associated with the communication. When the obtained geographic constraints are insufficient to confidently associate the communication with a single jurisdiction, the methodology conservatively returns an \textit{Indeterminate} result rather than risking an incorrect country attribution.
 
-These limitations highlight the inherent uncertainty associated with Internet-scale geographic inference. Nevertheless, the validation results demonstrate that, despite these constraints, Hunter provides sufficiently reliable country-level attribution capabilities to support the large-scale analysis of international data transfers over anycast infrastructures.
+These limitations highlight the inherent uncertainty associated with Internet-scale geographic inference. Nevertheless, the validation results \ref{sc:hunter_validation} demonstrate that, despite these constraints, Hunter provides sufficient reliable country-level attribution capabilities to support large-scale analysis of international data transfers over anycast infrastructures.
 
 \section{Validation}
 \label{sc:hunter_validation}
 
 The proposed methodology and its software implementation, Hunter, were validated under real-world Internet conditions in order to evaluate their capability to infer the geographic destination of anycast communications. Since the primary objective of Hunter is to determine the jurisdiction associated with a communication, the validation process focuses on country-level attribution rather than precise coordinate-level geolocation.
 
-Validating anycast geolocation mechanisms presents an important challenge, as obtaining reliable ground-truth information regarding the serving replica is generally difficult in operational infrastructures. To address this problem, the validation process leverages specific Cloudflare services whose HTTP responses expose location-related metadata associated with the serving infrastructure.
+Validating anycast geolocation mechanisms presents an important challenge, as obtaining reliable ground-truth information regarding the serving replica is generally difficult in operational infrastructures. To address this problem, the validation process leverages specific Cloudflare services whose HTTP responses expose location-related metadata associated with the serving infrastructure, as illustrated in Figure~\ref{fig:hunter_cloudflare_cf_ray}.
 
-In particular, two anycast IP addresses belonging to the Cloudflare CDN were selected as validation targets. The first address, 192.5.5.241, belongs to a root DNS service, while the second address, 104.16.123.96, serves Cloudflare's official website. HTTP responses from these services include the \textit{CF-RAY} header, which contains the IATA airport code associated with the Cloudflare datacenter handling the request. Since this code identifies the metropolitan region serving the communication, it can be used as a reliable approximation of the actual destination reached by the traffic.
+\begin{figure}[t]
+    \centering
+    \resizebox{\linewidth}{!}{%
+        \input{figures/tikz/cloudflare_cf_ray_gt}
+    }
+    \caption{Cloudflare anycast validation using the \textit{CF-RAY} response header as geographic ground truth.}
+    \label{fig:hunter_cloudflare_cf_ray}
+\end{figure}
 
-For each validation experiment, Hunter was executed using one of the selected IP addresses as the target destination. Immediately before running Hunter, an HTTP request was sent to the destination service in order to retrieve the \textit{CF-RAY} header and obtain the corresponding ground-truth location. The inferred country produced by Hunter was then compared against the country associated with the airport code declared by Cloudflare.
+In particular, two anycast IP addresses belonging to the Cloudflare CDN were selected as validation targets. The first address, 192.5.5.241, belongs to a root DNS service, while the second address, 104.16.123.96, serves Cloudflare's official website. HTTP responses from these services include the \textit{CF-RAY} header, which contains the IATA airport code associated with the Cloudflare datacenter handling the request. Since this code identifies the metropolitan region that serves the communication, it can be used as a reliable approximation of the actual destination reached by traffic.
 
-Since one of the main goals of this thesis is to analyse compliance with GDPR requirements regarding international transfers of personal data, the validation was intentionally designed around European jurisdictions rather than as a globally exhaustive evaluation. The experiments were therefore conducted from 29 countries belonging to the European Economic Area (EEA). To emulate communications originating from different European jurisdictions, a commercial VPN provider was used to establish exit nodes in all except one EEA member state. Each validation experiment was repeated from multiple European countries to evaluate the behaviour of Hunter under different routing conditions and geographic origins. Liechtenstein could not be included in the validation because the selected VPN provider did not provide an exit node in that country.
+For each validation experiment, Hunter was executed using one of the selected IP addresses as the target destination. Immediately before running Hunter, an HTTP request was sent to the destination service in order to retrieve the \textit{CF-RAY} header and obtain the corresponding ground-truth location. The inferred country produced by Hunter was then compared with the country associated with the airport code declared by Cloudflare.
 
-One important limitation of the validation methodology is the use of a VPN service to emulate communications originating from different EEA countries instead of directly using RIPE Atlas probes as measurement origins. Ideally, the traceroute and latency measurements performed by Hunter should be executed directly from distributed RIPE Atlas probes while simultaneously obtaining the HTTP headers returned by the target service in order to guarantee that both observations correspond to the exact same communication context and anycast replica.
+To account for temporal variations in Internet routing, the validation measurements were repeated over multiple days and at different times of day. For each validation measurement set, the HTTP request and Hunter measurements were performed together from each selected VPN exit node and for both target IP addresses. A total of 45 measurement sets were conducted over the course of 17 days, covering different times of day. This repetition allowed the evaluation to capture changes in anycast routing conditions and to assess the consistency of Hunter's geographic inference across repeated observations.
+
+Since one of the main goals of this thesis is to analyse compliance with GDPR requirements regarding international transfers of personal data, the validation was intentionally designed around European jurisdictions rather than as a globally exhaustive evaluation. Therefore, the experiment was conducted from 29 countries belonging to the EEA. To emulate communications originating from different European jurisdictions, Proton VPN was used to establish VPN exit nodes in all except one EEA member state, Liechtenstein. For each selected country, the physical location of the VPN server used as the exit node was verified to be within the corresponding country, ensuring that the measurement traffic entered the Internet from the intended jurisdiction. Liechtenstein could not be included in the validation because Proton VPN did not provide an exit node in that country.
+
+The use of a VPN is a clear limitation of the validation methodology, instead of directly using RIPE Atlas probes as measurement origins. Ideally, the traceroute and latency measurements performed by Hunter should be executed directly from distributed RIPE Atlas probes while simultaneously obtaining the HTTP headers returned by the target service in order to guarantee that both observations correspond to the exact same communication context and anycast replica.
 
 However, during the development of this work, no mechanism was identified to retrieve the HTTP response headers associated with HTTP measurements executed from RIPE Atlas probes. In particular, although RIPE Atlas supports HTTP measurements, the platform does not expose the complete HTTP response information required to obtain the \textit{CF-RAY} header used as ground truth during the validation process.
 
-Consequently, the validation required executing both the HTTP request and Hunter from the same controlled environment, which was achieved through the use of VPN exit nodes located in different EEA countries. Although this approach may introduce slight differences with respect to native residential or RIPE Atlas routing conditions, it guarantees that the ground-truth HTTP request and the Hunter measurements observe the same anycast routing behaviour at the time of execution.
-
-\hugo{Include additional details regarding the VPN provider and measurement repetition strategy. I need to evaluate the option of making a new and more reproducible and rigorous validation of Hunter.}
+Consequently, the validation required the execution of both the HTTP request and Hunter from the same controlled environment, which was achieved through the use of VPN exit nodes located in different EEA countries. Although this approach may introduce slight differences with respect to native residential or RIPE Atlas routing conditions, it guarantees that the ground-truth HTTP request and the Hunter measurements observe the same anycast routing behaviour at the time of execution.
 
 \subsection{Validation Metrics}
 
@@ -278,48 +281,90 @@ Accuracy is defined as the ratio between the number of Positive results and the 
     Accuracy = \frac{Positive}{Positive + Negative + Indeterminate}
 \end{equation*}
 
-This distinction is particularly important in the context of Hunter because the methodology deliberately prioritises conservative inference decisions over aggressive geographic attribution. Consequently, returning an \textit{Indeterminate} result is considered preferable to assigning an incorrect jurisdiction, especially in scenarios involving legal compliance and international data transfer analysis.
+This distinction is particularly important in the context of Hunter, because the methodology deliberately prioritises conservative inference decisions over aggressive geographic attribution. Consequently, returning an \textit{Indeterminate} result is considered preferable to assigning an incorrect jurisdiction, especially in scenarios involving legal compliance and international data transfer analysis.
 
 In addition to evaluating the complete Hunter methodology, the validation process also compares Hunter against a simpler baseline approach consisting of directly geolocating the last hop IP address using the IPinfo service. This comparison allows for assessing the benefits introduced by multilateration and conservative inference mechanisms beyond straightforward IP geolocation techniques.
 
 \subsection{Results}
 
-\hugo{Include total number of experiments executed during the validation process.}
+The validation experiment evaluated Hunter under real-world Internet conditions in 29 EEA countries and multiple measurements conducted over several days and at different times of day. Each campaign combined an HTTP request to the selected anycast destination, used to obtain the \textit{CF-RAY} header as ground truth, with the corresponding Hunter measurements executed from the same VPN exit server. Two Cloudflare anycast IP addresses were evaluated, namely 192.5.5.241 and 104.16.123.96. In total, the experiment consisted 2739 measurements distributed throughout the period from June 2023 to July 2023.
 
-The obtained results indicate that Hunter provides highly reliable country-level inference for anycast communications under real-world Internet conditions. Across all evaluated scenarios, Hunter achieves a precision of 97.67\% and an accuracy of 78.09\%.
-
-\hugo{Include the number of Positive, Negative and Indeterminate results, number of measurements and number of countries.}
+The results obtained indicate that Hunter provides highly reliable country-level inference for anycast communications under real-world Internet conditions. Across all evaluated measurements, Hunter achieved a precision of 97.67\% and an accuracy of 78.09\%. The complete distribution of Positive, Negative, and Indeterminate results, together with the corresponding baseline results obtained using the direct geolocation of the last hop, is presented in Table~\ref{tab:hunter_validation_results}.
 
 \begin{table}[h]
     \centering
     \caption{Summary of Hunter validation results.}
     \label{tab:hunter_validation_results}
-    \begin{tabular}{lc}
+    \begin{tabular}{lcc}
         \toprule
-        Metric & Value \\
+        Metric & Hunter \\
         \midrule
+        Countries evaluated & 29 \\
+        Measurements & 2739 \\
+        Positive results & 2139 \\
+        Negative results & 51 \\
+        Indeterminate results & 549 \\
         Precision & 97.67\% \\
         Accuracy & 78.09\% \\
-        Negative results & 51 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-These results indicate that Hunter successfully minimises incorrect country attributions while still identifying the geographic destination of a substantial proportion of communications. The difference between precision and accuracy reflects the conservative nature of the methodology, which intentionally prioritises soundness over completeness by returning \textit{Indeterminate} results whenever sufficient confidence cannot be achieved.
+The results demonstrate that Hunter successfully minimises incorrect country attributions while still identifying the geographic destination of a substantial proportion of communications. The difference between precision and accuracy reflects the conservative nature of the methodology, which intentionally prioritises soundness over completeness by returning \textit{Indeterminate} results whenever sufficient confidence cannot be achieved.
 
-The comparison against the baseline last hop geolocation approach further highlights the benefits of the proposed methodology. Directly geolocating the last hop IP address using the IPinfo service slightly increases the number of identified destinations (+0.44\%), but also produces a substantially larger number of incorrect attributions (+13.72\%).
+The proposed methodology deliberately favours conservative inference decisions that minimise false positives, even if certain transfers remain unresolved. This design choice is particularly important in the context of privacy analysis and legal compliance assessment, where incorrectly assigning a communication to a jurisdiction may lead to erroneous conclusions regarding international data transfers. Consequently, unresolved cases are retained rather than assigned to a geographic destination without sufficient supporting evidence.
 
-This result demonstrates that simple last hop geolocation techniques may improve completeness at the cost of significantly reducing reliability. In the context of privacy analysis and legal compliance assessment, incorrectly assigning communications to a jurisdiction may lead to erroneous conclusions regarding international data transfers. Consequently, Hunter deliberately favours conservative inference decisions that minimise false positives, even if certain transfers remain unresolved.
+A detailed analysis of the Negative results reveals that 94.12\% of all incorrect attributions, corresponding to 48 out of 51 cases, are concentrated in Norway and Finland. Hunter achieves country-level accuracies of 50.72\% and 80.28\% in these two countries, respectively. These results suggest that the routing behaviour observed from some Northern European networks introduces greater instability in the geographic association between measurement origins and anycast replicas. The distribution of Positive, Negative, and Indeterminate results for each country evaluated is presented in Table~\ref{tab:hunter_validation_results_country}.
 
-A detailed analysis of the Negative results reveals that 94.12\% of all incorrect attributions (48 out of 51) are concentrated in Norway and Finland, where Hunter achieves accuracies of 50.72\% and 80.28\%, respectively. These observations suggest that the routing behaviour associated with Northern European networks introduces substantial instability in the geographic association between probes and anycast replicas.
+Additionally, the experiments showed that repeated measurements over time can mitigate these inconsistencies. When considering the complete set of destination countries inferred for each source, no incorrect attributions were observed in the scenarios evaluated. However, individual measurement paths may still produce negative or erroneous results. For this analysis, destination countries accounting for less than 5\% of the country-level results obtained by repeated executions were excluded from the error calculation, as they were considered statistically unstable.
 
-\hugo{Clarify this effect of 100\% accuracy and respect to what effect is considered. Include more detail about the exact number of repetitions. Maybe a figure table summarizing Positive, Negative, and Indeterminate distributions by country.}
-
-Additional experiments further showed that repeatedly executing measurements over time significantly mitigates these inconsistencies. Under repeated measurements and after filtering statistically unstable destinations, no incorrect attributions were observed in the evaluated scenarios. Empirical observations indicate that destinations appearing in more than 5\% of repeated executions can be considered statistically stable and therefore reliable for country-level attribution.
+\begin{table*}[t]
+    \centering
+    \caption{Distribution of Hunter validation results by country.}
+    \label{tab:hunter_validation_results_country}
+    \begin{tabular}{lrrrr}
+        \toprule
+        Country & Measurements & Positive & Negative & Indeterminate \\
+        \midrule
+        Austria & 56 & 49 & 0 & 7 \\
+        Belgium & 112 & 57 & 0 & 55 \\
+        Bulgaria & 112 & 102 & 0 & 10 \\
+        Croatia & 110 & 97 & 0 & 13 \\
+        Cyprus & 111 & 105 & 0 & 6 \\
+        Czech Republic & 88 & 63 & 0 & 25 \\
+        Denmark & 110 & 85 & 0 & 25 \\
+        Estonia & 110 & 102 & 0 & 8 \\
+        Finland & 110 & 57 & 14 & 39 \\
+        France & 110 & 102 & 0 & 8 \\
+        Germany & 112 & 89 & 0 & 23 \\
+        Greece & 110 & 105 & 0 & 5 \\
+        Hungary & 110 & 97 & 0 & 13 \\
+        Iceland & 67 & 53 & 0 & 14 \\
+        Ireland & 110 & 100 & 1 & 9 \\
+        Italy & 110 & 73 & 1 & 36 \\
+        Latvia & 110 & 84 & 0 & 26 \\
+        Liechtenstein & \textit{N/A} & \textit{N/A} & \textit{N/A} & \textit{N/A} \\
+        Lithuania & 100 & 59 & 0 & 41 \\
+        Luxembourg & 80 & 28 & 1 & 51 \\
+        Malta & 86 & 76 & 0 & 10 \\
+        Netherlands & 86 & 66 & 0 & 20 \\
+        Norway & 86 & 35 & 34 & 17 \\
+        Poland & 86 & 61 & 0 & 25 \\
+        Portugal & 45 & 40 & 0 & 5 \\
+        Romania & 86 & 75 & 0 & 11 \\
+        Slovakia & 86 & 76 & 0 & 10 \\
+        Slovenia & 86 & 67 & 0 & 19 \\
+        Spain & 110 & 97 & 0 & 13 \\
+        Sweden & 44 & 39 & 0 & 5 \\
+        \midrule
+        Total & 2739 & 2139 & 51 & 549 \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
 
 \subsection{Cross-border Communications during Validation}
 
-The communications observed during the validation process already reveal a significant number of international data transfers associated with anycast infrastructures. Figure~\ref{fig:hunter_validation_flows} illustrates the communication flows obtained during the validation experiments targeting the IP address 192.5.5.241. Flows crossing the borders of the European Economic Area are highlighted in red.
+The communications observed during the validation process already reveal a significant number of international data transfers associated with anycast infrastructures. Figure~\ref{fig:hunter_validation_flows} illustrates the communication flows obtained during the validation experiments targeting the IP address 192.5.5.241. Flows crossing the borders of the EEA are highlighted in red.
 
 \begin{figure}
     \centering
@@ -330,7 +375,7 @@ The communications observed during the validation process already reveal a signi
 
 The validation experiments identified multiple destination countries outside the EEA, including the United Kingdom, Switzerland, Moldova, and Russia. These observations confirm that anycast routing may direct communications towards jurisdictions outside the expected regulatory domain, even when the communication originates within the EEA.
 
-Three different patterns of international transfers were observed during the experiments: recurrent, frequent, and episodic transfers.
+During the experiments, three different patterns of international transfers were observed: recurrent, frequent, and episodic transfers.
 
 Recurrent transfers correspond to scenarios where communications from a given country systematically reach the same external jurisdiction. For example, communications originating from Spain and Iceland consistently reached servers located in the United Kingdom.
 
@@ -340,4 +385,4 @@ Finally, episodic transfers correspond to occasional routing deviations observed
 
 These observations demonstrate that the geographic destination of anycast communications may vary substantially depending on transient routing conditions, traffic engineering decisions, and BGP dynamics. Consequently, determining the actual jurisdiction reached by a communication requires continuous observation and active measurement rather than relying exclusively on static infrastructure assumptions or conventional IP geolocation databases.
 
-The obtained validation results confirm that Hunter provides sufficiently reliable geographic inference capabilities for studying international data transfers over anycast infrastructures. Building upon these results, the following chapters employ Hunter to analyse real-world mobile ecosystems and evaluate the impact of anycast communications on data protection and jurisdictional exposure.
+The validation results obtained confirm that Hunter provides sufficiently reliable geographic inference capabilities for studying international data transfers over anycast infrastructures. Building upon these results, the following chapters employ Hunter to analyse real-world mobile ecosystems and evaluate the impact of anycast communications on data protection and jurisdictional exposure.

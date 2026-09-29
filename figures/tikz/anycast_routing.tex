@@ -1,0 +1,41 @@
+\begin{tikzpicture}[
+    >=Latex,
+    font=\small
+]
+
+\node[endpoint] (source)
+    {Source\\(host / AS X)};
+
+\node[autonomoussystem, right=10mm of source] (as1) {AS 1};
+\node[autonomoussystem, right=7mm of as1, yshift=7mm] (as2) {AS 2};
+\node[ixp, right=6mm of as2] (ixp) {IXP};
+\node[autonomoussystem, right=6mm of ixp] (as4) {AS 4};
+\node[autonomoussystem, right=7mm of as4, yshift=-7mm] (as5) {AS 5};
+
+\node[anycastip, right=5mm of as5] (ip)
+    {Anycast IP\\\texttt{203.0.113.1}};
+
+\draw[link] (source) -- (as1);
+\draw[link] (as1) -- (as2);
+\draw[link] (as2) -- (ixp);
+\draw[link] (ixp) -- (as4);
+\draw[link] (as4) -- (as5);
+\draw[link] (as5) -- (ip);
+
+\draw[bgppath]
+    (as1) -- (as2) -- (ixp) -- (as4) -- (as5);
+
+\node[replica, below=17mm of ip, xshift=-96mm] (r1)
+    {Replica 1\\Madrid, Spain};
+
+\node[replica, right=12mm of r1] (r2)
+    {Replica 2\\Paris, France};
+
+\node[replica, right=12mm of r2] (r3)
+    {Replica 3\\New York, USA};
+
+\draw[replicaLink] (ip.south) -- (r1.north);
+\draw[replicaLink] (ip.south) -- (r2.north);
+\draw[replicaLink] (ip.south) -- (r3.north);
+
+\end{tikzpicture}

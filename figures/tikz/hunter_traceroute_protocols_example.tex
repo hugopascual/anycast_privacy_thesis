@@ -1,0 +1,126 @@
+\begin{tikzpicture}[
+    font=\scriptsize
+]
+
+% =========================================================
+% UDP
+% =========================================================
+
+\node[tablebox, anchor=north west] (udp) at (0,0) {
+    \begin{tabular}{c|l}
+        \multicolumn{2}{c}{\textbf{UDP (default)}} \\[2mm]
+        \textbf{Hop} & \textbf{Observed address} \\ \hline
+        1  & 138.4.11.131 \\
+        2  & 138.4.5.4 \\
+        3  & 138.4.0.1 \\
+        4  & 192.168.214.19 \\
+        5  & \textcolor{red!70!black}{* * *} \\
+        6  & 192.168.201.3 \\
+        7  & 172.17.0.13 \\
+        8  & 193.145.14.233 \\
+        9  & 130.206.212.105 \\
+        10 & 130.206.245.25 \\
+        11 & \textcolor{red!70!black}{* * *} \\
+        12 & \shortstack[l]{108.170.252.225\\108.170.252.213} \\
+        13 & \shortstack[l]{142.250.232.11\\142.250.232.27} \\
+        \textbf{14} & \textcolor{green!45!black}{\textbf{142.251.142.142}} \\
+    \end{tabular}
+};
+
+\node[
+    below=1mm of udp.south,
+    text=red!70!black,
+    align=center
+] {No response at hop 5 an 11};
+
+\node[
+    above=1mm of udp.north,
+    font=\small\bfseries
+] {UDP};
+
+
+% =========================================================
+% ICMP
+% =========================================================
+
+\node[tablebox, anchor=north] (icmp) at (0.5\textwidth,0) {
+    \begin{tabular}{c|l}
+        \multicolumn{2}{c}{\textbf{ICMP (-I)}} \\[2mm]
+        \textbf{Hop} & \textbf{Observed address} \\ \hline
+        1  & 138.4.11.131 \\
+        2  & 138.4.5.4 \\
+        3  & 138.4.0.1 \\
+        4  & 192.168.214.18 \\
+        5  & \textcolor{red!70!black}{* * *} \\
+        6  & 172.17.0.14 \\
+        7  & 172.17.0.13 \\
+        8  & 193.145.14.233 \\
+        9  & 130.206.212.105 \\
+        10 & 130.206.245.25 \\
+        11 & \textcolor{red!70!black}{* * *} \\
+        12 & 108.170.252.225 \\
+        13 & 142.250.232.27 \\
+        \textbf{14} & \textcolor{green!45!black}{\textbf{142.251.142.142}} \\
+    \end{tabular}
+};
+
+\node[
+    below=1mm of icmp.south,
+    text=red!70!black,
+    align=center
+] {No response at hops 5 and 11};
+
+\node[
+    above=1mm of icmp.north,
+    font=\small\bfseries
+] {ICMP};
+
+
+% =========================================================
+% TCP
+% =========================================================
+
+\node[tablebox, anchor=north east] (tcp) at (\textwidth,0) {
+    \begin{tabular}{c|l}
+        \multicolumn{2}{c}{\textbf{TCP (-T)}} \\[2mm]
+        \textbf{Hop} & \textbf{Observed address} \\ \hline
+        1 & 138.4.11.131 \\
+        2 & 138.4.5.4 \\
+        3 & 138.4.0.1 \\
+        4 & \shortstack[l]{192.168.214.18\\192.168.214.19} \\
+        5 & \textcolor{red!70!black}{* * *} \\
+        6 & 192.168.201.3 \\
+        \textbf{7} & \textcolor{green!45!black}{\textbf{142.251.142.142}} \\
+    \end{tabular}
+};
+
+\node[
+    below=1mm of tcp.south,
+    text=red!70!black,
+    align=center
+] {No response at hop 5};
+
+\node[
+    above=1mm of tcp.north,
+    font=\small\bfseries
+] {TCP};
+
+
+% =========================================================
+% Legend
+% =========================================================
+
+\node[
+    below=13mm of icmp.south,
+    font=\scriptsize,
+    text=black!70,
+    align=center
+] {
+    \textcolor{red!70!black}{\textbf{* * *}} = no response
+    \qquad
+    \textcolor{green!45!black}{\textbf{IP}} = destination reached
+    \qquad
+    Multiple addresses = different responses observed at the same hop
+};
+
+\end{tikzpicture}

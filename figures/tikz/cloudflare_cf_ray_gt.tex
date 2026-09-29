@@ -1,0 +1,123 @@
+\begin{tikzpicture}[
+    >=Latex,
+    font=\small
+]
+
+% ------------------------------------------------------------
+% Client and anycast destination
+% ------------------------------------------------------------
+
+\node[endpoint, minimum width=25mm] (client)
+    {Client\\(VPN / probe)};
+
+\node[anycastip, right=25mm of client] (anycast)
+    {Cloudflare\\Anycast IP\\104.16.123.96};
+
+% ------------------------------------------------------------
+% Cloudflare replicas
+% ------------------------------------------------------------
+
+\node[replica, right=32mm of anycast, yshift=17mm] (madrid)
+    {Datacenter\\Madrid, Spain};
+
+\node[replica, right=32mm of anycast] (paris)
+    {Datacenter\\Paris, France};
+
+\node[replica, right=32mm of anycast, yshift=-17mm] (newyork)
+    {Datacenter\\New York, USA};
+
+% ------------------------------------------------------------
+% HTTP request
+% ------------------------------------------------------------
+
+\draw[bgppath]
+    (client) -- (anycast);
+
+\node[
+    font=\footnotesize,
+    text=blue!80!black,
+    align=center
+] at ($(client.east)!0.5!(anycast.west)+(0,5mm)$)
+    {HTTP request};
+
+% ------------------------------------------------------------
+% Anycast routing
+% ------------------------------------------------------------
+
+\draw[replicaLink]
+    (anycast.east) -- (madrid.west);
+
+\draw[
+    draw=green!50!black,
+    line width=1.5pt,
+    ->,
+    >=Latex
+]
+    (anycast.east) -- (paris.west);
+
+\draw[replicaLink]
+    (anycast.east) -- (newyork.west);
+
+\node[
+    font=\footnotesize\bfseries,
+    text=green!45!black,
+    align=center
+] at ($(anycast.east)!0.5!(paris.west)+(0,7mm)$)
+    {Serving replica};
+
+% ------------------------------------------------------------
+% Anycast annotation
+% ------------------------------------------------------------
+
+\node[
+    font=\footnotesize\itshape,
+    align=center,
+    text width=35mm
+] at ($(anycast.south)+(0,-9mm)$)
+    {Same anycast IP,\\multiple geographic replicas};
+
+% ------------------------------------------------------------
+% HTTP response
+% ------------------------------------------------------------
+
+\node[
+    tablebox,
+    minimum width=43mm,
+    minimum height=15mm,
+    align=left,
+    right=20mm of paris
+] (response) {
+    \textbf{HTTP response}\\[1mm]
+    \texttt{CF-RAY: 7ABC1234-MAD}
+};
+
+\draw[
+    draw=green!50!black,
+    line width=1.2pt,
+    ->,
+    >=Latex
+]
+    (paris.east) -- (response.west);
+
+% ------------------------------------------------------------
+% Ground truth
+% ------------------------------------------------------------
+
+\node[
+    tablebox,
+    below=8mm of response,
+    text width=43mm,
+    align=center
+] (groundtruth) {
+    \textbf{Ground truth}\\[1mm]
+    \texttt{MAD} $\rightarrow$ Madrid
+};
+
+\draw[
+    draw=black!55,
+    ->,
+    >=Latex
+]
+    (response.south) -- (groundtruth.north);
+
+\end{tikzpicture}

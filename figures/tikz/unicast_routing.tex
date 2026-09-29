@@ -1,0 +1,54 @@
+\begin{tikzpicture}[
+    >=Latex,
+    font=\small
+]
+
+\node[endpoint] (source)
+    {Source\\(host / AS X)};
+
+\node[autonomoussystem, right=10mm of source] (as1) {AS 1};
+\node[autonomoussystem, right=7mm of as1, yshift=7mm] (as2) {AS 2};
+\node[ixp, right=6mm of as2] (ixp) {IXP};
+\node[autonomoussystem, right=6mm of ixp] (as4) {AS 4};
+\node[autonomoussystem, right=7mm of as4, yshift=-7mm] (as5) {AS 5};
+
+\node[endpoint, right=10mm of as5] (dest)
+    {Destination\\(host / AS Y)};
+
+\node[autonomoussystem, below=12mm of as4] (as6)
+    {AS 6\\(transit)};
+
+\draw[link] (source) -- (as1);
+\draw[link] (as1) -- (as2);
+\draw[link] (as2) -- (ixp);
+\draw[link] (ixp) -- (as4);
+\draw[link] (as4) -- (as5);
+\draw[link] (as5) -- (dest);
+
+\draw[transit] (as1) -- (as6);
+\draw[transit] (as6) -- (as5);
+
+\draw[bgppath]
+    (as1) -- (as2) -- (ixp) -- (as4) -- (as5);
+
+\draw[shortest]
+    (source.north east)
+    .. controls +(30mm,13mm) and +(-30mm,13mm) ..
+    (dest.north west);
+
+\node[
+    text=green!45!black,
+    font=\footnotesize\bfseries,
+    align=center
+] at ($(source.north)!0.5!(dest.north)+(0,15mm)$)
+    {Geographically shortest path\\(not necessarily used)};
+
+\node[
+    text=blue!80!black,
+    font=\footnotesize\bfseries,
+    align=center
+] at ($(as2.south)!0.5!(as4.south)+(0,-8mm)$)
+    {Actual routing path selected by BGP\\
+     based on policies, peering, and traffic engineering};
+
+\end{tikzpicture}

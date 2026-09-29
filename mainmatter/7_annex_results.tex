@@ -1,0 +1,214 @@
+\chapter{Annex I: Detailed Results of the Android Application Analysis}
+\label{ch:appendix_android_analysis}
+
+This appendix provides detailed results from the analysis of personal-data communications towards anycast infrastructures described in Section~\ref{sc:anycast_experiments_observed_transfers}. The first table presents the distribution of the 960 Android applications generating such communications across application categories. The second table provides a detailed breakdown of the personal data types identified in these communications for each application category. These tables complement the aggregate results presented in the main body of the thesis.
+
+The category ``Other categories'' aggregates the application categories with fewer than 10 applications in the analysed dataset; their individual distributions are provided in the detailed table in this appendix.
+
+\begin{table}[ht]
+    \centering
+    \caption{Android applications generating personal-data communications towards anycast infrastructures by application category.}
+    \label{tab:anycast_pii_apps_by_category}
+    \begin{tabular}{lr}
+        \hline
+        \textbf{Application category} & \textbf{Applications} \\
+        \hline
+        Entertainment & 82 \\
+        Tools & 75 \\
+        Education & 59 \\
+        Puzzle & 56 \\
+        No category & 43 \\
+        Travel \& Local & 39 \\
+        Personalization & 37 \\
+        Productivity & 35 \\
+        Social & 33 \\
+        Lifestyle & 33 \\
+        Shopping & 32 \\
+        Finance & 31 \\
+        Music \& Audio & 30 \\
+        Books \& Reference & 28 \\
+        Simulation & 27 \\
+        Action & 27 \\
+        News \& Magazines & 23 \\
+        Casual & 23 \\
+        Photography & 21 \\
+        Video Players \& Editors & 20 \\
+        Health \& Fitness & 20 \\
+        Business & 19 \\
+        Communication & 19 \\
+        Sports & 18 \\
+        Food \& Drink & 17 \\
+        Maps \& Navigation & 12 \\
+        Word & 10 \\
+        Board & 10 \\
+        Other categories & 81 \\
+        \hline
+        \textbf{Total} & \textbf{960} \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{Android applications generating personal-data communications towards anycast infrastructures by application category with less than 10 repetitions.}
+    \label{tab:anycast_pii_apps_by_category_less_ten_repetitions}
+    \begin{tabular}{lr}
+        \hline
+        \textbf{Application category} & \textbf{Applications} \\
+        \hline
+        Card & 9 \\
+        Arcade & 8 \\
+        Trivia & 8 \\
+        Beauty & 7 \\
+        Casino & 6 \\
+        Medical & 6 \\
+        Auto \& Vehicles & 5 \\
+        Role Playing & 4 \\
+        Educational & 4 \\
+        Art \& Design & 4 \\
+        House \& Home & 4 \\
+        Music & 4 \\
+        Parenting & 3 \\
+        Racing & 3 \\
+        Adventure & 2 \\
+        Dating & 2 \\
+        Strategy & 1 \\
+        Weather & 1 \\
+        \hline
+        \textbf{Total} & \textbf{81} \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+\begin{comment}
+\begin{table}[ht]
+    \centering
+    \caption{Android applications generating personal-data communications towards anycast infrastructures by application category.}
+    \label{tab:anycast_pii_apps_by_category_full}
+    \begin{tabular}{lr}
+        \hline
+        \textbf{Application category} & \textbf{Applications} \\
+        \hline
+        Entertainment & 82 \\
+        Tools & 75 \\
+        Education & 59 \\
+        Puzzle & 56 \\
+        No category & 43 \\
+        Travel \& Local & 39 \\
+        Personalization & 37 \\
+        Productivity & 35 \\
+        Social & 33 \\
+        Lifestyle & 33 \\
+        Shopping & 32 \\
+        Finance & 31 \\
+        Music \& Audio & 30 \\
+        Books \& Reference & 28 \\
+        Simulation & 27 \\
+        Action & 27 \\
+        News \& Magazines & 23 \\
+        Casual & 23 \\
+        Photography & 21 \\
+        Video Players \& Editors & 20 \\
+        Health \& Fitness & 20 \\
+        Business & 19 \\
+        Communication & 19 \\
+        Sports & 18 \\
+        Food \& Drink & 17 \\
+        Maps \& Navigation & 12 \\
+        Word & 10 \\
+        Board & 10 \\
+        Card & 9 \\
+        Arcade & 8 \\
+        Trivia & 8 \\
+        Beauty & 7 \\
+        Casino & 6 \\
+        Medical & 6 \\
+        Auto \& Vehicles & 5 \\
+        Role Playing & 4 \\
+        Educational & 4 \\
+        Art \& Design & 4 \\
+        House \& Home & 4 \\
+        Music & 4 \\
+        Parenting & 3 \\
+        Racing & 3 \\
+        Adventure & 2 \\
+        Dating & 2 \\
+        Strategy & 1 \\
+        Weather & 1 \\
+        \hline
+        \textbf{Total} & \textbf{960} \\
+        \hline
+    \end{tabular}
+\end{table}
+\end{comment}
+
+\begin{table}[ht]
+    \centering
+    \caption{Personal-data communications towards anycast infrastructures by Android application category and personal data type.}
+    \label{tab:anycast_pii_communications_category_type}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{lrrrrrrrrrr}
+        \hline
+        \textbf{Category} &
+        \textbf{Build} &
+        \textbf{Device} &
+        \textbf{Location} &
+        \textbf{Coarse Location} &
+        \textbf{Fingerprint} &
+        \textbf{Google Ad ID} &
+        \textbf{Kernel} &
+        \textbf{BSSID} &
+        \textbf{BSSID Close} &
+        \textbf{MAC} \\
+        \hline
+        Action & 4,862 & 5,288 & 0 & 0 & 0 & 4,880 & 0 & 0 & 0 & 0 \\
+        Adventure & 42 & 99 & 0 & 0 & 0 & 184 & 0 & 2 & 0 & 0 \\
+        Arcade & 2,670 & 2,886 & 0 & 0 & 0 & 256 & 0 & 0 & 0 & 0 \\
+        Art \& Design & 16 & 71 & 0 & 0 & 0 & 28 & 0 & 4 & 0 & 0 \\
+        Auto \& Vehicles & 4 & 32 & 0 & 0 & 0 & 16 & 0 & 0 & 0 & 0 \\
+        Beauty & 48 & 146 & 0 & 0 & 0 & 72 & 0 & 0 & 0 & 0 \\
+        Board & 201 & 515 & 0 & 0 & 0 & 452 & 0 & 0 & 0 & 0 \\
+        Books \& Reference & 1,276 & 2,096 & 0 & 0 & 0 & 3,658 & 2,066 & 0 & 0 & 0 \\
+        Business & 61 & 227 & 0 & 0 & 0 & 248 & 0 & 0 & 0 & 0 \\
+        Card & 2,321 & 2,524 & 0 & 0 & 0 & 4,464 & 0 & 3 & 0 & 0 \\
+        Casino & 104 & 280 & 0 & 0 & 0 & 230 & 0 & 0 & 0 & 0 \\
+        Casual & 291 & 628 & 0 & 0 & 0 & 614 & 0 & 1 & 0 & 0 \\
+        Communication & 30 & 292 & 0 & 0 & 0 & 140 & 0 & 0 & 0 & 0 \\
+        Dating & 60 & 89 & 0 & 0 & 0 & 100 & 0 & 0 & 0 & 0 \\
+        Education & 910 & 1,872 & 0 & 0 & 0 & 1,900 & 1,114 & 14 & 0 & 0 \\
+        Educational & 233 & 309 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+        Entertainment & 1,148 & 2,876 & 0 & 0 & 0 & 33,842 & 804 & 18,712 & 1,176 & 1,176 \\
+        Finance & 192 & 525 & 0 & 0 & 0 & 4,028 & 24 & 0 & 0 & 0 \\
+        Food \& Drink & 133 & 298 & 0 & 0 & 5 & 92 & 0 & 0 & 0 & 0 \\
+        Health \& Fitness & 43 & 129 & 0 & 0 & 0 & 72 & 8 & 0 & 0 & 0 \\
+        House \& Home & 124 & 209 & 0 & 0 & 0 & 194 & 0 & 0 & 0 & 0 \\
+        Lifestyle & 156 & 508 & 0 & 0 & 0 & 432 & 16 & 0 & 0 & 0 \\
+        Maps \& Navigation & 44 & 186 & 0 & 0 & 0 & 122 & 0 & 10 & 0 & 0 \\
+        Medical & 0 & 52 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        Music & 77 & 158 & 0 & 0 & 0 & 154 & 0 & 0 & 0 & 0 \\
+        Music \& Audio & 560 & 741 & 0 & 0 & 0 & 1,136 & 0 & 0 & 0 & 0 \\
+        News \& Magazines & 18 & 328 & 312 & 312 & 0 & 10 & 8 & 0 & 0 & 0 \\
+        No category & 407 & 1,079 & 0 & 0 & 0 & 664 & 16 & 3 & 0 & 0 \\
+        Parenting & 80 & 91 & 0 & 0 & 0 & 38 & 0 & 0 & 0 & 0 \\
+        Personalization & 2,078 & 6,115 & 0 & 0 & 0 & 3,380 & 0 & 2 & 0 & 0 \\
+        Photography & 27 & 183 & 0 & 0 & 0 & 70 & 8 & 0 & 0 & 0 \\
+        Productivity & 197 & 601 & 0 & 0 & 0 & 398 & 16 & 6 & 0 & 0 \\
+        Puzzle & 6,821 & 8,338 & 0 & 0 & 0 & 3,334 & 0 & 4 & 0 & 0 \\
+        Racing & 2,604 & 2,618 & 0 & 0 & 0 & 14 & 0 & 0 & 0 & 0 \\
+        Role Playing & 8 & 71 & 0 & 0 & 0 & 32 & 0 & 0 & 0 & 0 \\
+        Shopping & 148 & 593 & 0 & 0 & 0 & 718 & 24 & 0 & 0 & 0 \\
+        Simulation & 6,381 & 10,220 & 0 & 0 & 0 & 2,366 & 0 & 23 & 0 & 0 \\
+        Social & 133 & 555 & 0 & 0 & 0 & 568 & 16 & 0 & 0 & 0 \\
+        Sports & 284 & 449 & 0 & 0 & 0 & 592 & 0 & 0 & 0 & 0 \\
+        Strategy & 0 & 15 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        Tools & 1,253 & 2,173 & 0 & 0 & 0 & 2,608 & 0 & 5 & 0 & 0 \\
+        Travel \& Local & 108 & 525 & 0 & 0 & 0 & 242 & 32 & 0 & 0 & 0 \\
+        Trivia & 61 & 217 & 0 & 0 & 0 & 240 & 0 & 0 & 0 & 0 \\
+        Video Players \& Editors & 592 & 1,094 & 0 & 0 & 0 & 1,106 & 0 & 0 & 0 & 0 \\
+        Weather & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        Word & 154 & 439 & 0 & 0 & 0 & 468 & 0 & 0 & 0 & 0 \\
+        \hline
+    \end{tabular}%
+    }
+\end{table}
