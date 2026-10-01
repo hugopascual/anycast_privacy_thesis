@@ -140,39 +140,42 @@ The identified communications involved several types of personal data, including
     \end{tabular}
 \end{table}
 
-A more detailed breakdown of the personal data types observed across application categories is provided in Table~\ref{tab:anycast_pii_communications_category_type} in Appendix~\ref{sc:appendix_anycast_pii}. This analysis shows how the different types of personal data were distributed across the application categories represented in the dataset, providing a more detailed characterisation of the data transmitted through communications towards anycast infrastructures.
+A more detailed breakdown of the personal data types observed across application categories is provided in Table~\ref{tab:anycast_pii_communications_category_type} in Appendix~\ref{ch:appendix_android_analysis}. This analysis shows how the different types of personal data were distributed across the application categories represented in the dataset, providing a more detailed characterisation of the data transmitted through communications towards anycast infrastructures.
 
 These results characterise the types of personal data transmitted through communications towards anycast infrastructures and provide a quantitative basis for assessing the role of anycast in personal data transmission within Android applications.
 
 \subsection{Temporal and Geographic Variability}
 \label{sc:anycast_experiments_variability}
 
-\hugo{Include number of origins with variability, mean of destinations by IP and origin.}
-
 One of the most distinctive characteristics of anycast infrastructures is that the destination reached by a communication is not solely determined by the destination IP address. Instead, the selected server depends on the routing decisions made by the network, which are influenced by factors such as the geographic origin of the communication, BGP policies, peering agreements, traffic engineering mechanisms, and transient network conditions.
 
-The measurements performed during the experiments confirmed that this behaviour is common among operational anycast deployments. For many of the anycast IP addresses analysed, communications originating from different EEA countries reached different destination countries despite targeting the same IP address. Consequently, the set of destinations potentially involved in an anycast communication cannot be determined solely from the destination address itself.
+The measurements performed during the experiments confirmed that this behaviour is common among operational anycast deployments. For many of the anycast IP addresses analysed, communications originating from different EEA countries reached different destination countries despite targeting the same IP address. Consequently, the set of destinations potentially involved in an anycast communication cannot be determined solely from the destination address itself. Among the IP-origin pairs analysed, 74.8\% exhibited geographic variability, with communications from the same origin reaching more than one destination country. On average, each anycast IP address and source-origin pair reached 2.39 different destination countries.
 
 In addition to geographic variability, the experiments also revealed temporal variability. Repeated executions of Hunter against the same anycast IP occasionally produced different destination countries even when the origin country remained unchanged. This behaviour reflects the dynamic nature of Internet routing, where modifications in network conditions, routing policies, congestion levels, or traffic engineering decisions may alter the anycast replica selected to serve a communication.
 
-To capture this phenomenon, the destination inference process was repeated ten times for each source-destination pair. This repeated measurement strategy allowed the identification of different destination countries that may only appear under specific network conditions and reduced the risk of drawing conclusions from transient routing states. Furthermore, the same criterion used in the Hunter validation was applied to determine valid destination countries. A country was considered a valid destination if it represented more than 5\% of all measurements that produced a country-level destination. In this exact case, for each source-destination pair, the ten repetitions involved measurements from up to 110 different sources, resulting in up to 1,100 measurements. 
+To capture this phenomenon, the destination inference process was repeated ten times for each source-destination pair. This repeated measurement strategy allowed the identification of different destination countries that may only appear under specific network conditions and reduced the risk of drawing conclusions from transient routing states. Furthermore, the same criterion used in the Hunter validation was applied to determine valid destination countries. A country was considered a valid destination if it represented more than 5\% of all measurements that produced a country-level destination. In this exact case, for each source-destination pair, the ten repetitions involved measurements from up to 110 different sources, resulting in up to 1,100 measurements.
 
-\hugo{Incluir una imagen que muestra la variabilidad de los destinos de las IPs. Por ejemplo un histograma donde el eje X sea el número de países observados para una IP y en el eje Y el número de IPs.}
+\begin{figure}[ht]
+    \centering
+    \includesvg[width=\textwidth]{figures/images/ip_destination_countries_histogram}
+    \caption{Distribution of the number of destination countries inferred for the analysed anycast IP addresses and source origins.}
+    \label{fig:ip_destination_countries_histogram}
+\end{figure}
 
-The observed variability demonstrates that anycast infrastructures should not be understood as providing a single geographic destination. Instead, a communication directed towards an anycast IP address may potentially reach different countries depending on when and from where the communication is initiated. Therefore, analysing only a single measurement or a single geographic origin would provide an incomplete view of the actual geographic exposure associated with anycast communications.
+The observed variability demonstrates that anycast infrastructures should not be understood as providing a single geographic destination. Instead, a communication directed towards an anycast IP address may potentially reach different countries depending on when and from where the communication is initiated. Figure~\ref{fig:ip_destination_countries_histogram} illustrates this variability by showing the distribution of the number of destination countries observed across the analysed measurements. Therefore, analysing only a single measurement or a single geographic origin would provide an incomplete view of the actual geographic exposure associated with anycast communications.
 
 This behaviour has important implications for understanding the geographic footprint of anycast services. Rather than being associated with a single jurisdiction, many anycast deployments exhibit a set of potential destinations whose composition may vary over time, making the geographic behaviour of the service inherently dynamic.
 
 \subsection{Destinations Outside the EEA}
 \label{sc:anycast_experiments_non_eea}
 
-\hugo{Include examples in order to reinforce the claimed situations.}
-
 After identifying the destination countries associated with the analysed anycast communications, the results were filtered to study those involving transfers of personal data towards countries located outside the EEA.
 
-The analysis revealed that international transfers outside the EEA are far from exceptional. Among the 200 anycast IP addresses identified during the experiments, 195 were associated with at least one destination located outside of the EEA. This indicates that communications carrying personal data towards anycast infrastructures frequently cross jurisdictional boundaries despite originating from users located within the EEA.
+The analysis revealed that international transfers outside the EEA were widely observed. Among the 200 anycast IP addresses identified during the experiments, 195 (97.5\%) were associated with at least one destination located outside the EEA. This indicates that communications carrying personal data towards anycast infrastructures may cross jurisdictional boundaries despite originating from users located within the EEA.
 
 The inferred destinations outside the EEA included the United Kingdom, Switzerland, the United States, Ukraine, Serbia, and Russia. Figures~\ref{fig:transfers_outside_EEA}, \ref{fig:transfers_from_EEA_to_UK_and_SW}, and \ref{fig:transfers_from_EEA_to_RU_and_more} illustrate the geographical distribution of these transfers and the countries involved.
+
+For example, communications originating from Greece and Belgium were observed to reach Serbia through the anycast infrastructure associated with the IP address 104.17.45.20. Similarly, the IP address 188.114.96.5 produced 29 measurements in which communications originating from Finland reached Russia. These examples illustrate that the same anycast infrastructure may expose personal-data communications to jurisdictions outside the EEA and that the observed destination may depend on the geographic origin of the communication.
 
 \begin{figure}
     \centering
@@ -186,27 +189,25 @@ The inferred destinations outside the EEA included the United Kingdom, Switzerla
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{figures/images/transfers_from_EEA_to_RU_and_more.png}
-        \caption{International transfers from EEA countries to anycast servers in Ukraine (yellow), Serbia (blue) and Russia (red).}
+        \caption{International transfers from EEA countries to anycast servers in Ukraine (yellow), Serbia (blue), and Russia (red).}
         \label{fig:transfers_from_EEA_to_RU_and_more}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{figures/images/transfers_from_EEA_to_UK_and_SW.png}
-        \caption{International transfers from EEA countries to anycast servers in United Kingdom (green) and Switzerland (purple).}
+        \caption{International transfers from EEA countries to anycast servers in the United Kingdom (green) and Switzerland (purple).}
         \label{fig:transfers_from_EEA_to_UK_and_SW}
     \end{subfigure}
     \caption{International transfers from EEA countries to non-EEA destinations identified during the experiments.}
     \label{fig:transfers_non_eea}
 \end{figure}
 
-The results show that transfers towards neighbouring non-EEA countries were particularly common. The United Kingdom and Switzerland frequently appeared as destinations for communications originating from multiple EEA countries. This behaviour is consistent with the geographic distribution of many anycast deployments, where traffic is commonly directed towards the nearest operational replica regardless of political or regulatory boundaries.
+The results show that transfers towards non-EEA countries were widely observed across the EEA. The United States and the United Kingdom were the most frequently observed non-EEA destinations, being reached from 80\% and 73.33\% of the EEA countries analysed, respectively. This behaviour is consistent with the geographic distribution of many anycast deployments, where traffic may be directed towards operational replicas located outside the user's jurisdiction, regardless of political or regulatory boundaries. The analysis also identified transfers towards Russia, Switzerland, Ukraine, and Serbia. These observations demonstrate that geographic proximity alone cannot be assumed when reasoning about the destination of communications directed towards anycast infrastructures.
 
-More concerningly, the analysis also identified transfers towards countries located significantly further from the communication origin, including the United States, Serbia, Ukraine, and Russia. These observations demonstrate that geographic proximity alone cannot be assumed when reasoning about the destination of communications directed towards anycast infrastructures.
+The results also revealed that the set of reachable destination countries varies depending on the origin country. The same anycast IP address can lead to different destination countries when accessed from different locations within the EEA, reinforcing the idea that anycast communications should be understood as a set of potential geographic destinations rather than a single fixed endpoint.
 
-The results obtained also revealed that the set of reachable destination countries varies depending on the origin country. The same anycast IP address can lead to different destination countries when accessed from different locations within the EEA, reinforcing the idea that anycast communications should be understood as a set of potential geographic destinations rather than a single fixed endpoint.
-
-Overall, the results demonstrate that international transfers outside the EEA are a common characteristic of anycast-enabled services and that the geographic exposure associated with these communications extends well beyond the jurisdictions where the applications themselves are distributed or executed.
+Overall, the results demonstrate that international transfers outside the EEA were observed across a substantial fraction of the analysed anycast infrastructure and that the geographic exposure associated with these communications may extend beyond the jurisdictions where the applications themselves are distributed or executed.
 
 \section{Transparency and Privacy Policy Compliance}
 \label{sc:anycast_experiments_transparency}
@@ -214,21 +215,69 @@ Overall, the results demonstrate that international transfers outside the EEA ar
 \subsection{Undisclosed International Transfers}
 \label{sc:anycast_experiments_undisclosed}
 
-\hugo{Include some reference to the method used for obtaining the privacy policies. In the case of the applications it was automatic from the Google Play Store, but in the case on the TPLs It has not been automatic. Maybe in the first section of obtain the data for the experiment. Include the table of TPLs from the article.}
-
 After identifying the destination countries reached by communications involving personal data, the next step consisted of comparing these empirically observed country destinations with the country destinations disclosed in the corresponding privacy policies. For each analysed application, the countries inferred through Hunter were contrasted with the list of destinations explicitly mentioned in the application's privacy policy. The same comparison was performed for the privacy policies of the Third-Party Libraries (TPLs) identified as responsible for generating the observed communications.
 
-This comparison revealed a substantial discrepancy \hugo{Incluir tabla de TPLs con sus destinos y los declarados para soportar la afirmación.} between the jurisdictions observed during the experiments and those disclosed to the users. Although some privacy policies explicitly identified countries where personal data could be processed or transferred, many others only referred to international transfers in generic terms, without specifying the actual destination countries involved.
+After identifying the destination countries reached by communications involving personal data, the next step consisted of comparing these empirically observed destinations with the countries disclosed in the corresponding privacy policies. For the analysed applications, privacy policies were automatically collected from the Google Play Store during the dataset acquisition phase. For the Third-Party Libraries (TPLs), privacy policies were located and collected manually because their publication was not sufficiently uniform to support the same automated collection process. The privacy-policy analysis was then applied to applications using the machine-learning and natural language processing techniques described in previous work. In the case of TPLs privacy policies, the identification and categorisation of the disclosed destination countries were performed manually by the researchers.
 
-In numerous cases, privacy policies described the use of cloud providers, content delivery networks, analytics services, or external partners without indicating the jurisdictions where these entities process data. As a result, the information available to users frequently lacked the level of geographic detail required to determine the countries that potentially receive personal data through anycast-enabled communications.
+For each analysed application, the countries inferred through Hunter were contrasted with the countries explicitly mentioned in the application's privacy policy. The same comparison was performed for the privacy policies of the TPLs identified as responsible for generating the observed communications.
+
+Table~\ref{tab:anycast_tpls_privacy_destinations} summarises the TPLs identified in the experiment, the number of observed connections associated with each TPL, the availability of a privacy policy, the presence of the TPL in applications with more than 10 million downloads, the countries mentioned in their privacy policies, and the destination countries observed during the experiments. The table illustrates the discrepancy between the countries disclosed in the privacy policies and those empirically observed during the measurements. For example, BidMachine SDK for Android disclosed only the United States in its privacy policy, whereas communications associated with this TPL were observed reaching the United States, the United Kingdom, Russia, Ukraine, and Serbia. Similarly, Google Mobile Ads SDK did not disclose any specific country in the analysed policy, while communications associated with the library were observed reaching the United Kingdom, Switzerland, Russia, Ukraine, and Serbia.
+
+\begin{table}[ht]
+    \centering
+    \caption{Third-Party Libraries associated with personal-data communications towards anycast infrastructures, their privacy-policy disclosures, and observed destination countries.}
+    \label{tab:anycast_tpls_privacy_destinations}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{l c c c c c c}
+        \hline
+        \textbf{TPL} &
+        \textbf{Applications} &
+        \textbf{Connections} &
+        \textbf{Privacy Policy} &
+        \textbf{10M+ Apps} &
+        \textbf{Policy Countries} &
+        \textbf{Observed Destinations} \\
+        \hline
+            Unity Ads & 162 & 35,072 & Yes & 100--1000 & US, CA, JP, NZ, KR, CH, GB & GB, CH \\
+            BidMachine SDK for Android & 7 & 9,200 & Yes & 10--100 & US & US, GB, RU, UA, RS \\
+            Google Mobile Ads (GMA) SDK & 121 & 6,978 & Yes & 100--1000 & None & GB, CH, RU, UA, RS \\
+            Adjust SDK & 55 & 3,470 & Yes & 100--1000 & None & US \\
+            Appodeal SDK for Android & 14 & 3,127 & Yes & -- & US & GB, CH, RU \\
+            Chartboost Monetization SDK & 11 & 1,068 & Yes & 10--100 & US & GB, CH \\
+            MobSDK & 49 & 568 & No & -- & None & GB \\
+            AdColony SDK & 29 & 430 & Yes & 10--100 & US & GB \\
+            AppLovin SDK & 97 & 405 & Yes & 100--1000 & None & US, GB \\
+            Kochava V4 & 6 & 278 & No & 1--10 & None & GB, CH \\
+            OneSignal & 83 & 233 & Yes & 10--100 & US & GB, CH, RS \\
+            bugsnag-android & 26 & 178 & Yes & 10--100 & US & GB \\
+            New Relic Mobile for Android & 11 & 178 & Yes & 10--100 & None & US, GB, CH \\
+            Official Mixpanel Android SDK & 8 & 85 & No & 10--100 & None & GB, CH \\
+            Dynatrace OneAgent SDK & 1 & 73 & Yes & 10--100 & US & GB, UA \\
+            Airship SDK & 3 & 38 & Yes & 10--100 & US, FR, DE, GB, SG, IN & GB \\
+            Sentry Android & 3 & 32 & Yes & 10--100 & US, DE, CA & GB, CH, RU, RS \\
+            EmarsysSDK & 2 & 16 & Yes & -- & None & GB \\
+            Fyber FairBid SDK & 4 & 10 & No & 1--10 & None & GB \\
+            Leanplum SDK FCM Module & 2 & 4 & Yes & 1--10 & US & GB \\
+        \hline
+    \end{tabular}%
+    }
+\end{table}
+
+The distribution across applications was heterogeneous. Unity was associated with 162 applications, followed by AppLovin with 97 and OneSignal with 83, while several other TPLs were identified in fewer than ten applications. The number of applications associated with individual TPLs is not additive, as a single application may integrate multiple TPLs.
+
+The comparison revealed a substantial discrepancy between the jurisdictions observed during the experiments and those disclosed to users. Although some privacy policies explicitly identified countries where personal data could be processed or transferred, many of the observed destination countries were not among those disclosed in the corresponding policies. For example, while the privacy policy of Sentry Android mentioned the United States, Germany, and Canada, communications associated with the library were observed reaching the United Kingdom, Switzerland, Russia, and Serbia. Conversely, Unity Ads was one of the cases in which the observed destinations, the United Kingdom and Switzerland, were also among the countries disclosed in its privacy policy.
+
+In numerous cases, privacy policies described the use of cloud providers, content delivery networks, analytics services, or external partners without indicating the jurisdictions where these entities process data. As a result, the information available to users frequently lacked the geographic detail required to determine the countries that could receive personal data through anycast-enabled communications.
 
 The discrepancy becomes particularly relevant in the context of anycast infrastructures. Since the destination of a communication may vary depending on the origin network and routing conditions, accurately disclosing all possible destination countries is considerably more challenging than in traditional unicast deployments. Nevertheless, from the perspective of the user, the practical consequence remains the same: personal data may be transferred to jurisdictions that are not explicitly mentioned in the privacy documentation.
 
-Among the applications identified as transferring personal data to anycast destinations located outside the EEA, 79.58\% did not explicitly mention international transfers in their privacy policies \cite{Pascual2025AnycastDisaster}. In many cases \hugo{Incluir el dato exacto o una tabla que categorice exactamente la distribución de lo que ponen.}, the policies only contained generic statements referring to the use of cloud services, external providers, or international operations, without specifying the countries where personal data could ultimately be processed.
+Among the applications identified as transferring personal data to anycast destinations located outside the EEA, 79.58\% did not explicitly mention international transfers in their privacy policies \cite{Pascual2025AnycastDisaster}. Among the TPLs policies, in some cases the policies only contained generic statements referring to international transfers of personal data without specifying the countries where personal data could ultimately be processed or no section about international transfers were present. These cases has been marked with a ``None'' in the \textit{Countries Mentioned in Policy} column of the Table\ref{tab:anycast_tpls_privacy_destinations}.
 
-When the analysis focused specifically on destination countries, the discrepancy became even more pronounced. The results showed that 98.65\% of the analysed applications potentially failed to meet the GDPR transparency requirements regarding international transfers, as the countries empirically observed during the experiments were not adequately disclosed in the corresponding privacy documentation \cite{Pascual2025AnycastDisaster}. The situation was similarly concerning for Third-Party Libraries. All identified TPLs were involved in personal data transfers towards anycast infrastructures that could reach destinations outside the EEA. However, 90\% of these libraries potentially failed to disclose the corresponding destination countries despite actively participating in the international transfers observed \cite{Pascual2025AnycastDisaster}.
+When the analysis focused specifically on destination countries, the discrepancy became even more pronounced. The results showed that 98.65\% of the analysed applications potentially failed to meet the GDPR transparency requirements regarding international transfers, as the countries empirically observed during the experiments were not adequately disclosed in the corresponding privacy documentation \cite{Pascual2025AnycastDisaster}. The situation was similarly observed for Third-Party Libraries. All identified TPLs were involved in personal-data transfers towards anycast infrastructures that could reach destinations outside the EEA. However, 90\% of these libraries potentially failed to disclose the corresponding destination countries despite actively participating in the international transfers observed \cite{Pascual2025AnycastDisaster}.
 
-These findings indicate that users are frequently unable to determine the actual jurisdictions in which their personal data may be processed. Even when privacy policies acknowledge the possibility of international transfers, the information provided is often insufficient to effectively identify the countries reached by the communications observed during the experiments. The results also suggest that the lack of transparency cannot be exclusively attributed to application developers. A significant fraction \hugo{Incluir el dato exacto} of the observed communications originated from embedded TPLs, whose behaviour is often partially opaque to the applications that integrate them. Consequently, deficiencies in transfer disclosures may propagate throughout the mobile ecosystem, affecting both application providers and third-party service operators.
+The role of TPLs in these communications was also substantial. The 20 TPLs included in Table~\ref{tab:anycast_tpls_privacy_destinations} accounted for 61,443 observed connections, corresponding to 31.38\% of the 195,786 personal-data communications directed towards anycast infrastructures analysed in the experiment. This indicates that a substantial proportion of the observed communications involved functionality provided by embedded third-party components rather than application-specific infrastructure.
+
+These findings indicate that users are frequently unable to determine the actual jurisdictions in which their personal data may be processed. Even when privacy policies acknowledge the possibility of international transfers, the information provided is often insufficient to identify the countries reached by the communications observed during the experiments. The results also suggest that the lack of transparency cannot be exclusively attributed to application developers. Since 31.38\% of the analysed personal-data communications towards anycast infrastructures were associated with the TPLs included in the analysis, deficiencies in transfer disclosures may propagate through the mobile ecosystem, affecting both application providers and third-party service operators.
 
 \subsection{Limitations of Current Transparency Mechanisms}
 \label{sc:anycast_experiments_transparency_limitations}
@@ -244,21 +293,24 @@ The results obtained in this study suggest that current transparency mechanisms 
 \section{The Role of Third-Party Libraries}
 \label{sc:anycast_experiments_tpls}
 
-\hugo{Include references to the TPLS tables that should be in the previous section.}
-
 The results presented so far show that international transfers through anycast infrastructures are widespread within the Android ecosystem. However, analysing the applications alone provides only a partial view of the phenomenon. A substantial fraction of the observed communications are not generated directly by the application code itself but by Third-Party Libraries (TPLs) integrated into the applications.
 
-Modern Android applications heavily rely on external libraries to provide functionalities such as analytics, advertising, crash reporting, authentication, social network integration, content delivery, and user tracking. Consequently, a significant portion of the personal data collected by applications is ultimately processed through infrastructures operated by organisations other than the application developer. Understanding the role of TPLs is therefore essential to determine how international data transfers emerge within mobile ecosystems and to identify the actors effectively responsible for the observed communications.
+Modern Android applications heavily rely on external libraries to provide functionalities such as analytics, advertising, crash reporting, authentication, social network integration, content delivery, and user tracking. Consequently, personal data transmitted by applications may be processed through infrastructures operated by organisations other than the application developer. Understanding the role of TPLs is therefore essential to determine how international data transfers emerge within mobile ecosystems and to identify the actors effectively responsible for the observed communications.
 
-The execution traces collected during the dynamic analysis phase allowed the identification of the software components responsible for generating each observed communication. By analysing package names and execution contexts, it was possible to distinguish communications triggered directly by the application from those initiated by embedded TPLs. The results reveal a strong presence of third-party components in the analysed applications. In total, 20 different TPLs were identified as responsible for communications involving personal data and anycast infrastructures. \hugo{Hacer referencia o incluior aquí la tabla de TPLS con el número de conexiones y destinos declarados y reales.} These libraries were embedded across a large number of applications \hugo{Incluir el número de apps, cita o alguna figura para mostrar esto.} belonging to different categories and performing diverse functionalities \hugo{Si no se puede desmostrar hay que modificarlo.}.
+The execution traces collected during the dynamic analysis phase allowed the identification of the software components responsible for generating each observed communication. By analysing package names and execution contexts, it was possible to distinguish communications triggered directly by the application from those initiated by embedded TPLs. The results reveal a strong presence of third-party components in the analysed applications. In total, 20 different TPLs were identified as responsible for communications involving personal data and anycast infrastructures. These TPLs were associated with communications generated by 606 of the 960 applications that produced personal-data communications towards anycast infrastructures, corresponding to 63.13\% of the analysed applications. Table~\ref{tab:anycast_tpls_privacy_destinations} summarises the identified TPLs, together with the number of observed connections, their privacy-policy disclosures, and the destination countries observed during the experiments.
 
 The widespread deployment of TPLs reflects the current structure of the mobile ecosystem, where application developers increasingly delegate specific functionalities to specialised external providers. Rather than implementing analytics, advertising, authentication, or telemetry systems internally, developers often integrate pre-built SDKs that offer these services through a simple programming interface. From a privacy perspective, this delegation has important implications. Although users typically interact with a single application, their personal data may be transmitted to multiple external organisations operating the embedded libraries, or used by them. As a result, understanding data flows within mobile ecosystems requires analysing not only the applications themselves but also the third-party components they incorporate.
 
-In our context, the analysis revealed that TPLs play a central role in the generation of international personal data transfers through anycast infrastructures. Among the 195,786 communications involving personal data and anycast destinations identified during the experiments, 61,443 were directly attributed to embedded TPLs. This result indicates that a significant fraction of the observed communications originated from third-party components operating within the analysed applications. Furthermore, the geographic analysis performed using Hunter showed that all identified TPLs were involved in communications reaching destinations outside the EEA.
+The analysis revealed that TPLs play a central role in the generation of international personal data transfers through anycast infrastructures. Among the 195,786 communications involving personal data and anycast destinations identified during the experiments, 61,443 were directly attributed to embedded TPLs, corresponding to 31.38\% of the analysed communications. Furthermore, the geographic analysis performed using Hunter showed that all identified TPLs were involved in communications reaching destinations outside the EEA.
 
-This observation is particularly relevant because the deployment strategies adopted by large cloud providers and Internet-scale platforms frequently rely on anycast infrastructures. As a result, a single SDK integrated in hundreds or thousands of applications may generate communications whose destinations vary dynamically depending on the geographic origin of the user and the state of the network. The findings therefore suggest that TPLs act as major amplifiers of jurisdictional exposure. Through their extensive deployment in the Android ecosystem, a relatively small number of external libraries can influence the geographic destinations reached by personal data originating from a very large number of applications.
+This observation is particularly relevant because the deployment strategies adopted by large cloud providers and Internet-scale platforms frequently rely on anycast infrastructures. As a result, a single SDK integrated into multiple applications may generate communications whose destinations vary dynamically depending on the geographic origin of the user and the state of the network. The findings therefore demonstrate that TPLs can play a substantial role in jurisdictional exposure within the Android ecosystem. Through their deployment across multiple applications, third-party libraries can generate communications whose geographic destinations vary according to the origin of the communication and the state of the network.
 
-The prominent role of TPLs also raises important questions regarding responsibility and transparency in modern mobile ecosystems. From a technical perspective, application developers often have limited visibility into the internal operations of the libraries they integrate. Although developers may know the purpose of a given SDK, they often lack detailed information on the cloud infrastructures used by the provider, the geographic deployment of its services, or the routing mechanisms involved in processing user data. \hugo{Include a mention of the lack of easyness to get the privacy policy, so the application owners can not know directly the privacy policy declares.}
+
+This observation is particularly relevant because the deployment strategies adopted by large cloud providers and Internet-scale platforms frequently rely on anycast infrastructures. As a result, a single SDK integrated into multiple applications may generate communications whose destinations vary dynamically depending on the geographic origin of the user and the state of the network. The findings therefore demonstrate that TPLs can play a substantial role in jurisdictional exposure within the Android ecosystem. Through their deployment across multiple applications, third-party libraries can generate communications whose geographic destinations vary according to the origin of the communication and the state of the network.
+
+The prominent role of TPLs also raises important questions regarding responsibility and transparency in modern mobile ecosystems. From a technical perspective, application developers often have limited visibility into the internal operations of the libraries they integrate. Although developers may know the purpose of a given SDK, they may lack detailed information on the cloud infrastructures used by the provider, the geographic deployment of its services, or the routing mechanisms involved in processing user data.
+
+Access to the privacy policies of TPL providers also presented practical difficulties. Unlike application privacy policies, which were collected automatically from the Google Play Store, TPL privacy policies had to be located and collected manually because their publication was not sufficiently uniform to support the same automated collection process. This lack of accessibility may further limit the ability of application developers to determine the data-processing and transfer practices disclosed by the providers of the libraries they integrate.
 
 This lack of visibility becomes particularly problematic in the context of anycast infrastructures. Since the destination of a communication may depend on routing decisions that are external to both the application developer and the end user, accurately determining all potential destination jurisdictions becomes significantly more complex. The transparency analysis presented in the previous section illustrates this problem. Although all identified TPLs were involved in international transfers through anycast infrastructures, 90\% of them potentially failed to disclose the destination countries reached by these communications. As a consequence, application developers that integrate such libraries may also face difficulties in accurately informing users about the jurisdictions where their data may ultimately be processed.
 
@@ -267,20 +319,71 @@ These findings suggest that the transparency challenges associated with anycast 
 \section{Global Jurisdictional Exposure in Anycast Systems}
 \label{sc:anycast_experiments_global_anycast}
 
-\hugo{Resolver comentarios anteriores porque a partir de aquí todo se refiere al último artículo que está en revisión y hay bastantes cambios tras la revisión.}
+The previous sections analysed the geographic behaviour of anycast communications from the perspective of the EEA and demonstrated that personal-data communications generated by Android applications may reach destinations outside the region. To determine whether this behaviour is specific to the European context or reflects a broader property of operational anycast infrastructures, a second large-scale measurement campaign was conducted at a global scale.
 
-\hugo{Include exact data from the experiment.}
+The global experiment was conducted as an independent measurement campaign using a broader dataset of anycast infrastructures. A total of 489 anycast IP addresses were initially identified as candidates for the global analysis. Due to the time and measurement-credit constraints associated with the large-scale RIPE Atlas campaign, 195 of these IP addresses were analysed in the available measurement period. The analysed IP addresses were associated with 379 Android applications and were selected independently of the IP addresses analysed in the previous EEA-focused experiment. Consequently, the coincidence in the number of analysed IP addresses between the two experiments is incidental and does not indicate that the same infrastructures were analysed. The measurements were performed using Hunter from RIPE Atlas probes distributed across 183 countries. For each IP address, ten measurement rounds were conducted, with ten randomly selected probes per country in each round. Measurements were collected during two six-day periods in July and September 2025 at irregular intervals in order to capture variability in routing conditions over time.
 
-The previous sections demonstrated that Android applications and Third-Party Libraries frequently transfer personal data to anycast infrastructures whose physical destinations may be located in different jurisdictions. However, the observed behaviour is not exclusive to the European region where the previous experiment was conducted; it is a global phenomenon.
+After filtering incomplete traces and non-responsive paths, and applying the criterion of at least three origin-destination pairs for a valid observation, the campaign produced 504,690 valid routing tracks. Table~\ref{tab:global_hunter_summary} summarises the main characteristics of the dataset. The measurements covered 379 applications, 195 anycast IP addresses, and 183 countries. Of the valid routing tracks, 58.36\% terminated in a country different from the country of origin. Furthermore, 99.49\% of the analysed anycast IP addresses exhibited at least one cross-border routing event.
 
-To better understand the broader implications of anycast routing, an additional large-scale measurement campaign was conducted using Hunter. Rather than focusing on a specific set of applications, this experiment analysed the geographic destinations reached by anycast infrastructures from a large number of countries and network locations worldwide. The objective was to evaluate the extent to which anycast routing may expose communications to foreign jurisdictions, how stable these routing decisions remain over time, and whether users or organisations can realistically maintain geographic control over the destination of their communications.
+\begin{table}[ht]
+    \centering
+    \caption{Summary of the global anycast measurement campaign.}
+    \label{tab:global_hunter_summary}
+    \begin{tabular}{lr}
+        \hline
+        \textbf{Metric} & \textbf{Value} \\
+        \hline
+        Applications analysed & 379 \\
+        Anycast IP addresses & 195 \\
+        Countries covered & 183 \\
+        Valid routing tracks & 504,690 \\
+        Cross-border tracks & 58.36\% \\
+        IP addresses with cross-border routing & 99.49\% \\
+        \hline
+    \end{tabular}
+\end{table}
 
-The results reveal that jurisdictional exposure is an intrinsic characteristic of operational anycast deployments and not merely a consequence of specific application designs or service providers. Beyond the existence of international routing itself, the measurements revealed a second important phenomenon: the geographic destination of communications varies over time, even when the origin and destination addresses remain unchanged. Repeated measurements showed that identical communications could reach different destination countries depending on the state of the network at the time of the measurement. Variations in BGP routing decisions, traffic engineering mechanisms, peering relationships, congestion management strategies, or changes in the availability of individual replicas may alter the server selected to process a communication.
+Figure~\ref{fig:visualization_global_hunter} provides a global overview of the measurement campaign and illustrates the destinations observed for traffic originating in the United States, the EEA, and Japan. These examples demonstrate that cross-border routing is not confined to the European context analysed in the previous sections, but can also be observed from other major geographic regions.
 
-This behaviour introduces a form of jurisdictional instability in which the legal territory associated with a communication is not fixed but may change dynamically as routing conditions evolve. The instability was particularly evident for infrastructures deployed across multiple neighbouring countries, where relatively small routing changes were sufficient to produce international transfers. In some cases, this cross-border communication also implies a change of jurisdiction, e.g., personal data traffic from the EEA whose destination is Russia or the USA.
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/images/figure_tracks_destinations_color_from_usa_no_scale.png}
+        \caption{Destinations for traffic originating in the United States.}
+        \label{fig:destinations_from_usa}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/images/figure_tracks_destinations_color_from_eea_no_scale.png}
+        \caption{Destinations for traffic originating in the EEA.}
+        \label{fig:destinations_from_eea}
+    \end{subfigure}
 
-These observations highlight a fundamental distinction between anycast and traditional geographically fixed infrastructures. While the physical deployment of servers may remain stable, the jurisdiction effectively reached by a communication can change over time without any visible indication to the user or the application generating the traffic. Consequently, determining the destination jurisdiction of a communication cannot be reduced to a single measurement but instead requires repeated observations capable of capturing the inherent variability of operational anycast deployments.
+    \vspace{0.5em}
 
-This dynamic behaviour challenges one of the implicit assumptions underlying many regulatory frameworks: that organisations are able to determine, document, and maintain control over the jurisdictions where personal data are processed. Such an assumption generally holds when communications are directed towards infrastructures deployed in known and geographically stable locations. However, the results obtained in this work suggest that satisfying these requirements becomes considerably more difficult in the presence of anycast routing, where the effective destination of a communication may vary according to network conditions that remain outside the direct control of service providers and end users.
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/images/figure_tracks_destinations_color_from_japan_no_scale.png}
+        \caption{Destinations for traffic originating in Japan.}
+        \label{fig:destinations_from_japan}
+    \end{subfigure}
+    \caption{Examples of geographic destinations observed during the global anycast measurement campaign.}
+    \label{fig:visualization_global_hunter}
+\end{figure}
 
-More broadly, the results suggest that geographic location should not be considered a static property of Internet services relying on anycast infrastructures. Instead, geographic destination emerges as a dynamic property influenced by routing behaviour and network conditions. As a consequence, achieving meaningful geographic control over communications requires not only knowledge of where services are deployed but also visibility into how Internet routing selects among the available replicas. These findings reinforce the need for mechanisms capable of continuously assessing the geographic destinations reached by communications and highlight the challenges that anycast infrastructures introduce for data sovereignty, regulatory compliance, and jurisdiction-aware network management.
+The global measurements also revealed distinct regional routing patterns. Traffic originating in Latin America frequently terminated in the United States, reflecting the concentration of anycast infrastructure in North America. Conversely, communications originating in the United States were observed reaching destinations including Brazil, Japan, South Africa, the EEA, and Cuba. The measurements from the EEA also showed substantial external routing, with 34.88\% of communications terminating outside the region, including destinations such as Russia, India, and South Africa. In contrast, traffic originating in Japan, India, and South Korea exhibited stronger regional retention, while communications originating in African countries frequently terminated in Europe.
+
+These observations generalise the findings obtained from the EEA-focused experiment. While the first experiment characterised cross-border anycast communications in the context of Android applications and personal-data transfers within the EEA, the independent global campaign examined a broader set of anycast infrastructures and source locations worldwide. The EEA experiment demonstrated that personal-data communications generated by mobile applications may reach destinations outside the region, whereas the global campaign shows that similar cross-border routing behaviour occurs across multiple geographic contexts and is not specific to European networks or data protection requirements. The fact that 99.49\% of the analysed anycast IP addresses exhibited at least one cross-border routing event further indicates that the phenomenon is associated with the operational behaviour of the analysed anycast infrastructures rather than with a small subset of exceptional deployments.
+
+The global experiment also provides a broader perspective on the relationship between geographic origin and destination. The observed routing patterns varied substantially across source regions: some regions exhibited frequent communication with infrastructure located in other continents, whereas others showed a stronger tendency to remain within their geographic region. Consequently, the geographic exposure associated with an anycast service cannot be inferred solely from the location of its infrastructure or from the location of the user. Instead, it depends on the interaction between the source network, the anycast deployment, and the routing policies governing the communication path.
+
+Overall, the global measurements demonstrate that cross-border routing is a widespread characteristic of the analysed anycast infrastructures. The results therefore generalise the observations obtained from the EEA-specific Android experiment and show that the geographic uncertainty introduced by anycast is not limited to a particular jurisdiction, application ecosystem, or regulatory framework. This broader perspective motivates the need for mechanisms that allow service providers to impose explicit geographic constraints when the jurisdiction in which communications are processed is a relevant requirement.
+
+\section{Summary and Next Steps}
+\label{sc:anycast_experiments_summary}
+
+This chapter has analysed the geographic implications of anycast communications from two complementary perspectives. First, the large-scale Android experiment demonstrated that personal-data communications generated by applications and their embedded Third-Party Libraries may reach destinations outside the EEA, while the comparison with privacy policies revealed substantial discrepancies between observed destinations and the jurisdictions disclosed to users. Second, the global measurement campaign extended the analysis beyond the Android ecosystem and the European context, showing that cross-border routing is widespread across operational anycast infrastructures worldwide. These results have been disseminated through the scientific publications \emph{Hunter: Tracing anycast communications to uncover cross-border personal data transfers} \cite{Pascual2024Hunter:Transfers} and \emph{Anycast and Third-party Libraries: A Recipe for a Privacy Disaster?} \cite{Pascual2025AnycastDisaster}, which present the geographic inference methodology and the empirical analysis of anycast communications in the Android ecosystem, respectively.
+
+Taken together, the results show that observing and measuring the geographic behaviour of anycast infrastructures is feasible, but that measurement alone does not provide service providers with deterministic control over the jurisdictions reached by their communications. This limitation motivates the next part of the thesis, which moves from analysing geographic exposure to investigating how geographic constraints can be explicitly enforced in anycast infrastructures. The following chapter therefore introduces the RCA-DNS architecture, which combines DNS-based service selection with geographically scoped anycast deployments to provide deterministic geographic control while preserving the operational benefits of anycast.
