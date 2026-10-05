@@ -1,0 +1,94 @@
+\begin{tikzpicture}[
+    >=Latex,
+    font=\small
+]
+
+% ------------------------------------------------------------
+% Policy plane: client application and authoritative DNS
+% ------------------------------------------------------------
+
+\node[endpoint, minimum width=52mm, minimum height=27mm, anchor=north] (client) at (27mm,0) {};
+\node[font=\footnotesize\bfseries, anchor=north, inner sep=2mm] at (client.north) {Client application};
+\node[policy, anchor=south] (policy) at ($(client.south)+(0,3mm)$)
+    {Region selection policy\\\scriptsize(user, contract, geolocation, \ldots)};
+
+\node[dnszone, anchor=north east] (zone) at (164mm,0) {
+    \textbf{Authoritative zone} \texttt{anycastprivacy.org}\\[0.5mm]
+    \begin{tabular}{@{}l@{\hspace{2mm}}c@{\hspace{2mm}}l@{}}
+        \texttt{global}       & $\rightarrow$ & \texttt{203.0.113.10} \\
+        \texttt{eea-extended} & $\rightarrow$ & \texttt{203.0.113.20} \\
+        \texttt{us}           & $\rightarrow$ & \texttt{203.0.113.30} \\
+        \texttt{asia}         & $\rightarrow$ & \texttt{203.0.113.40} \\
+    \end{tabular}
+};
+
+\coordinate (qa) at ($(client.east)+(0,5mm)$);
+\coordinate (qb) at ($(client.east)+(0,-5mm)$);
+\draw[dnsflow] (qa) -- node[above, font=\scriptsize, align=center]
+    {DNS query\\\texttt{eea-extended.anycastprivacy.org}} (qa -| zone.west);
+\draw[dnsflow, dashed] (qb -| zone.west) -- node[below, font=\scriptsize, align=center]
+    {DNS answer\\\texttt{A 203.0.113.20}} (qb);
+
+\node[steplabel] at ($(policy.west)+(-5mm,0)$) {1};
+\node[steplabel] at ($(qa)!0.5!(qa -| zone.west)+(0,13mm)$) {2};
+
+% ------------------------------------------------------------
+% Data plane: regional anycast deployments
+% ------------------------------------------------------------
+
+% EEA-Extended
+\node[anycastip, minimum width=30mm] (ipeea) at (27mm,-58mm)
+    {Anycast IP\\\texttt{203.0.113.20}};
+\node[replica, minimum width=21mm, font=\footnotesize] (eea1) at (15mm,-80mm) {Madrid};
+\node[replica, minimum width=21mm, font=\footnotesize] (eea2) at (39mm,-80mm) {Frankfurt};
+\node[replica, minimum width=21mm, font=\footnotesize] (eea3) at (27mm,-92mm) {Paris};
+\begin{scope}[on background layer]
+    \node[regionbox, fit=(ipeea)(eea1)(eea2)(eea3), inner ysep=7mm] (regeea) {};
+\end{scope}
+\node[regionlabel, anchor=south west] at (regeea.south west) {EEA-Extended region};
+
+% US
+\node[anycastip, minimum width=30mm] (ipus) at (84mm,-58mm)
+    {Anycast IP\\\texttt{203.0.113.30}};
+\node[replica, minimum width=21mm, font=\footnotesize] (us1) at (72mm,-80mm) {Iowa};
+\node[replica, minimum width=21mm, font=\footnotesize] (us2) at (96mm,-80mm) {Virginia};
+\node[replica, minimum width=21mm, font=\footnotesize] (us3) at (84mm,-92mm) {Oregon};
+\begin{scope}[on background layer]
+    \node[regionbox, fit=(ipus)(us1)(us2)(us3), inner ysep=7mm] (regus) {};
+\end{scope}
+\node[regionlabel, anchor=south west] at (regus.south west) {US region};
+
+% Asia
+\node[anycastip, minimum width=30mm] (ipasia) at (141mm,-58mm)
+    {Anycast IP\\\texttt{203.0.113.40}};
+\node[replica, minimum width=21mm, font=\footnotesize] (as1) at (129mm,-80mm) {Tokyo};
+\node[replica, minimum width=21mm, font=\footnotesize] (as2) at (153mm,-80mm) {Singapore};
+\node[replica, minimum width=21mm, font=\footnotesize] (as3) at (141mm,-92mm) {Mumbai};
+\begin{scope}[on background layer]
+    \node[regionbox, fit=(ipasia)(as1)(as2)(as3), inner ysep=7mm] (regasia) {};
+\end{scope}
+\node[regionlabel, anchor=south west] at (regasia.south west) {Asia region};
+
+% Anycast announcements inside each region
+\foreach \ip/\a/\b/\c in {ipeea/eea1/eea2/eea3, ipus/us1/us2/us3, ipasia/as1/as2/as3} {
+    \draw[replicaLink] (\ip.south) -- (\a.north);
+    \draw[replicaLink] (\ip.south) -- (\b.north);
+    \draw[replicaLink] (\ip.south) -- (\c.north);
+}
+
+% Global deployment (all replicas)
+\begin{scope}[on background layer]
+    \node[draw=violet!60, dotted, line width=1pt, rounded corners=8pt,
+          fit=(regeea)(regus)(regasia), inner sep=3mm] (global) {};
+\end{scope}
+\node[font=\footnotesize\itshape, text=violet!70!black, anchor=north east, inner sep=1.5mm]
+    at (global.south east) {\texttt{global.anycastprivacy.org} (\texttt{203.0.113.10}) is announced by every replica};
+
+% Traffic from the client to the selected regional anycast address
+\draw[bgppath] (client.south) -- (ipeea.north);
+\node[font=\scriptsize, align=left, anchor=west, text=blue!70!black] at ($(client.south)!0.45!(ipeea.north)+(3mm,0)$)
+    {HTTPS to \texttt{203.0.113.20} over standard BGP anycast routing:\\
+     only instances inside the EEA-Extended region announce this address};
+\node[steplabel] at ($(client.south)!0.45!(ipeea.north)+(-4mm,0)$) {3};
+
+\end{tikzpicture}

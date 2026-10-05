@@ -1,125 +1,539 @@
 \chapter{Geographic Regionalization of Anycast Services}
-%\chapter{Geographic Regionalization of Anycast Services: Region-Constrained Anycast over DNS (RCA-DNS)}
 \label{ch:rcadns}
 
-\chema{Algún comentario después de revisar todo: 1) Echo en falta un análisis de feasibility sobre las posibilidades que ofrecen los operadores reales. Estaría bien añadir un análisis de si los grandes ofrecen o no la posibilidad de implementar la solución, y qué diferencias hay entre cada uno. 2) He dejado muchos comentarios sobre figuras/diagramas a añadir para dar más detalle técnico. Es el capítulo de propuesta de solución y necesita que demuestres que has pensado los detalles (y lo reflejes en la memoria).}
+The previous chapters have shown that the geographic destination of an anycast communication is neither visible to users nor, in many cases, controlled by the organisations that operate the service. Chapter~\ref{ch:hunter} introduced Hunter, which makes it possible to infer the country in which an anycast communication terminates. Chapter~\ref{ch:experiments} then used Hunter to show that personal data sent by Android applications and their TPLs frequently reaches countries outside the EEA, often without being disclosed in privacy policies. The global campaign presented in Section~\ref{sc:anycast_experiments_global_anycast} confirmed that this behaviour is not specific to Europe: 58.36\% of the valid routing tracks terminated in a country different from the one in which they originated, and 99.49\% of the analysed anycast addresses exhibited at least one cross-border routing event.
 
-As demonstrated throughout the previous chapters, anycast infrastructures have become a fundamental component of modern Internet services. Content Delivery Networks (CDNs), cloud providers, Domain Name System (DNS) operators, and numerous large-scale online platforms rely on anycast deployments to improve latency, increase resilience, and distribute traffic among geographically distributed service replicas. These properties have contributed significantly to the widespread adoption of anycast as a core mechanism for service delivery on the Internet.
+These findings matter because, as discussed in Section~\ref{sc:background_privacy_regulations}, the lawfulness of data processing is increasingly tied to the place where it occurs. Data protection regulations restrict international transfers of personal data \cite{REGULATIONSRelevance, CourtII}, and the Data Act and the Data Governance Act extend comparable safeguards to non-personal data \cite{2022DataAct, 2022DataActb}. Whether framed in terms of data residency, data localisation, or data sovereignty (Section~\ref{sc:background_privacy_data_sovereignty}), these obligations share a common premise: the operator of a service must be able not only to know, but also to decide and later demonstrate, where communications are processed. Chapters~\ref{ch:hunter} and~\ref{ch:experiments} addressed the first part of this premise by making the destination of anycast communications observable. This chapter addresses the second.
 
-However, the same characteristics that make anycast attractive from a performance and availability perspective also introduce important challenges regarding geographic transparency and control. Since routing decisions are dynamically determined by the inter-domain routing system, the physical destination of a communication cannot be directly inferred from the destination IP address alone. Furthermore, the geographic location reached by a communication may vary depending on the origin network, routing policies, peering agreements, traffic engineering decisions, and transient network conditions.
+Conventional anycast deployments do not offer this capability. Because every replica announces the same prefix and each AS independently selects among the resulting routes, the replica that serves a given user is the outcome of a distributed decision process in which geography and jurisdiction play no role. Operators can influence this process, for instance by adding or withdrawing sites or by manipulating BGP announcements, but they cannot constrain it deterministically. As a consequence, an organisation that wants to guarantee that the communications of its European users are processed within the EEA currently faces a choice between keeping the operational advantages of anycast and obtaining geographic guarantees.
 
-The methodology presented in Chapter~\ref{ch:hunter} addressed this problem by enabling the inference of the geographic destinations associated with anycast communications. Using active network measurements, traceroute analysis, and latency-based multilateration, Hunter demonstrated that it is possible to estimate the countries where anycast replicas are deployed with high precision. Building upon this capability, Chapter~\ref{ch:experiments} revealed that anycast infrastructures are extensively used by Android applications and Third-Party Libraries (TPLs) when processing personal data. More importantly, the experiments showed that communications frequently cross jurisdictional boundaries and may reach countries that are not explicitly disclosed in the corresponding privacy policies.
+This chapter presents \textit{Region-Constrained Anycast over DNS} (RCA-DNS), an architecture that removes this trade-off. RCA-DNS exposes one DNS name per geographic region, maps each name to a different anycast address, and lets only the infrastructure located inside that region serve the address. The region is selected by the service before DNS resolution, according to its own policy, and the network is then responsible only for delivering traffic within the boundaries implied by that choice. This chapter addresses research question RQ4, which asks which architectural mechanisms can provide deterministic geographic control over anycast communications without significantly compromising scalability, performance, and resilience.
 
-These observations highlight a fundamental limitation of current anycast deployments: while they provide efficient mechanisms for selecting nearby replicas, they offer little control over the geographic jurisdictions reached by user communications. Consequently, organisations may face difficulties enforcing data residency requirements, complying with regulatory obligations, or guaranteeing that communications remain confined within specific geographic regions. Similar challenges arise in contexts involving data sovereignty, national regulations, contractual restrictions, or sector-specific compliance requirements. \chema{Puedes añadir alguna referencia que extienda estos conceptos? Además, si encuentras referencias adecuadas que expliquen/desarrollen/ejemplifiquen el problema de la localización en estos casos creo que las podrías reutilizar en otras partes de la memoria cuando motivas el problema.}
+The remainder of the chapter is organised as follows. Section~\ref{sc:rcadns_related} reviews the existing approaches to geographic traffic control and explains why none of them satisfies the problem described above. Section~\ref{sc:rcadns_requirements} derives the requirements that guide the design. Section~\ref{sc:rcadns_architecture} describes the RCA-DNS architecture, its components, its communication workflow, and the different levels at which confinement can be enforced. Section~\ref{sc:rcadns_feasibility} analyses whether the architecture can be implemented on the platforms offered by major cloud and CDN providers. Section~\ref{sc:rcadns_evaluation} evaluates a prototype deployed on Google Cloud through a week-long RIPE Atlas measurement campaign. Finally, Section~\ref{sc:rcadns_discussion} discusses the regulatory implications and the limitations of the proposal, and Section~\ref{sc:rcadns_summary} summarises the chapter.
 
-Existing approaches to geographic traffic control typically rely on application-level filtering, DNS geolocation mechanisms, or independent regional service deployments \chema{Sería bueno citar artículos aquí, ya que esto es lo más cercano al estado del arte de este capítulo.}. Although these techniques may partially mitigate the problem, they often introduce operational complexity, reduce the benefits traditionally associated with anycast, or require significant modifications to existing infrastructures \chema{Como resumen está bien, pero no entra en por qué no son adecuadas. Si has citado ejemplos en el párrafo anterior podías aprovechar aquí para demostrar que no son suficientes, indicando qué son cada una de estas cosas que ahora se resumen en 2-3 palabras.}. As a result, achieving both geographic control and the operational advantages of anycast remains an open challenge.
+% ============================================================
+\section{Existing Approaches to Geographic Traffic Control}
+\label{sc:rcadns_related}
+% ============================================================
 
-To address this problem, this chapter presents \textit{Region-Constrained Anycast over DNS (RCA-DNS)}, a mechanism designed to introduce geographic constraints into anycast service delivery while preserving the scalability, resilience, and performance characteristics that motivate the use of anycast in the first place. The key idea behind RCA-DNS is to combine DNS-based request steering with region-specific anycast deployments, allowing service providers to restrict communications to predefined geographic regions without requiring modifications to client devices or to the global routing infrastructure.
+Several families of techniques can steer clients towards infrastructure located in a particular area. This section describes each of them and identifies why it does not, on its own, provide deterministic geographic control while preserving the benefits of anycast. Table~\ref{tab:rcadns_related_comparison} summarises the comparison.
 
-The remainder of this chapter is organised as follows. First, the motivation behind RCA-DNS and the design requirements guiding its development are presented. Next, the architecture and operation of the proposed regionalised anycast system are described in detail. Finally, an experimental evaluation is conducted to assess the effectiveness of the proposal in confining communications within predefined geographic regions while analysing its impact on service performance and operational deployment.
+\subsection{DNS-Based Request Routing}
+\label{sc:rcadns_related_geodns}
 
-\section{Motivation and Design Requirements}
-\label{sc:rcadns_motivation}
+DNS-based request routing, often referred to as GeoDNS, is the classical mechanism used by CDNs to map clients to nearby servers. When the authoritative DNS server of the CDN receives a query, it estimates the location of the client and returns the address of a server that is expected to perform well for that location. The estimation, however, is usually made from the address of the recursive resolver that issues the query rather than from the address of the client itself. Otto et al. showed that the widespread use of remote and public resolvers breaks the assumption that resolver and client are co-located, which leads to inaccurate mappings \cite{Otto2012ContentSolutions}. The EDNS Client Subnet extension (ECS) was standardised to mitigate this problem by letting resolvers forward a truncated client prefix to authoritative servers \cite{Contavalli2016ClientQueries}, and large CDNs have used it to deploy end-user mapping \cite{Chen2015End-UserDelivery}. ECS is nevertheless optional, is not supported by every resolver, and exposes part of the client address to additional parties, which conflicts with DNS privacy goals \cite{Bortzmeyer2015DNSConsiderations}.
 
-\chema{Este apartado está muy bien, pero la primera parte (Motivation) básicamente repite lo de la intro. Tal vez debas ver si cuenta algo distinto y fusionarlo en la intro, que ya fija la motivación bien, y dejar sólo la parte de diseño.}
+Even when the client is located correctly, GeoDNS remains unsuitable for jurisdictional control for two reasons. First, the location is inferred from IP geolocation, whose accuracy has repeatedly been shown to be insufficient for compliance purposes \cite{Poese2011IPUnreliable, Cozar2022ReliabilityTransfers}; an error in the inference results in the client being mapped to the wrong region without the service being aware of it. Second, the mapping policy belongs to the CDN and is optimised for performance and load, not for the legal requirements of each customer. If the returned address is itself a global anycast address, BGP still decides which replica processes the request, and the geographic uncertainty documented in Chapter~\ref{ch:experiments} remains.
 
-The results presented in Chapter~\ref{ch:experiments} demonstrate that anycast infrastructures introduce a significant loss of geographic transparency and control over Internet communications. The experiments revealed that anycast communications involving personal data may reach different destination countries depending on the origin network, routing conditions, and the operational state of the anycast infrastructure. Furthermore, many of these destination countries are not explicitly disclosed in the corresponding privacy policies, making it difficult for users and organisations to determine where their data are actually processed.
+\subsection{Application-Level Filtering}
+\label{sc:rcadns_related_filtering}
 
-This lack of geographic predictability creates important challenges from both technical and regulatory perspectives. From a technical standpoint, service operators have limited control over the jurisdictions reached by user traffic once routing decisions are delegated to the global inter-domain routing system. From a regulatory perspective, organisations may be unable to guarantee that communications remain within specific geographic regions, potentially leading to unintentional cross-border transfers of personal data.
+A second family of techniques enforces geographic restrictions at the application layer. The server inspects each incoming request, typically by geolocating the source IP address, and rejects, redirects, or treats it differently depending on its estimated origin. This approach is common for content licensing and for regulatory geo-blocking. As a mechanism for data residency, however, it acts too late: by the time the server evaluates the request, the request, including any personal data it carries, has already reached the replica selected by anycast routing and has been decrypted there. Filtering can therefore prevent a service from being delivered in a given location, but it cannot prevent data from being processed in an unintended jurisdiction. It also inherits the inaccuracy of IP geolocation discussed above.
 
-The problem is particularly relevant in scenarios where geographic restrictions are required. Examples include compliance with data protection regulations, national data sovereignty requirements, contractual obligations regarding data residency, or the deployment of services intended to remain confined within specific political or administrative regions \chema{Como arriba, sería bueno tener referencias que extiendan/expliquen estos casos.}. In these situations, the traditional anycast model provides high performance and resilience but offers little control over the jurisdictions where communications are ultimately delivered.
+\subsection{Independent Regional Deployments}
+\label{sc:rcadns_related_regional}
 
-The observations obtained throughout this thesis suggest that the challenge is not the use of anycast itself, but rather the absence of mechanisms allowing operators to constrain the geographic scope of anycast routing decisions. Existing anycast deployments are designed to optimise performance, availability, and operational efficiency, while geographic control is typically left as a secondary concern. Consequently, users located within the same region may still be routed towards replicas deployed in different countries whenever the routing system considers those paths preferable.
+The most widespread practical solution is to operate separate deployments for each region, each reachable through its own hostname and its own unicast addresses. Analytics and telemetry providers, which are among the TPLs analysed in Chapter~\ref{ch:experiments}, offer this option to customers subject to data residency requirements. Mixpanel, for example, provides EU and India residency programmes in which applications must configure the SDK to send data to a dedicated regional endpoint (e.g.\ \texttt{api-eu.mixpanel.com}) instead of the default one \cite{EUMixpanel}. This pattern demonstrates that selecting a regional hostname at the client is already accepted practice. However, when each regional hostname resolves to unicast infrastructure, the deployment loses the properties that motivate anycast: traffic within the region is not automatically distributed among sites, failover relies on DNS updates whose propagation is bounded by record TTLs and resolver caching, and the absorption of volumetric attacks is concentrated on a few locations.
 
-To address these limitations, this chapter presents \textit{Region-Constrained Anycast over DNS (RCA-DNS)}, a mechanism designed to preserve the performance benefits of anycast while introducing explicit geographic constraints on replica selection. Instead of allowing the routing system to select among all available replicas worldwide, RCA-DNS restricts the set of reachable anycast instances according to predefined geographic regions.
+\subsection{Anycast Optimisation and Hybrid Schemes}
+\label{sc:rcadns_related_optimisation}
 
-The design of RCA-DNS is guided by the following requirements:
+Research on anycast has mostly targeted performance and operator control. Calder et al. and Koch et al. characterised the latency of large anycast services and found that a fraction of clients is systematically routed to distant sites \cite{Calder2015AnalyzingCDN, Koch2021AnycastSystems}. Evang et al. defined metrics and BGP tuning techniques to improve client-to-site mapping and load distribution \cite{Evang2024AnycastTuning}, and Jia et al. proposed lightweight anycast services that combine DNS with explicit multicast routing \cite{Jia2019DeployingInternet}. Zhu et al. combined unicast, anycast, and modified BGP announcements to give operators finer control over the site that serves each client; even in their fastest failover configuration, approximately 82\% of the requests were forwarded to sites other than the intended one \cite{Zhu2022TheWorlds}. These techniques improve the average behaviour of anycast, but they continue to operate on routing preferences and therefore cannot guarantee where a specific communication terminates.
+
+\subsection{Regional IP Anycast}
+\label{sc:rcadns_related_regional_anycast}
+
+The approach closest to RCA-DNS is regional IP anycast, studied by Zhou et al. in the deployments of the Edgio and Imperva CDNs \cite{Zhou2023RegionalPotentials}. These CDNs partition their sites into regions, assign a distinct anycast prefix to each region, and use DNS together with IP geolocation to return to each client the prefix of its region. The authors found that both CDNs follow continent or country borders when defining regions and that regional anycast alleviates the pathology of global anycast in which BGP routes clients to distant sites. They also observed that DNS occasionally returns the prefix of a remote region to a client, so that the client is served by an unintended regional network.
+
+RCA-DNS reuses the central idea of regional anycast, namely one anycast address per region, but changes who selects the region and why. In regional IP anycast the region is chosen by the CDN, using geolocation, to optimise performance; the customer neither defines the regions nor decides which one applies to each communication. In RCA-DNS the region is a policy decision taken by the service itself before resolution, and the DNS mapping from name to address is static and independent of the location of the client or the resolver. As a result, the mapping errors observed by Zhou et al. cannot occur: if the service selects the EEA region, the name it resolves can only return the EEA address.
+
+\subsection{Summary}
+\label{sc:rcadns_related_summary}
+
+Table~\ref{tab:rcadns_related_comparison} compares the approaches described above. GeoDNS and regional IP anycast rely on location inference and on a mapping policy controlled by the provider; application-level filtering acts after the data has already reached its destination; independent regional deployments sacrifice the benefits of anycast; and anycast optimisation techniques do not offer guarantees. Providers have also started to offer data localisation products that combine some of these elements. Because they are commercial implementations rather than general techniques, they are analysed separately in Section~\ref{sc:rcadns_feasibility}.
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Comparison of approaches to geographic traffic control. $\checkmark$: satisfied; $\sim$: partially satisfied; $\times$: not satisfied.}
+    \label{tab:rcadns_related_comparison}
+    \footnotesize
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X ccccc}
+        \toprule
+        \textbf{Approach} &
+        \begin{tabular}[c]{@{}c@{}}\textbf{Deterministic}\\\textbf{confinement}\end{tabular} &
+        \begin{tabular}[c]{@{}c@{}}\textbf{Anycast}\\\textbf{benefits}\end{tabular} &
+        \begin{tabular}[c]{@{}c@{}}\textbf{Policy set}\\\textbf{by service}\end{tabular} &
+        \begin{tabular}[c]{@{}c@{}}\textbf{No location}\\\textbf{inference}\end{tabular} &
+        \begin{tabular}[c]{@{}c@{}}\textbf{No routing}\\\textbf{changes}\end{tabular} \\
+        \midrule
+        GeoDNS \cite{Otto2012ContentSolutions, Chen2015End-UserDelivery} & $\times$ & $\sim$ & $\times$ & $\times$ & $\checkmark$ \\
+        \rowsep{6}
+        Application-level filtering & $\times$ & $\checkmark$ & $\checkmark$ & $\times$ & $\checkmark$ \\
+        \rowsep{6}
+        Independent regional deployments \cite{EUMixpanel} & $\checkmark$ & $\times$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+        \rowsep{6}
+        Anycast optimisation and hybrid schemes \cite{Zhu2022TheWorlds, Evang2024AnycastTuning} & $\times$ & $\checkmark$ & $\sim$ & $\checkmark$ & $\times$ \\
+        \rowsep{6}
+        Regional IP anycast \cite{Zhou2023RegionalPotentials} & $\sim$ & $\checkmark$ & $\times$ & $\times$ & $\checkmark$ \\
+        \midrule
+        \textbf{RCA-DNS} (this chapter) & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+% ============================================================
+\section{Design Requirements}
+\label{sc:rcadns_requirements}
+% ============================================================
+
+The analysis above shows that the challenge is not the use of anycast itself, but the absence of a mechanism that allows operators to bound the set of replicas that routing is allowed to choose from. The following requirements guide the design of RCA-DNS. They are referenced throughout the chapter and revisited in Section~\ref{sc:rcadns_discussion}.
 
 \begin{itemize}
-    \item \textbf{Compatibility with existing infrastructures.} The solution should operate using standard Internet protocols and require minimal modifications to client devices and applications.
+    \item \textbf{R1 -- Deterministic confinement.} Once a region has been selected for a communication, the communication must be processed only by infrastructure located in that region, independently of routing dynamics, resolver location, or geolocation errors.
 
-    \item \textbf{Incremental deployability.} Service providers should be able to adopt the mechanism without requiring changes to the global routing infrastructure or coordination with third-party network operators.
+    \item \textbf{R2 -- Compatibility with existing infrastructures.} The solution must rely on standard Internet protocols and require no modification of routing protocols, DNS, or client operating systems.
 
-    \item \textbf{Preservation of anycast benefits.} The solution should maintain the scalability, resilience, load distribution, and low-latency properties traditionally associated with anycast deployments.
+    \item \textbf{R3 -- Incremental deployability.} A service provider must be able to adopt the mechanism unilaterally, without coordination with third-party network operators, and service by service.
 
-    \item \textbf{Operational simplicity.} The mechanism should be manageable using existing operational practices and should not introduce excessive configuration complexity.
+    \item \textbf{R4 -- Preservation of anycast benefits.} Within each region, the solution must retain the load distribution, resilience, automatic failover, and low latency associated with anycast.
 
-    \item \textbf{Support for regulatory compliance.} The resulting architecture should facilitate the implementation of geographic policies aimed at satisfying data residency, sovereignty, and privacy requirements.
+    \item \textbf{R5 -- Operational simplicity.} The mechanism must be manageable with the configuration tools and practices that operators already use.
+
+    \item \textbf{R6 -- Policy flexibility.} Regions must be definable according to legal, contractual, or business criteria (for instance the EEA, a single country, or the EEA together with countries covered by adequacy decisions), and the rule that assigns communications to regions must remain under the control of the service.
 \end{itemize}
 
-Based on these requirements, RCA-DNS combines DNS-based request steering with region-specific anycast deployments, enabling service operators to constrain communications to predefined geographic areas while retaining the operational advantages of anycast infrastructures. The architecture and operation of the proposed mechanism are described in the following section.
-
+% ============================================================
 \section{RCA-DNS Architecture}
 \label{sc:rcadns_architecture}
+% ============================================================
 
 \subsection{Architecture Overview}
 \label{sc:rcadns_overview}
 
-Region-Constrained Anycast over DNS (RCA-DNS) is designed to preserve the scalability, resilience, and performance advantages of anycast while introducing explicit geographic constraints on where communications may be processed. The central idea behind RCA-DNS is to separate two functions that are traditionally coupled in operational anycast deployments: determining the geographic region associated with a communication and selecting the infrastructure that will process the traffic. In conventional anycast systems, both decisions are implicitly delegated to Internet routing, which may direct communications towards infrastructure deployed in jurisdictions that are unrelated to the user's location or the intended regulatory domain.
+The central idea of RCA-DNS is to separate two decisions that conventional anycast couples implicitly: \textit{which region should process a communication} and \textit{which replica within that region should process it}. In a conventional deployment both decisions are delegated to BGP. In RCA-DNS the first decision is a policy decision taken by the service before DNS resolution, while the second remains a routing decision taken by BGP, but only among replicas that already satisfy the policy. The architecture and workflow figures in this chapter use a common set of illustrative addresses from the documentation ranges, so that the same regional address (e.g.\ \texttt{203.0.113.20} for the EEA-Extended region) can be followed across them. The DNS zone in Figure~\ref{fig:rcadns_zone}, in contrast, shows the real addresses used in the prototype.
 
-RCA-DNS introduces an additional control layer based on DNS resolution. Instead of exposing a single anycast address for a service, multiple region-specific DNS records are defined, each associated with a different anycast address and a corresponding geographic region. Traffic is therefore directed towards a regional anycast deployment whose infrastructure is intentionally restricted to a predefined jurisdictional scope.
+Figure~\ref{fig:rcadns_architecture} illustrates the resulting architecture. It distinguishes a \textit{policy plane}, in which the region is selected and translated into a DNS name, and a \textit{data plane}, in which traffic is delivered through standard anycast routing. The architecture comprises four elements:
 
-This design allows service providers to define explicit geographic boundaries while preserving the operational characteristics that make anycast attractive for large-scale distributed services. Importantly, RCA-DNS does not require modifications to Internet routing protocols, end-user devices, or application-layer communication protocols, making the approach compatible with existing Internet infrastructure.
+\begin{itemize}
+    \item \textbf{Regional anycast deployments.} For each region, the provider operates a set of replicas located exclusively within the region. All replicas of a region serve a dedicated anycast address that no replica outside the region serves.
 
-\chema{Create a RCA-DNS architecture image, el capítulo ahora queda demasiado sintético.}
+    \item \textbf{Regional DNS records.} The authoritative zone of the service contains one name per region (e.g.\ \texttt{eea-extended.anycastprivacy.org}), each resolving to the anycast address of the corresponding regional deployment. Optionally, a \texttt{global} name resolves to an address served by all replicas, for communications that are not subject to geographic restrictions.
 
-\subsection{Regionalized Resolution and Traffic Steering}
-\label{sc:rcadns_resolution}
+    \item \textbf{Region selection policy.} A component on the service side, typically in the client application or in its configuration, decides which region applies to each communication and therefore which name is used.
 
-Under RCA-DNS, each geographic region is associated with a dedicated DNS record and a dedicated anycast address \chema{Deberías poner una figura/pantallazo de un registro DNS donde se viera esto, de forma que quede visualmente clara esta idea. Idealmente podrías utilizar el de tu despliegue si tiene varias regiones conmúltiples nodos cada una. Si no, siempre te lo puedes inventar, avisando que "así quedaría un registro que impelmentase esta solución para las regiones A, B, C, D y E".}. The service provider announces each anycast address exclusively from infrastructure physically deployed within the corresponding region. For example, a service may expose records such as \textit{eea.example.com}, \textit{usa.example.com}, or \textit{apac.example.com}. Although all records provide access to the same logical service, each one resolves to a different anycast address, whose announcements are geographically constrained to the corresponding region. Furthermore, a worldwide DNS record, \textit{global.example.com}, could also be used when the communications do not need to be constrained to a specific region or jurisdiction.
+    \item \textbf{Standard Internet routing.} Once the name has been resolved, packets are delivered by BGP to one of the replicas that serve the regional address, exactly as in any other anycast service.
+\end{itemize}
 
-The moment the service initialises a communication, the service first determines the region that should be used according to the provider's policy \chema{Aquí vendría bien un diagrama de secuencia/comunicación de UML que muestre las partes que intervienen y los mensajes que intercambian. Al ser esto un diseño, encajan bien este tipo de diagramas que muestran detalles de una solución técnica.}. This decision is conceptually independent from routing and may rely on several mechanisms, including user-provided information, coarse geographic location, contractual requirements, or regulatory considerations \chema{de nuevo, pones solo el resumen de 2 palabras, pero vale la pena añadir una pequeña explicación para cada uno que lo haga más claro}. Once the region has been selected, the corresponding DNS record is used for subsequent communications or varies dynamically if the conditions change over time.
+\begin{figure}[ht]
+    \centering
+    \resizebox{\textwidth}{!}{\input{figures/tikz/rcadns_architecture}}
+    \caption{RCA-DNS architecture. (1) The client application selects a region according to its policy; (2) it resolves the name associated with that region, which always returns the same regional anycast address; (3) traffic is delivered by standard BGP anycast routing to one of the replicas that serve that address, all of which are located inside the selected region.}
+    \label{fig:rcadns_architecture}
+\end{figure}
 
-After DNS resolution, traffic delivery relies entirely on standard anycast routing. Since the selected anycast address is only announced from infrastructure deployed within the designated region, routing decisions remain confined to that geographic area, even though normal BGP-based anycast mechanisms continue to operate \chema{Si has incluido el pantallazo/ejemplo de registro DNS que comento arriba, aquí puedes añadir el mapa con los despliegues anycast correspondientes a cada región.  Algo como (la figura X muestra las regiones anycast diseñadas usando los nodos disponibles en Google Cloud y correspondientes a los registros DNS mostrados en la Fig X), o algo similar.}.
+Because geographic constraints are enforced by the choice of name, traffic engineering, load balancing, and failover continue to be handled within each region by the usual anycast mechanisms. RCA-DNS does not require changes to routing protocols, to DNS, or to the operating system of the client (R2), and each service can adopt it independently (R3).
 
-This separation between region determination and routing control constitutes one of the key properties of RCA-DNS. Geographic constraints are enforced at the DNS layer, while traffic engineering, load balancing, resilience, and fail-over continue to be handled through conventional anycast routing mechanisms.
+\subsection{Regional DNS Records}
+\label{sc:rcadns_records}
 
-From a deployment perspective, RCA-DNS requires one anycast address per region and corresponding regional DNS records. Such requirements are compatible with current Internet operational practices and can be implemented without modifications to existing DNS or routing infrastructure. Consequently, RCA-DNS offers a practical mechanism for introducing geographic control into anycast deployments while preserving compatibility with current operational environments.
+Figure~\ref{fig:rcadns_zone} shows the zone that implements RCA-DNS for the prototype evaluated in Section~\ref{sc:rcadns_evaluation}. Each record corresponds to one of the regions defined on Google Cloud and resolves to the anycast address of a deployment that only includes the locations of that region. The record \texttt{global} resolves to an address served by every location and reproduces a conventional anycast service.
 
+\begin{figure}[ht]
+    \centering
+\begin{Verbatim}[fontsize=\footnotesize, frame=single, framesep=3mm, rulecolor=\color{black!55}]
+$ORIGIN anycastprivacy.org.
+; ---------------------------------------------------------------
+; RCA-DNS: one name and one anycast address per region
+; ---------------------------------------------------------------
+global          IN  A   136.69.74.5    ; all 39 locations
+eea-extended    IN  A   8.232.14.99    ; 13 locations (EEA, UK, CH)
+us              IN  A   136.68.198.50  ;  9 locations
+northamerica    IN  A   8.232.205.19   ;  3 locations (CA, MX)
+southamerica    IN  A   136.69.55.215  ;  2 locations (BR, CL)
+asia            IN  A   34.50.157.186  ;  9 locations
+australia       IN  A   136.68.142.0   ;  2 locations
+africa          IN  A   136.69.107.84  ;  1 location  (ZA)
+\end{Verbatim}
+    \caption{Authoritative zone implementing RCA-DNS in the prototype evaluated in this chapter. Each name resolves to a different anycast address, served only by the Google Cloud locations of the corresponding region. Unlike in the other figures, the addresses shown are the real ones assigned by Google Cloud to the prototype during the measurement campaign (July 2026); they may have been reassigned since the deployment was removed.}
+    \label{fig:rcadns_zone}
+\end{figure}
+
+Three properties of these records are relevant for the design.
+
+\paragraph{Location-independent mapping.} Unlike GeoDNS, the answer to each query does not depend on who asks. Any resolver, public or private, located anywhere in the world, returns the same address for \texttt{eea-extended.anycastprivacy.org}. The correctness of RCA-DNS is therefore unaffected by the use of public resolvers, by the absence of ECS, or by DNS over encrypted transports, which are precisely the factors that degrade GeoDNS \cite{Otto2012ContentSolutions, Contavalli2016ClientQueries}. This property is what makes the confinement deterministic (R1) once the region has been chosen.
+
+\paragraph{Stable records and caching.} Because the mapping between names and addresses changes only when the provider reorganises its deployment, records can use long TTLs and benefit fully from resolver caching. Changes of region do not require changing any record: the client simply uses a different name. Changes in the composition of a region, such as adding a new location, are absorbed by the anycast deployment and do not alter the address, so they do not require DNS updates either.
+
+\paragraph{Address requirements.} RCA-DNS requires one anycast address per region and service. On managed platforms, such as the one used in the prototype, each address is allocated by the provider together with the corresponding load balancer. Operators that announce their own prefixes must take into account that inter-domain routing filters prefixes longer than a /24 in IPv4 (or a /48 in IPv6), so each region requires its own routable prefix. This is manageable in practice: IPv6 provides ample address space, and a single regional IPv4 address can be shared among many services, which are then demultiplexed using the Server Name Indication (SNI) or the HTTP \texttt{Host} header, as infrastructure providers commonly do.
+
+\subsection{Region Determination}
+\label{sc:rcadns_region_determination}
+
+Determining which region should apply to a communication is outside the scope of RCA-DNS and of this thesis. This decision belongs entirely to the service, and the architecture only requires that it be taken before DNS resolution. This separation is intentional: the appropriate criterion depends on the legal basis of the processing and on the application domain, and the routing mechanism should not have to change when the criterion does (R6). RCA-DNS therefore guarantees that the selected region is respected, but makes no assumption about how it is selected. For illustrative purposes only, Table~\ref{tab:rcadns_region_mechanisms} summarises some of the mechanisms that a service could use, which are briefly described below.
+
+\begin{itemize}
+    \item \textbf{Explicit user declaration.} The user states the country or region of residence, for example during registration. This is simple and transparent, but relies on the honesty and accuracy of the user. It is appropriate when the applicable jurisdiction is linked to residence rather than to the momentary location of the device.
+
+    \item \textbf{Account or contractual attributes.} The region is derived from information that the service already holds, such as the billing country, the legal entity that signed the contract, or the tenant region in a business-to-business deployment. This is the most robust mechanism when obligations derive from a contract, as is common for enterprise customers that require data residency.
+
+    \item \textbf{Enterprise policy.} In managed environments, the region can be imposed by the organisation through device management or application configuration, so that all communications generated by corporate devices use the region required by internal compliance policies.
+
+    \item \textbf{Coarse IP geolocation.} The service geolocates the client address, typically at login or when downloading its configuration. It requires no user interaction, but it inherits the inaccuracies of geolocation databases \cite{Poese2011IPUnreliable, Cozar2022ReliabilityTransfers} and can be circumvented by VPNs. It is therefore best used as a default that other signals can override.
+
+    \item \textbf{Device location.} The application uses the location services of the operating system. It is the most precise signal of where the device is, but requires a permission and processes additional personal data, which conflicts with the data minimisation principle unless the location is already needed by the service.
+
+    \item \textbf{Fixed regulatory scope.} When a service is only offered in a single jurisdiction, for instance a public health application, the region can simply be fixed in the application.
+\end{itemize}
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Examples of mechanisms that a service could use to determine the region of a communication before DNS resolution.}
+    \label{tab:rcadns_region_mechanisms}
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.3cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.0cm} >{\raggedright\arraybackslash}p{2.3cm}}
+        \toprule
+        \textbf{Mechanism} & \textbf{Signal} & \textbf{Robustness} & \textbf{Additional personal data} \\
+        \midrule
+        User declaration & Country of residence stated by the user & Medium & Minimal \\
+        \rowsep{4}
+        Account / contract & Billing country, contracting entity, tenant region & High & None \\
+        \rowsep{4}
+        Enterprise policy & Configuration imposed on managed devices & High & None \\
+        \rowsep{4}
+        Coarse IP geolocation & Client address at login or configuration time & Low--medium & Low \\
+        \rowsep{4}
+        Device location & Operating system location services & High & High \\
+        \rowsep{4}
+        Fixed regulatory scope & Hard-coded region & High & None \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+The decision can be implemented directly in the code of the application or, more flexibly, delivered as part of its remote configuration, so that the service can change the region assigned to a user without publishing a new version. The same applies to TPLs: as the Mixpanel example in Section~\ref{sc:rcadns_related_regional} shows, SDKs can expose the endpoint as a configuration parameter, which allows the developer of the host application to apply its own policy to the communications generated by embedded libraries. This is particularly relevant given that, as shown in Chapter~\ref{ch:experiments}, a large share of the cross-border personal-data communications observed in Android applications originate from TPLs.
+
+\subsection{Communication Workflow}
+\label{sc:rcadns_workflow}
+
+Figure~\ref{fig:rcadns_sequence} details the messages exchanged when a client application communicates with a service that implements RCA-DNS.
+
+\begin{figure}[ht]
+    \centering
+    \resizebox{\textwidth}{!}{\input{figures/tikz/rcadns_sequence}}
+    \caption{Sequence diagram of a communication under RCA-DNS. Steps 3 and 4 only occur when the record is not cached by the resolver. The answer obtained in step 5 is the same regardless of the location of the client or the resolver.}
+    \label{fig:rcadns_sequence}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Region selection.} Before the communication starts, the application evaluates its region selection policy and obtains a region $R$, in the example \texttt{eea-extended}. The region determines the name that will be used, \texttt{eea-extended.anycastprivacy.org}.
+
+    \item \textbf{Query.} The application, through the stub resolver of the operating system, asks its recursive resolver for the address associated with that name.
+
+    \item[3--4.] \textbf{Authoritative resolution.} If the record is not cached, the recursive resolver queries the authoritative server of \texttt{anycastprivacy.org}, which returns the regional anycast address together with its TTL.
+
+    \setcounter{enumi}{4}
+    \item \textbf{Answer.} The resolver returns the address \texttt{203.0.113.20} to the application.
+
+    \item \textbf{Connection establishment.} The application opens a TCP connection and performs a TLS handshake with \texttt{203.0.113.20}, indicating the regional name in the SNI extension. Since only replicas located in the EEA-Extended region serve this address, BGP can only deliver the packets to one of them, normally the topologically closest.
+
+    \item[7--8.] \textbf{Data exchange.} The application sends the HTTPS request, which may contain personal data, and receives the response from the same in-region replica.
+\end{enumerate}
+
+The selected region remains valid until the policy produces a different result, for example because the contractual situation of the user changes, or until the application re-evaluates it. In that case the workflow starts again from step 1 with a different name and, consequently, a different anycast address. Since names are static, there is no risk of a stale cache entry pointing to a replica in the wrong region.
+
+\subsection{Enforcement Levels and the Role of Encryption}
+\label{sc:rcadns_enforcement}
+
+The description above assumes that the regional address is served only from inside the region. In practice, the point at which this guarantee is enforced depends on how the provider implements anycast, and three levels can be distinguished. Figure~\ref{fig:rcadns_enforcement_levels} illustrates them for a user located in the protected region whose traffic would, under BGP, enter the provider's network at a point of presence (PoP) outside the region, a situation that Chapter~\ref{ch:experiments} showed to be common.
+
+\begin{figure}[ht]
+    \centering
+    \resizebox{\textwidth}{!}{\input{figures/tikz/rcadns_enforcement_levels}}
+    \caption{Levels at which an RCA-DNS deployment can enforce geographic confinement, for a user located in the protected region whose traffic would enter the provider's network outside it.}
+    \label{fig:rcadns_enforcement_levels}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{(a) Backend confinement.} The regional address is announced from the provider's global edge, but the provider forwards requests only to backends located in the region. The application logic, and any storage associated with it, is confined to the region. However, if the edge proxy terminates TLS, the request is decrypted at the PoP where it entered, which may be outside the region. This is the behaviour of global layer-7 load balancers.
+
+    \item \textbf{(b) In-region termination.} The address is still announced globally, but PoPs outside the region forward the encrypted stream without decrypting it, and TLS is terminated only inside the region. The payload is therefore never accessible in clear outside the protected region.
+
+    \item \textbf{(c) Announcement confinement.} The regional prefix is originated only by sites inside the region, so packets addressed to it can only reach the provider's network inside the region. This is the strictest form and corresponds to the original definition of regional anycast.
+\end{itemize}
+
+In all three levels, the network path between the client and the provider is determined by inter-domain routing and may cross third countries; neither RCA-DNS nor any other mechanism that leaves BGP unchanged can prevent this. Encryption is what makes this residual exposure acceptable. When the communication uses TLS and decryption is only possible inside the protected region, as in levels (b) and (c), intermediate networks only handle ciphertext. The European Data Protection Board considers exactly this situation, encrypted data merely transiting third countries with decryption possible only outside them, as a scenario in which transport encryption is an effective supplementary measure \cite{RecommendationsBoard}. Combined with HTTPS, RCA-DNS thus controls the location where data can be read and processed, which is the location that matters for data protection, while transit through other countries is neutralised by encryption. In level (a), the same reasoning only holds if the edge proxy does not terminate TLS, which is why the choice of enforcement level is part of the deployment decision analysed in Section~\ref{sc:rcadns_feasibility}.
+
+\subsection{Failure Handling and Operational Considerations}
+\label{sc:rcadns_operations}
+
+\paragraph{Failover within a region.} When a replica fails or withdraws its announcement, BGP or the provider's health checks redirect traffic to the remaining replicas of the same region, exactly as in a conventional anycast deployment (R4). The level of resilience therefore depends on the number of locations available in each region, which is analysed in Section~\ref{sc:rcadns_feasibility_footprint}.
+
+\paragraph{Failure of an entire region.} If all replicas of a region become unavailable, RCA-DNS fails closed: since the regional address is not served outside the region, communications cannot silently be diverted to another jurisdiction. Whether the application should then fall back to the \texttt{global} name, or to another region, is a policy decision that can only be taken by the service, depending on whether the data concerned is subject to restrictions. This explicit behaviour contrasts with conventional anycast, in which a regional failure transparently moves traffic to another country without anyone being informed.
+
+\paragraph{Overlapping regions and richer policies.} Regions are defined as sets of locations, and a location can belong to several of them. For instance, an \texttt{eea-adequacy} region could include the EEA locations together with locations in countries covered by an adequacy decision of the European Commission \cite{DataCountries}, such as the United Kingdom, Switzerland, Japan, the Republic of Korea, or Canada. Defining such a region only requires creating a new regional deployment with the desired locations and the corresponding DNS record. On the platform used for the prototype, this amounts to creating one additional backend service and forwarding rule, a task that the scripts published with this thesis perform in a few minutes. Policies based on specific countries, bilateral agreements, or adequacy decisions are therefore already supported by the architecture; their cost grows with the number of distinct policies, not with the number of users.
+
+\paragraph{Configuration management.} All the elements of RCA-DNS, namely regional deployments, addresses, and DNS records, are managed with the standard infrastructure-as-code tools of each provider (R5). The prototype is deployed and removed with a small set of scripts that iterate over the list of regions and locations.
+
+% ============================================================
+\section{Feasibility on Commercial Platforms}
+\label{sc:rcadns_feasibility}
+% ============================================================
+
+RCA-DNS is only useful if service providers can deploy it on the platforms they already use. This section examines whether the main cloud and CDN providers offer the building blocks that RCA-DNS requires: an anycast address, the ability to restrict the set of locations that serve it, and control over where TLS is terminated. Table~\ref{tab:rcadns_feasibility} summarises the analysis, which is based on the public documentation of each provider at the time of writing.
+
+\paragraph{Google Cloud.} The global external Application Load Balancer exposes a global anycast address served by Google Front Ends (GFEs) distributed worldwide, and requests are routed to the GFEs closest to the client \cite{ApplicationDocumentation, ForwardingDocumentation}. The backends attached to each load balancer can be selected freely among Google Cloud regions, so an RCA-DNS deployment is obtained by creating one load balancer per region whose backend service only includes the locations of that region. This is the implementation used in the prototype of Section~\ref{sc:rcadns_evaluation}. It provides enforcement level (a): processing is confined to the region, but the HTTP or TLS session is terminated at the GFE through which the request enters Google's network. Google Cloud also offers regional external Application Load Balancers, which use a regional address and keep the whole processing in one region \cite{ForwardingDocumentation}; they offer stronger confinement but are limited to a single region and do not use anycast.
+
+\paragraph{Amazon Web Services.} AWS Global Accelerator provides static anycast addresses announced from AWS edge locations and associated with endpoint groups, each corresponding to one AWS Region chosen by the customer \cite{HowAccelerator}. One accelerator per jurisdiction, with endpoint groups only in the regions of that jurisdiction, implements RCA-DNS directly. Global Accelerator operates at the transport layer: it terminates the TCP connection at the edge and opens a new one towards the endpoint, but does not decrypt the application payload. If TLS is terminated at the regional endpoint, for instance at an Application Load Balancer, the deployment reaches level (b). Global Accelerator also supports bringing one's own addresses (BYOIP).
+
+\paragraph{Microsoft Azure.} The global tier of Azure Load Balancer (cross-region load balancer) offers a static anycast address advertised from the participating Azure regions, whose backend pool is composed of regional load balancers that can be deployed in any Azure region \cite{GlobalLearn}. One cross-region load balancer per jurisdiction, with only in-region backends, implements RCA-DNS. Since it is a layer-4 load balancer, TLS is terminated at the regional backends, which again corresponds to level (b).
+
+\paragraph{Cloudflare.} Cloudflare's Regional Services, part of its Data Localization Suite, are the commercial offering that most closely matches the RCA-DNS model. Traffic is received at any Cloudflare data centre, but TLS termination and all layer-7 processing take place only in data centres of the region configured for the hostname; data centres outside the region forward the encrypted stream \cite{RegionalDocs}. Regions can be assigned per hostname, which maps naturally onto the regional names of RCA-DNS, and customers that bring their own prefixes can also bind address ranges to regions \cite{RegionalizedDocs}. This service provides enforcement level (b) and is offered as an enterprise feature.
+
+\paragraph{Regional anycast CDNs and self-operated networks.} CDNs that already operate regional IP anycast, such as those studied by Zhou et al. \cite{Zhou2023RegionalPotentials}, announce each regional prefix only from sites of the corresponding region, which corresponds to level (c). In these deployments, however, the region is chosen by the CDN, so using them for RCA-DNS would require the CDN to expose each regional prefix under a customer-selectable name. Finally, organisations that operate their own AS, or that bring their own prefixes to providers that allow controlling where they are announced, can originate each regional prefix only from in-region sites and achieve level (c) under their full control, at the cost of one routable prefix per region and of operating the corresponding BGP sessions.
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Feasibility of RCA-DNS on commercial platforms, based on public documentation at the time of writing. Enforcement levels as defined in Section~\ref{sc:rcadns_enforcement}.}
+    \label{tab:rcadns_feasibility}
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.4cm} c}
+        \toprule
+        \textbf{Provider / product} & \textbf{Anycast front end} & \textbf{In-region backend selection} & \textbf{TLS termination} & \textbf{Level} \\
+        \midrule
+        Google Cloud, global external ALB \cite{ApplicationDocumentation} & Global address served by GFEs worldwide & Yes, per backend service & Edge GFE closest to the client & (a) \\
+        \rowsep{5}
+        AWS Global Accelerator \cite{HowAccelerator} & Static addresses from AWS edge locations & Yes, per endpoint group & Regional endpoint (TCP proxied at edge) & (b) \\
+        \rowsep{5}
+        Azure cross-region Load Balancer \cite{GlobalLearn} & Global address from participating regions & Yes, regional load balancers & Regional backend (layer 4) & (b) \\
+        \rowsep{5}
+        Cloudflare Regional Services \cite{RegionalDocs} & Cloudflare global network & Yes, per hostname or prefix & Only in configured region & (b) \\
+        \rowsep{5}
+        Regional IP anycast CDNs \cite{Zhou2023RegionalPotentials} & Regional prefixes from in-region sites & Region chosen by the CDN & In-region site & (c)$^{*}$ \\
+        \rowsep{5}
+        Self-operated AS / BYOIP & Prefixes originated by the operator & Full control & Operator-defined & (c) \\
+        \bottomrule
+        \multicolumn{5}{@{}l}{\footnotesize $^{*}$Requires the CDN to expose each regional prefix under a customer-selectable name.}
+    \end{tabularx}
+\end{table}
+
+\subsection{Regional Footprint}
+\label{sc:rcadns_feasibility_footprint}
+
+The quality of service that RCA-DNS can offer in a region depends on how many locations are available there. Table~\ref{tab:rcadns_gc_deployment} lists the Google Cloud locations used in the prototype, grouped by region. The EEA-Extended region (the EEA together with the United Kingdom and Switzerland) includes thirteen locations distributed across nine countries, and the United States and Asia nine each. These regions can therefore sustain the loss of several locations while remaining served by nearby replicas. In contrast, South America and Australia have two locations each and Africa a single one, in Johannesburg. In these regions, the redundancy offered by RCA-DNS is limited and, as Section~\ref{sc:rcadns_results} shows, the latency for users far from the available locations increases. This limitation is not intrinsic to RCA-DNS but to the infrastructure available to each provider in each region. It can be mitigated by combining providers or by using platforms with denser footprints, such as CDNs, and it is expected to diminish as providers continue to open new regions.
+
+% ============================================================
 \section{Experimental Evaluation}
 \label{sc:rcadns_evaluation}
+% ============================================================
 
-\subsection{Experimental Setup}
+The evaluation pursues two objectives. The first is to quantify the performance impact that RCA-DNS imposes on users located inside each protected region, compared with a conventional global anycast deployment built on exactly the same infrastructure. The second is to assess the cost for users located outside a region who are nevertheless assigned to it, for instance a European resident travelling abroad whose communications must still be processed in the EEA.
+
+\subsection{Prototype Deployment}
 \label{sc:rcadns_setup}
 
-The evaluation of RCA-DNS focuses on assessing the practical feasibility of enforcing geographic constraints in anycast-based services. In particular, the objective is to determine whether restricting traffic to servers located within a predefined geographic region can effectively reduce jurisdictional exposure while maintaining acceptable network performance.
+The prototype was deployed on Google Cloud. An identical HTTP service, packaged as a container, was deployed on Cloud Run in every Google Cloud location available at the time of the experiment, except for the Middle East locations, which could not be used for technical reasons. This resulted in the 39 locations listed in Table~\ref{tab:rcadns_gc_deployment} and shown in Figure~\ref{fig:rcadns_gc_map}. Each service reports, in its response, the location that served the request.
 
-To this end, an experimental deployment of RCA-DNS was implemented on Google Cloud. Five identical service replicas were deployed in five countries belonging to the EEA \chema{Include the names of the countries. Y tal vez muéstralas también en un mapa, probablemente al lado del mapa que te comento a continuación}. Each replica hosted the same HTTP service and collectively emulated a region-constrained anycast deployment in which traffic was intentionally restricted to infrastructure located within the EEA.
+For each region, the deployment creates a serverless Network Endpoint Group (NEG) per location, a global backend service that only includes the NEGs of the locations of that region, a URL map, an HTTP proxy, and a global forwarding rule with its own anycast address. An additional backend service including all 39 locations implements the conventional global deployment. The eight resulting addresses are published in the zone shown in Figure~\ref{fig:rcadns_zone}, whose authoritative servers are hosted on Cloudflare DNS, without enabling its proxing capabilities. As discussed in Section~\ref{sc:rcadns_feasibility}, this implementation corresponds to enforcement level (a). Because the global and regional deployments share the same edge network, the same backends, and the same software, any difference in latency between them can be attributed to the constraint imposed on backend selection. The deployment and evaluation code are publicly available\footnote{RCA-DNS deployment and evaluation code: \url{https://github.com/STRAST-UPM/RCA-DNS}. Evaluation data: \url{https://doi.org/10.17632/ntys787cys.1}.}.
 
-Latency measurements were performed using RIPE Atlas probes distributed across the five RIPE Atlas macro-regions: Europe, America, Asia, Africa, and Oceania \chema{Incluye el mapa de sondas RIPE usadas.}. Measurements were executed periodically over multiple days \chema{Include the exact number of days}, and the observed RTT was used as the primary performance metric. RTT was selected because it captures both network propagation delay and service responsiveness; therefore, it provides an appropriate indicator of the practical cost introduced by geographic confinement.
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Google Cloud locations included in each regional deployment of the prototype. All 39 locations also participate in the global deployment (\texttt{global.anycastprivacy.org}).}
+    \label{tab:rcadns_gc_deployment}
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.6cm} >{\raggedright\arraybackslash}X c}
+        \toprule
+        \textbf{Regional name} & \textbf{Google Cloud locations} & \textbf{\#} \\
+        \midrule
+        \texttt{eea-extended} & Belgium, Berlin, Frankfurt, Finland, Madrid, Milan, Netherlands, Paris, Stockholm, Turin, Warsaw, London and Zurich & 13 \\
+        \rowsep{3}
+        \texttt{us} & Columbus, Dallas, Iowa, Las Vegas, Los Angeles, Northern Virginia, Oregon, Salt Lake City and South Carolina & 9 \\
+        \rowsep{3}
+        \texttt{asia} & Delhi, Hong Kong, Jakarta, Mumbai, Osaka, Seoul, Singapore, Taiwana and Tokyo & 9 \\
+        \rowsep{3}
+        \texttt{northamerica} & Mexico, Montreal and Toronto & 3 \\
+        \rowsep{3}
+        \texttt{southamerica} & Santiago and São Paulo & 2 \\
+        \rowsep{3}
+        \texttt{australia} & Melbourne and Sydney & 2 \\
+        \rowsep{3}
+        \texttt{africa} & Johannesburg & 1 \\
+        \midrule
+        \texttt{global} & All of the above & 39 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
 
-The results presented in the following subsection evaluate the trade-off introduced by RCA-DNS between geographic control and communication performance, providing an empirical assessment of its viability as a mechanism for reducing unintended cross-border routing in anycast systems.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{figures/images/rcadns_gc_locations_map.png}
+    \caption{Google Cloud locations used in the RCA-DNS prototype, coloured according to the regional deployment to which they belong.}
+    \label{fig:rcadns_gc_map}
+\end{figure}
+
+\subsection{Measurement Methodology}
+\label{sc:rcadns_methodology}
+
+Latency was measured with RIPE Atlas. Up to five probes were randomly selected in every country, subject to probe availability, so that both users inside and outside each region were represented. Figure~\ref{fig:rcadns_probes_map} shows the location of the probes that took part in the campaign. The measurements were conducted between 21 and 28 July 2026, that is, over seven consecutive days, at eight-hour intervals. In each round, every probe issued an HTTP request to the global name and to each of the seven regional names, and the round-trip time (RTT) of the HTTP transaction reported by RIPE Atlas was recorded. RTT was selected as the primary metric because it captures both network propagation delay and server responsiveness, and therefore reflects the latency perceived by an application. In total, the campaign involved 644 probes in 182 countries and produced 104377 valid measurements after discarding failed requests.
+
+Each probe was assigned to a region according to the country in which it is located. The names of the regional deployments follow the naming of the Google Cloud regions they group, but the set of countries whose probes are considered inside each region is necessarily broader, since every country must be assigned to the deployment intended to serve it. Countries were assigned following the geographic regions of the United Nations M49 standard \cite{UNSDMethodology}, except for the two regions defined by legal criteria, \texttt{eea-extended} (the EEA together with the United Kingdom and Switzerland) and \texttt{us}, and for Mexico, which was assigned to \texttt{northamerica} because its Google Cloud location belongs to that region. Table~\ref{tab:rcadns_probe_regions} summarises the resulting assignment. As a consequence, \texttt{australia} covers the whole of Oceania, \texttt{southamerica} covers Latin America and the Caribbean, and \texttt{asia} also includes Western Asia, whose probes are served from other Asian locations because the Google Cloud locations in the Middle East were not part of the deployment. The assignment is geographic rather than jurisdictional: for instance, the French outermost regions, which are part of the European Union, are assigned to the region in which they are geographically located. Probes in countries not covered by any region, mainly European countries outside the EEA-Extended region, only contribute to the measurements taken from outside the regions.
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Countries whose probes are considered inside each region in the evaluation.}
+    \label{tab:rcadns_probe_regions}
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}X c}
+        \toprule
+        \textbf{Regional name} & \textbf{Probe countries} & \textbf{\#} \\
+        \midrule
+        \texttt{eea-extended} & EEA member states, United Kingdom, Switzerland, and Åland Islands & 33 \\
+        \rowsep{3}
+        \texttt{us} & United States & 1 \\
+        \rowsep{3}
+        \texttt{northamerica} & Canada, Mexico, Greenland, Bermuda, and Saint Pierre and Miquelon & 5 \\
+        \rowsep{3}
+        \texttt{southamerica} & Latin America and the Caribbean (M49), excluding Mexico & 49 \\
+        \rowsep{3}
+        \texttt{australia} & Oceania (M49) and United States Minor Outlying Islands & 28 \\
+        \rowsep{3}
+        \texttt{asia} & Asia (M49), including Western Asia & 50 \\
+        \rowsep{3}
+        \texttt{africa} & Africa (M49) & 59 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{figures/images/rcadns_ripe_probes_map.png}
+    \caption{Location of the RIPE Atlas probes used in the RCA-DNS evaluation.}
+    \label{fig:rcadns_probes_map}
+\end{figure}
 
 \subsection{Results}
 \label{sc:rcadns_results}
 
-The experimental results indicate that RCA-DNS can enforce region-aware service selection while maintaining latency levels compatible with practical Internet services. The deployed prototype successfully resolved client requests towards service replicas located within the predefined geographic region. In the evaluated scenario, all available replicas were deployed within the EEA, allowing for the assessment of the performance impact associated with restricting service selection to a bounded geographic area.
+Table~\ref{tab:rcadns_median_rtt} compares, for each region, the median RTT observed by the probes located inside the region when accessing the service through its regional name and through the global name. The relative change is computed as $(\mathrm{RTT}_{\mathrm{global}} - \mathrm{RTT}_{\mathrm{regional}})/\mathrm{RTT}_{\mathrm{global}}$, so that positive values indicate that the regional deployment is faster and negative values that it is slower. Table~\ref{tab:rcadns_rtt_stats} complements the medians with the full distribution of the measurements.
 
-The latency measurements obtained through RIPE Atlas show that the introduction of geographic constraints does not impose prohibitive performance penalties. For measurements originating within Europe, the median RTT was 57.20~ms and decreased to 51.80~ms when only EEA countries were considered \chema{OK como resumen, pero se necesita aportar más detalle. Puedes aportar una tabla con los tiempos medianos, máximos, mínimos, percentiles.... desde las distintas zonas probadas o, si tienes el dato, incluso por países de origen. La idea es que transmitas que ha habido carga experimental con numerosos resultados, porque ahora parece que esto que describes lo hicieste en una tarde.}.
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Median RTT observed by probes located inside each protected region when accessing the regional and the global deployments. Positive changes indicate that the regional deployment is faster.}
+    \label{tab:rcadns_median_rtt}
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Regional name} & \textbf{Locations} & \textbf{Regional RTT (ms)} & \textbf{Global RTT (ms)} & \textbf{Change} \\
+        \midrule
+        \texttt{eea-extended} & 13 & 47.98  & 51.03  & $+5.99\%$ \\
+        \texttt{us}           &  9 & 153.05 & 145.31 & $-5.32\%$ \\
+        \texttt{australia}    &  2 & 125.27 & 121.00 & $-3.53\%$ \\
+        \texttt{northamerica} &  3 & 104.77 & 50.38  & $-107.94\%$ \\
+        \texttt{africa}       &  1 & 369.87 & 143.34 & $-158.04\%$ \\
+        \texttt{asia}         &  9 & 339.25 & 128.51 & $-163.99\%$ \\
+        \texttt{southamerica} &  2 & 772.05 & 118.97 & $-548.92\%$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
-As expected, the lowest latency values were observed in countries hosting service replicas \chema{ok, pero si no lo enseñas en una tabla hay que confiar en tí. Si tienes la tabla o tablas que menciono arriba esto se vería bien.}, where the median RTT reached 32.29~ms. Measurements originating outside Europe exhibited higher latency values due to the additional propagation delay associated with intercontinental communication paths. Nevertheless, the observed increase remained moderate and followed the expected relationship between geographic distance and network latency.
+\begin{table}[ht]
+    \centering
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
+    \caption{Distribution of the RTT (ms) observed by probes located inside each region, for the regional (R) and global (G) names. $n$: number of valid measurements; $\leq$100~ms: percentage of measurements with an RTT of at most 100~ms.}
+    \label{tab:rcadns_rtt_stats}
+    \begin{tabular}{llrrrrrrrr}
+        \toprule
+        \textbf{Region} & & $n$ & \textbf{Min} & \textbf{P25} & \textbf{Median} & \textbf{P75} & \textbf{P95} & \textbf{Mean} & \textbf{$\leq$100 ms} \\
+        \midrule
+        \texttt{eea-extended}   & R & 3{,}026 & 10.44 & 33.44 & 47.98 & 69.84 & 111.25 & 61.60 & 93.2\% \\
+                                & G & 3{,}019 & 11.01 & 35.17 & 51.03 & 80.33 & 1{,}252.37 & 197.59 & 86.8\% \\
+        \rowsep{10}
+        \texttt{us}             & R & 63 & 46.86 & 50.79 & 153.05 & 1{,}988.12 & 4{,}624.58 & 1{,}150.78 & 34.9\% \\
+                                & G & 62 & 54.72 & 97.02 & 145.31 & 170.01 & 1{,}263.27 & 329.71 & 30.6\% \\
+        \rowsep{10}
+        \texttt{australia}      & R & 813 & 15.96 & 89.15 & 125.27 & 732.48 & 945.85 & 341.65 & 34.2\% \\
+                                & G & 816 & 17.11 & 90.26 & 121.00 & 257.57 & 346.25 & 204.62 & 33.6\% \\
+        \rowsep{10}
+        \texttt{northamerica}   & R & 204 & 11.89 & 49.77 & 104.77 & 297.44 & 2{,}203.68 & 371.96 & 49.5\% \\
+                                & G & 199 & 12.78 & 41.09 & 50.38 & 86.02 & 1{,}511.40 & 213.09 & 77.4\% \\
+        \rowsep{10}
+        \texttt{africa}         & R & 2{,}036 & 11.86 & 124.34 & 369.87 & 761.04 & 919.34 & 454.31 & 19.3\% \\
+                                & G & 2{,}034 & 11.49 & 99.18 & 143.34 & 222.46 & 444.91 & 191.82 & 25.8\% \\
+        \rowsep{10}
+        \texttt{asia}           & R & 3{,}703 & 10.01 & 80.37 & 339.25 & 806.51 & 1{,}360.97 & 507.95 & 31.7\% \\
+                                & G & 3{,}697 & 9.97 & 78.57 & 128.51 & 218.69 & 503.01 & 224.36 & 34.4\% \\
+        \rowsep{10}
+        \texttt{southamerica}   & R & 2{,}134 & 9.55 & 93.41 & 772.05 & 821.09 & 884.86 & 586.87 & 26.1\% \\
+                                & G & 2{,}135 & 10.73 & 84.81 & 118.97 & 148.16 & 216.10 & 156.75 & 34.5\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
-The cumulative RTT distribution \chema{pero no la muestras!!!!!} further illustrates the practical viability of the approach. Within the EEA, 88.13\% of the measurements remained below 100~ms, while 94.92\% remained below 150~ms. These latency values are generally considered acceptable for interactive web services and are comparable to those observed in many commercial cloud deployments \chema{además de la referencia di en cuánto suelen estar.}\hugo{No estoy seguro de que ese dato sea público y seguro que no lo tengo}.
+\paragraph{Well-provisioned regions.} The results show that the performance impact of RCA-DNS is not uniform but depends primarily on the infrastructure available inside each region. EEA-Extended, with thirteen locations, is representative of a well-provisioned jurisdiction. Figure~\ref{fig:rcadns_cdf_eea} shows the cumulative distribution of the RTT observed by EEA-Extended probes for both names. The regional deployment not only preserves performance but improves it: the median RTT decreases by 5.99\% (47.98~ms versus 51.03~ms), and the mean decreases by 68.83\% (61.60~ms versus 197.59~ms). The 95th percentile makes this effect explicit: it remains at 111.25~ms for the regional deployment, whereas it reaches 1{,}252.37~ms for the global one. The large difference between the two means indicates that the global deployment produces a heavier tail of high-latency requests, which disappears when backend selection is restricted to the region. In other words, constraining traffic to the region eliminates detours that occur under the global deployment while maintaining the responsiveness expected from modern Internet services. The United States, with nine locations, and Australia, with two locations close to most of the population, show modest median increases of 5.32\% and 3.54\%, respectively. The results for the United States should, however, be interpreted with caution. Since probes were selected with the same criterion in every country (up to ten per country), regions composed of many countries aggregate measurements from a large number of probes, whereas the US region, which corresponds to a single country, is represented by far fewer. As a result, it accumulates only 63 valid measurements, compared with several hundred or thousands in the other regions, and its upper percentiles are dominated by a few high-latency measurements (the 75th percentile reaches 1{,}988.12~ms for the regional name).
 
-Overall, the results suggest that introducing geographic constraints through RCA-DNS does not necessarily entail substantial degradation in user-perceived performance. Although restricting replica selection reduces the routing flexibility available to unconstrained deployments, the observed latency values remain compatible with the requirements of many practical Internet services. The evaluation, therefore, provides evidence that geographic regionalisation can be achieved with a relatively limited performance cost, supporting the feasibility of RCA-DNS as a mechanism for introducing geographic control into anycast-based service architectures.
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/images/figure_cdf_rtts_from_eea-extended_to_eea-extended.anycastprivacy.org.png}
+        \caption{Regional (\texttt{eea-extended.anycastprivacy.org}).}
+        \label{fig:rcadns_cdf_eea_regional}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/images/figure_cdf_rtts_from_eea-extended_to_global.anycastprivacy.org.png}
+        \caption{Global (\texttt{global.anycastprivacy.org}).}
+        \label{fig:rcadns_cdf_eea_global}
+    \end{subfigure}
+    \caption{Cumulative distribution of the RTT observed by probes located in EEA-Extended countries when accessing the service through the regional deployment and through the conventional global deployment.}
+    \label{fig:rcadns_cdf_eea}
+\end{figure}
 
-\section{Limitations and Discussion}
+\paragraph{Sparsely provisioned regions.} Africa, South America, and Asia incur substantially larger penalties. In Africa and South America, the reason is the limited number of locations: all African probes must be served from Johannesburg, and all South American probes from São Paulo or Santiago, whereas the global deployment can serve many of them from closer locations in Europe or North America, or through better-connected routes. In South America, the median regional RTT (772.05~ms) is higher than the mean (586.87~ms) because the distribution is bimodal: a minority of measurements, mostly from probes close to the São Paulo and Santiago locations, achieve low latencies (the 25th percentile is 93.41~ms), while the majority concentrate around 800~ms (the 75th percentile is 821.09~ms). Asia illustrates a different effect. Although it has nine locations, the region spans a very large area, and the paths from many Asian countries to locations within the region are longer than the paths that the global deployment can use towards locations in other regions. North America (Canada and Mexico) is a similar case, since a large fraction of its users is closer to locations in the United States than to Toronto, Montreal, or Mexico. 
+
+These results show that the latency cost of jurisdictional confinement is determined by the availability and distribution of infrastructure within the protected region rather than by the RCA-DNS mechanism itself. Where providers offer dense regional footprints, confinement is obtained at no cost or even with a performance gain; where they do not, the cost is the price of not being able to use infrastructure located in other jurisdictions. This trade-off is inherent to any form of data localisation, but RCA-DNS makes it explicit and allows each service to decide, region by region, whether to accept it.
+
+\begin{comment}
+\hugo{Por ahora lo vamos a dejar por tiempo, aunque puede ser un buen añadido.}
+\paragraph{Users outside the protected region.} \hugo{TODO: add a short paragraph and, ideally, a table with the median RTT observed by probes located outside each region when accessing its regional name (e.g.\ non-EEA probes towards \texttt{eea-extended}), compared with the global name. The article states that latency increases primarily affect users located outside the constrained region; quantifying it here supports the travelling-user scenario described at the beginning of the section.}
+\end{comment}
+
+% ============================================================
+\section{Discussion and Limitations}
 \label{sc:rcadns_discussion}
+% ============================================================
 
-The proposed RCA-DNS architecture demonstrates that geographic considerations can be incorporated into the service selection process of anycast-based systems without introducing substantial performance penalties. By adding a regionalisation layer during DNS resolution, service providers can determine the set of replicas eligible to serve a given request while preserving the operational benefits traditionally associated with distributed service deployments.
+\subsection{Regulatory Implications}
+\label{sc:rcadns_discussion_regulatory}
 
-From a regulatory perspective, RCA-DNS addresses one of the central challenges identified throughout this thesis: the lack of explicit geographic control in conventional anycast deployments. Whereas traditional anycast infrastructures delegate replica selection entirely to Internet routing dynamics, RCA-DNS introduces a mechanism through which service providers can define geographic constraints and steer users towards infrastructure deployed within a desired region. As a result, the architecture provides a practical foundation for improving geographic predictability and reducing the uncertainty associated with jurisdictional exposure \chema{En términos GDPR, esto está alineado con  "data protection by design and by default (GDRP Art. 25)". Es decir, es una solución técnica que no introduce problemas y que resuelve por diseño un problema de protección de datos. Deberías mencionarlo para mostrar solidez en el conocimiento GDPR.}.
+RCA-DNS addresses the central problem identified in this thesis: conventional anycast deployments offer no explicit control over the jurisdictions in which communications are processed. By turning the region into an explicit parameter of each communication, RCA-DNS allows a service provider to know, and to demonstrate, where personal data is processed. This supports both the transparency obligations discussed in Chapter~\ref{ch:experiments}, since the jurisdictions disclosed in a privacy policy can now be enforced rather than merely estimated, and the accountability principle of the GDPR, under which controllers must be able to demonstrate compliance.
 
-Despite these advantages, several limitations must be acknowledged. First, the effectiveness of the approach depends on the availability of a sufficient number of service replicas within the protected region. Regions with limited infrastructure deployments may experience reduced redundancy, lower resilience to failures, or higher latency compared with globally distributed deployments. Consequently, the achievable degree of geographic control remains closely tied to the underlying distribution of the service infrastructure \chema{Esto es una limitación potencial, pero si haces los deberes sabrás si es una limitación real, y puedes comentar el número de réplicas ofrecido por alguno de los proveedores en algunas áreas, demostrando que potenciales pegas son fácilmente resolubles.}.
+From a GDPR perspective, RCA-DNS is an instance of \textit{data protection by design and by default} (Article~25) \cite{REGULATIONSRelevance, GuidelinesBoard}. Article~25 requires controllers to implement appropriate technical measures, both when determining the means of processing and at the time of the processing itself, that effectively implement data protection principles. RCA-DNS is such a measure: it embeds the geographic restriction in the architecture of the service instead of relying on organisational commitments, it does not introduce new processing of personal data (the region can be derived from information the service already holds), and, with the default configuration of a region-restricted name, it ensures that communications are not transferred outside the region unless the service explicitly decides otherwise. The fail-closed behaviour described in Section~\ref{sc:rcadns_operations} is a direct expression of protection by default.
 
-Second, RCA-DNS operates at the service selection layer rather than at the network routing layer. While the mechanism can constrain the set of candidate replicas returned during DNS resolution, it cannot control the physical path subsequently followed by packets across the Internet. Routing decisions remain subject to the policies of autonomous systems, Internet service providers, and other external actors. Therefore, RCA-DNS provides control over the destination infrastructure selected for communication, but it does not guarantee that the entire network path remains confined to a specific geographic region \chema{De nuevo, para cada potencial problema tienes que demostrar que has pensado cómo se resuelve. En este caso se me ocurre que HTTPS es una solución a este potencial problema.}.
+\subsection{Requirements Revisited}
+\label{sc:rcadns_discussion_requirements}
 
-Third, the current design assumes that traffic steering policies can be defined in terms of geographic regions. Although the evaluation presented in this chapter focuses on the EEA, the architecture itself is not tied to any specific regional definition. Geographic policies can be updated as regulatory requirements, infrastructure deployments, or business objectives evolve. Nevertheless, future deployments may require more sophisticated policy models involving specific countries, bilateral agreements, legal adequacy decisions, or other jurisdictional considerations. Extending RCA-DNS to support richer policy definitions constitutes an interesting direction for future work \chema{Pero yo creo que ya está resuelto. En Google Cloud, puedes elegir las réplicas para un despliegue? Si es así el problema está resuelto, y es tarea del admin de sistemas configurarlo. Puedes comentar sobre el coste (en tiempo o dinero) de hacer esto, pero comentando eso la limitación está resuelta.}.
+Once a region is selected, the location-independent mapping of names to addresses and the restriction of each address to in-region infrastructure make confinement deterministic (R1), with the strength of the guarantee determined by the enforcement level discussed in Section~\ref{sc:rcadns_enforcement}. The architecture only uses DNS records and anycast deployments that are standard on all the analysed platforms (R2), and each service can adopt it on its own (R3). Load distribution, failover, and the selection of nearby replicas continue to be performed by anycast within each region (R4), with the latency results of Section~\ref{sc:rcadns_results} showing that the benefits are preserved wherever the regional footprint is adequate. The deployment is managed with the standard tools of the provider (R5), and regions can be defined as arbitrary sets of locations while the selection rule remains under the control of the service (R6).
 
-The experimental evaluation also presents important limitations. The prototype deployment used service replicas exclusively located within the EEA and therefore focused on assessing the performance implications of geographic confinement rather than comparing against a globally distributed anycast deployment spanning multiple jurisdictions. Consequently, although the architecture is designed to reduce jurisdictional exposure, the experiments do not directly quantify the reduction that would be achieved in a real-world global deployment. Evaluating RCA-DNS under such conditions remains part of future work.
+\subsection{Limitations}
+\label{sc:rcadns_discussion_limitations}
 
-Similarly, the evaluation was conducted under controlled experimental conditions and does not capture all the operational complexities of large-scale production environments. Factors such as infrastructure failures, large routing incidents, highly dynamic traffic patterns, DNS cache behaviour, or long-term operational costs were outside the scope of the study and deserve further investigation.
+\paragraph{Dependence on regional infrastructure.} The protection and performance offered by RCA-DNS in a region are bounded by the number and distribution of locations available there. As discussed in Section~\ref{sc:rcadns_feasibility_footprint}, this is a real constraint for regions such as Africa or South America on Google Cloud, but not for the EEA, the United States, or Asia, where providers already offer many locations. It can be mitigated by combining providers or by using CDNs with denser regional footprints.
 
-Nevertheless, the proposed architecture demonstrates that geographic control and anycast are not inherently incompatible objectives. For decades, Internet-scale service deployments have prioritised performance, availability, and scalability, often treating geographic location as an indirect consequence of routing behaviour. RCA-DNS suggests that geographic considerations can instead become an explicit design parameter without requiring modifications to the underlying Internet routing infrastructure.
+\paragraph{Network path versus processing location.} RCA-DNS controls where communications are terminated and processed, not the physical path that packets follow across the Internet, which remains determined by inter-domain routing. As argued in Section~\ref{sc:rcadns_enforcement}, this residual exposure is addressed by HTTPS when TLS is only terminated inside the region, a situation that European data protection authorities consider an effective safeguard for data merely transiting third countries \cite{RecommendationsBoard}. Deployments that rely on edge proxies terminating TLS outside the region, as in enforcement level (a), should either restrict TLS termination to the region or carefully assess whether the edge provider's access to the data is acceptable.
 
-More broadly, this work supports the idea that future Internet services may increasingly require mechanisms capable of expressing and enforcing geographic constraints. As concerns regarding data sovereignty, international transfers, and jurisdictional exposure continue to grow, approaches such as RCA-DNS provide an initial step towards infrastructures that are not only performant and resilient but also geographically aware.
+\paragraph{Correctness of region determination.} RCA-DNS guarantees that the selected region is respected, but not that the right region is selected. An incorrect policy, or an inaccurate signal such as IP geolocation, results in a communication being confined to the wrong region. Since region determination is the responsibility of the service, it remains part of the compliance assessment that each service must carry out, and its study is left outside the scope of this thesis.
+
+\paragraph{Experimental scope.} The evaluation was conducted on a single provider and on a deployment that implements enforcement level (a). It used plain HTTP; with HTTPS, the TLS handshake would add the same number of round trips to both the regional and the global deployments and would not change the comparison. The campaign lasted eight days with probes selected at random in each country, and the coverage of RIPE Atlas is uneven across countries, which limits the representativeness of the results for regions with few probes. The prototype was also not subjected to production traffic, failures, or attacks. Evaluating RCA-DNS on additional providers, including deployments at enforcement levels (b) and (c), and under failure conditions is part of the future work outlined in Chapter~\ref{ch:conclusion}. In addition, selecting the same number of probes in every country yields uneven sample sizes across regions: single-country regions such as the United States are represented by far fewer measurements than regions spanning many countries, which limits the statistical robustness of their results. A selection proportional to the population or to the number of available probes in each region would provide more balanced samples in future campaigns.
+
+% ============================================================
+\section{Summary}
+\label{sc:rcadns_summary}
+% ============================================================
+
+This chapter has presented RCA-DNS, an architecture that introduces deterministic geographic control into anycast services by exposing one DNS name and one anycast address per region and by letting only in-region infrastructure serve each address. The region is selected by the service before DNS resolution, according to its own policy, while delivery within the region remains in the hands of conventional anycast routing. The analysis of existing approaches has shown that none of them combines deterministic confinement, the benefits of anycast, and service-defined policies. The feasibility analysis has shown that the architecture can be implemented today on the main cloud and CDN platforms, with different levels of enforcement depending on where each platform terminates TLS. Finally, the evaluation of a prototype deployed in 39 Google Cloud locations has shown that, where regional infrastructure is dense, as in the EEA, confinement comes at no latency cost and even removes the high-latency tail produced by global anycast, whereas in sparsely provisioned regions the cost reflects the lack of local infrastructure rather than the mechanism itself.
+
+Taken together, these results answer RQ4: geographic control and anycast are not inherently incompatible. The tension between them arises from deployments that leave geographic constraints implicit, and it can be resolved by making the region an explicit, service-controlled parameter of each communication without modifying the routing infrastructure of the Internet. The contents of this chapter have been submitted for publication in the article \textit{Where does your data really go? Rethinking Geographic Control in Anycast systems}, which is under review at the moment of writing this document.

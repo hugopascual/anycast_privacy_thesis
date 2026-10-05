@@ -1,0 +1,69 @@
+\begin{tikzpicture}[
+    >=Latex,
+    font=\small
+]
+
+% ------------------------------------------------------------
+% Background columns
+% ------------------------------------------------------------
+
+\fill[red!4]   (31mm,6mm) rectangle (87mm,-86mm);
+\fill[green!5] (89mm,6mm) rectangle (162mm,-86mm);
+\node[header] at (59mm,2mm)  {Outside the protected region};
+\node[header] at (125mm,2mm) {Inside the protected region};
+\node[header] at (14mm,2mm)  {Client};
+
+% ------------------------------------------------------------
+% Row (a): backend confinement
+% ------------------------------------------------------------
+
+\node[font=\footnotesize\bfseries, anchor=west] at (-6mm,-8mm)
+    {(a) Backend confinement (provider-mediated)};
+\node[endpoint, minimum width=22mm, font=\footnotesize] (ca) at (14mm,-20mm) {User\\in the region};
+\node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize] (pa) at (59mm,-20mm)
+    {Edge PoP\\TLS terminated};
+\node[replica, minimum width=30mm, font=\footnotesize] (ba) at (138mm,-20mm) {Regional backend\\(processing)};
+\draw[encrypted] (ca) -- node[above, font=\scriptsize] {TLS} (pa);
+\draw[cleartext] (pa) -- node[above, font=\scriptsize, align=center] {decrypted at the edge,\\re-encrypted to backend} (ba);
+
+% ------------------------------------------------------------
+% Row (b): in-region termination
+% ------------------------------------------------------------
+
+\node[font=\footnotesize\bfseries, anchor=west] at (-6mm,-36mm)
+    {(b) In-region termination};
+\node[endpoint, minimum width=22mm, font=\footnotesize] (cb) at (14mm,-48mm) {User\\in the region};
+\node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize] (pb) at (59mm,-48mm)
+    {Edge PoP\\forwards ciphertext};
+\node[ixp, minimum width=24mm, minimum height=10mm, font=\footnotesize, fill=green!12] (tb) at (106mm,-48mm)
+    {In-region\\TLS end};
+\node[replica, minimum width=30mm, font=\footnotesize] (bb) at (143mm,-48mm) {Regional backend\\(processing)};
+\draw[encrypted] (cb) -- node[above, font=\scriptsize] {TLS} (pb);
+\draw[encrypted] (pb) -- node[above, font=\scriptsize] {TLS} (tb);
+\draw[link, ->] (tb) -- (bb);
+
+% ------------------------------------------------------------
+% Row (c): announcement confinement
+% ------------------------------------------------------------
+
+\node[font=\footnotesize\bfseries, anchor=west] at (-6mm,-64mm)
+    {(c) Announcement confinement};
+\node[endpoint, minimum width=22mm, font=\footnotesize] (cc) at (14mm,-76mm) {User\\in the region};
+\node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize, fill=gray!8, text=black!50, dashed] (pc) at (59mm,-76mm)
+    {Edge PoP\\(prefix not announced)};
+\node[ixp, minimum width=24mm, minimum height=10mm, font=\footnotesize, fill=green!12] (ic) at (106mm,-76mm)
+    {In-region\\ingress + TLS end};
+\node[replica, minimum width=30mm, font=\footnotesize] (bc) at (143mm,-76mm) {Regional backend\\(processing)};
+\draw[encrypted] (cc.south east) to[out=-15,in=-165] node[below, font=\scriptsize] {TLS (transit may cross other countries)} (ic.south west);
+\draw[link, ->] (ic) -- (bc);
+
+% ------------------------------------------------------------
+% Legend
+% ------------------------------------------------------------
+
+\draw[encrypted] (0mm,-94mm) -- ++(9mm,0);
+\node[font=\scriptsize, anchor=west] at (10mm,-94mm) {payload only readable inside the protected region};
+\draw[cleartext] (82mm,-94mm) -- ++(9mm,0);
+\node[font=\scriptsize, anchor=west] at (92mm,-94mm) {payload decrypted outside the protected region};
+
+\end{tikzpicture}

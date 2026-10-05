@@ -174,3 +174,134 @@
         text=green!40!black
     }
 }
+
+% ------------------------------------------------------------
+% RCA-DNS (Chapter 5)
+% ------------------------------------------------------------
+
+\tikzset{
+    regionbox/.style={
+        draw=black!60,
+        dashed,
+        rounded corners=6pt,
+        inner sep=3mm,
+        fill=gray!3
+    }
+}
+
+\tikzset{
+    regionlabel/.style={
+        font=\footnotesize\bfseries,
+        anchor=north west,
+        inner sep=1.5mm
+    }
+}
+
+\tikzset{
+    policy/.style={
+        draw,
+        rounded corners=2pt,
+        minimum width=26mm,
+        minimum height=8mm,
+        align=center,
+        font=\footnotesize,
+        fill=yellow!15
+    }
+}
+
+\tikzset{
+    dnszone/.style={
+        draw,
+        rounded corners=2pt,
+        align=left,
+        inner sep=2mm,
+        font=\footnotesize,
+        fill=orange!8
+    }
+}
+
+\tikzset{
+    steplabel/.style={
+        circle,
+        draw=black!70,
+        fill=white,
+        font=\scriptsize\bfseries,
+        inner sep=0.8pt,
+        minimum size=4.2mm
+    }
+}
+
+\tikzset{
+    dnsflow/.style={
+        draw=orange!70!black,
+        line width=1.2pt,
+        ->,
+        >=Latex
+    }
+}
+
+\tikzset{
+    lifelinehead/.style={
+        draw,
+        rounded corners=2pt,
+        minimum width=24mm,
+        minimum height=10mm,
+        align=center,
+        font=\footnotesize,
+        fill=gray!8
+    }
+}
+
+\tikzset{
+    lifeline/.style={
+        draw=black!45,
+        dashed,
+        line width=0.6pt
+    }
+}
+
+\tikzset{
+    msg/.style={
+        draw=black!80,
+        line width=0.8pt,
+        ->,
+        >=Latex
+    }
+}
+
+\tikzset{
+    reply/.style={
+        draw=black!70,
+        dashed,
+        line width=0.8pt,
+        ->,
+        >=Latex
+    }
+}
+
+\tikzset{
+    msglabel/.style={
+        font=\scriptsize,
+        align=center,
+        fill=white,
+        inner sep=1pt
+    }
+}
+
+\tikzset{
+    encrypted/.style={
+        draw=green!50!black,
+        line width=1.4pt,
+        ->,
+        >=Latex
+    }
+}
+
+\tikzset{
+    cleartext/.style={
+        draw=red!70!black,
+        line width=1.4pt,
+        ->,
+        >=Latex
+    }
+}

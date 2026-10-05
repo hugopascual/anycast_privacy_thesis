@@ -1,0 +1,80 @@
+\begin{tikzpicture}[
+    >=Latex,
+    font=\small
+]
+
+% ------------------------------------------------------------
+% Participants
+% ------------------------------------------------------------
+
+\node[lifelinehead, fill=yellow!15] (app) at (0,0)
+    {Client application\\\scriptsize(region policy)};
+\node[lifelinehead] (res) at (44mm,0)
+    {Recursive\\resolver};
+\node[lifelinehead, fill=orange!8] (auth) at (88mm,0)
+    {Authoritative DNS\\\scriptsize\texttt{anycastprivacy.org}};
+\node[lifelinehead, fill=green!8] (rep) at (138mm,0)
+    {Regional anycast service\\\scriptsize(EEA-Extended instances)};
+
+\def\ybottom{-128mm}
+\foreach \p in {app,res,auth,rep} {
+    \draw[lifeline] (\p.south) -- (\p.south |- 0,\ybottom);
+}
+
+% ------------------------------------------------------------
+% (1) Region selection
+% ------------------------------------------------------------
+
+\draw[msg] ($(app.south)+(0,-8mm)$) -- ++(7mm,0) -- ++(0,-5mm) -- ++(-7mm,0);
+\node[msglabel, anchor=west, align=left] at ($(app.south)+(8.5mm,-10.5mm)$)
+    {\textbf{1} \;select region $R$ = \texttt{eea-extended}\\
+     \phantom{\textbf{1}} \;$\Rightarrow$ name \texttt{eea-extended.anycastprivacy.org}};
+
+% ------------------------------------------------------------
+% (2)-(5) DNS resolution
+% ------------------------------------------------------------
+
+\draw[msg] (app.south |- 0,-28mm) -- node[msglabel, above=0.5mm]
+    {\textbf{2}\; \texttt{A? eea-extended.anycastprivacy.org}} (res.south |- 0,-28mm);
+
+% optional fragment: cache miss
+\draw[black!55, rounded corners=1pt] (38mm,-33mm) rectangle (96mm,-55mm);
+\node[draw=black!55, fill=gray!10, font=\scriptsize\bfseries, anchor=north west, inner sep=1.2pt]
+    at (38mm,-33mm) {opt};
+\node[font=\scriptsize\itshape, anchor=north east, fill=white, inner sep=1pt] at (95.5mm,-33.5mm) {[cache miss]};
+
+\draw[msg] (res.south |- 0,-41mm) -- node[msglabel, above=0.5mm]
+    {\textbf{3}\; \texttt{A? eea-extended\ldots}} (auth.south |- 0,-41mm);
+\draw[reply] (auth.south |- 0,-50mm) -- node[msglabel, above=0.5mm]
+    {\textbf{4}\; \texttt{A 203.0.113.20}, TTL} (res.south |- 0,-50mm);
+
+\draw[reply] (res.south |- 0,-62mm) -- node[msglabel, above=0.5mm]
+    {\textbf{5}\; \texttt{A 203.0.113.20}} (app.south |- 0,-62mm);
+
+% ------------------------------------------------------------
+% (6)-(8) Data exchange over anycast
+% ------------------------------------------------------------
+
+\draw[encrypted] (app.south |- 0,-76mm) -- node[msglabel, above=0.5mm, pos=0.5]
+    {\textbf{6}\; TCP + TLS handshake to \texttt{203.0.113.20} (SNI \texttt{eea-extended\ldots})} (rep.south |- 0,-76mm);
+\node[font=\scriptsize\itshape, align=center, text=blue!70!black, fill=white, inner sep=1pt]
+    at ($(rep.south |- 0,-76mm)+(-24mm,-4.5mm)$)
+    {BGP delivers the packets to the closest in-region instance};
+
+\draw[encrypted] (app.south |- 0,-90mm) -- node[msglabel, above=0.5mm]
+    {\textbf{7}\; HTTPS request (personal data)} (rep.south |- 0,-90mm);
+\draw[reply, draw=green!50!black, line width=1.1pt] (rep.south |- 0,-100mm) -- node[msglabel, above=0.5mm]
+    {\textbf{8}\; HTTPS response} (app.south |- 0,-100mm);
+
+% ------------------------------------------------------------
+% Policy re-evaluation
+% ------------------------------------------------------------
+
+\draw[black!55, rounded corners=1pt] (-14mm,-106mm) rectangle (158mm,-124mm);
+\node[draw=black!55, fill=gray!10, font=\scriptsize\bfseries, anchor=north west, inner sep=1.2pt]
+    at (-14mm,-106mm) {loop};
+\node[font=\scriptsize, align=center, fill=white, inner sep=1.5pt] at (72mm,-115.5mm)
+    {[policy change (e.g.\ new contract, user relocation) or TTL expiry]\\
+     repeat from \textbf{1}: a different region yields a different name and, therefore, a different anycast address};
+
+\end{tikzpicture}
