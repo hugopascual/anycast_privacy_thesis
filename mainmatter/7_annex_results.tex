@@ -7,12 +7,13 @@ The category ``Other categories'' aggregates the application categories with few
 
 \begin{table}[ht]
     \centering
-    \caption{Android applications generating personal-data communications towards anycast infrastructures by application category.}
+    \small
+    \caption{Android applications generating personal-data communications towards anycast infrastructures by application category. Categories with fewer than 10 applications are aggregated under ``Other categories'' and detailed in Table~\ref{tab:anycast_pii_apps_by_category_less_ten_repetitions}.}
     \label{tab:anycast_pii_apps_by_category}
     \begin{tabular}{lr}
-        \hline
+        \toprule
         \textbf{Application category} & \textbf{Applications} \\
-        \hline
+        \midrule
         Entertainment & 82 \\
         Tools & 75 \\
         Education & 59 \\
@@ -42,20 +43,21 @@ The category ``Other categories'' aggregates the application categories with few
         Word & 10 \\
         Board & 10 \\
         Other categories & 81 \\
-        \hline
+        \midrule
         \textbf{Total} & \textbf{960} \\
-        \hline
+        \bottomrule
     \end{tabular}
 \end{table}
 
 \begin{table}[ht]
     \centering
-    \caption{Android applications generating personal-data communications towards anycast infrastructures by application category with less than 10 repetitions.}
+    \small
+    \caption{Breakdown of the ``Other categories'' in Table~\ref{tab:anycast_pii_apps_by_category}: application categories with fewer than 10 applications generating personal-data communications towards anycast infrastructures.}
     \label{tab:anycast_pii_apps_by_category_less_ten_repetitions}
     \begin{tabular}{lr}
-        \hline
+        \toprule
         \textbf{Application category} & \textbf{Applications} \\
-        \hline
+        \midrule
         Card & 9 \\
         Arcade & 8 \\
         Trivia & 8 \\
@@ -74,94 +76,22 @@ The category ``Other categories'' aggregates the application categories with few
         Dating & 2 \\
         Strategy & 1 \\
         Weather & 1 \\
-        \hline
+        \midrule
         \textbf{Total} & \textbf{81} \\
-        \hline
+        \bottomrule
     \end{tabular}
 \end{table}
 
-
-\begin{comment}
-\begin{table}[ht]
+\begin{table}[p]
     \centering
-    \caption{Android applications generating personal-data communications towards anycast infrastructures by application category.}
-    \label{tab:anycast_pii_apps_by_category_full}
-    \begin{tabular}{lr}
-        \hline
-        \textbf{Application category} & \textbf{Applications} \\
-        \hline
-        Entertainment & 82 \\
-        Tools & 75 \\
-        Education & 59 \\
-        Puzzle & 56 \\
-        No category & 43 \\
-        Travel \& Local & 39 \\
-        Personalization & 37 \\
-        Productivity & 35 \\
-        Social & 33 \\
-        Lifestyle & 33 \\
-        Shopping & 32 \\
-        Finance & 31 \\
-        Music \& Audio & 30 \\
-        Books \& Reference & 28 \\
-        Simulation & 27 \\
-        Action & 27 \\
-        News \& Magazines & 23 \\
-        Casual & 23 \\
-        Photography & 21 \\
-        Video Players \& Editors & 20 \\
-        Health \& Fitness & 20 \\
-        Business & 19 \\
-        Communication & 19 \\
-        Sports & 18 \\
-        Food \& Drink & 17 \\
-        Maps \& Navigation & 12 \\
-        Word & 10 \\
-        Board & 10 \\
-        Card & 9 \\
-        Arcade & 8 \\
-        Trivia & 8 \\
-        Beauty & 7 \\
-        Casino & 6 \\
-        Medical & 6 \\
-        Auto \& Vehicles & 5 \\
-        Role Playing & 4 \\
-        Educational & 4 \\
-        Art \& Design & 4 \\
-        House \& Home & 4 \\
-        Music & 4 \\
-        Parenting & 3 \\
-        Racing & 3 \\
-        Adventure & 2 \\
-        Dating & 2 \\
-        Strategy & 1 \\
-        Weather & 1 \\
-        \hline
-        \textbf{Total} & \textbf{960} \\
-        \hline
-    \end{tabular}
-\end{table}
-\end{comment}
-
-\begin{table}[ht]
-    \centering
-    \caption{Personal-data communications towards anycast infrastructures by Android application category and personal data type.}
+    \scriptsize
+    \setlength{\tabcolsep}{2.8pt}
+    \caption{Personal-data communications towards anycast infrastructures by Android application category and personal data type. Column totals match Table~\ref{tab:anycast_pii_communications_type}.}
     \label{tab:anycast_pii_communications_category_type}
-    \resizebox{\textwidth}{!}{%
     \begin{tabular}{lrrrrrrrrrr}
-        \hline
-        \textbf{Category} &
-        \textbf{Build} &
-        \textbf{Device} &
-        \textbf{Location} &
-        \textbf{Coarse Location} &
-        \textbf{Fingerprint} &
-        \textbf{Google Ad ID} &
-        \textbf{Kernel} &
-        \textbf{BSSID} &
-        \textbf{BSSID Close} &
-        \textbf{MAC} \\
-        \hline
+        \toprule
+        \textbf{Category} & \textbf{Build} & \textbf{Device} & \textbf{Location} & \begin{tabular}[b]{@{}r@{}}\textbf{Coarse}\\\textbf{location}\end{tabular} & \begin{tabular}[b]{@{}r@{}}\textbf{Finger-}\\\textbf{print}\end{tabular} & \begin{tabular}[b]{@{}r@{}}\textbf{Google}\\\textbf{Ad ID}\end{tabular} & \textbf{Kernel} & \textbf{BSSID} & \begin{tabular}[b]{@{}r@{}}\textbf{BSSID}\\\textbf{(close)}\end{tabular} & \textbf{MAC} \\
+        \midrule
         Action & 4,862 & 5,288 & 0 & 0 & 0 & 4,880 & 0 & 0 & 0 & 0 \\
         Adventure & 42 & 99 & 0 & 0 & 0 & 184 & 0 & 2 & 0 & 0 \\
         Arcade & 2,670 & 2,886 & 0 & 0 & 0 & 256 & 0 & 0 & 0 & 0 \\
@@ -208,7 +138,8 @@ The category ``Other categories'' aggregates the application categories with few
         Video Players \& Editors & 592 & 1,094 & 0 & 0 & 0 & 1,106 & 0 & 0 & 0 & 0 \\
         Weather & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
         Word & 154 & 439 & 0 & 0 & 0 & 468 & 0 & 0 & 0 & 0 \\
-        \hline
-    \end{tabular}%
-    }
+        \midrule
+        \textbf{Total} & \textbf{36,960} & \textbf{58,741} & \textbf{312} & \textbf{312} & \textbf{5} & \textbf{74,162} & \textbf{4,152} & \textbf{18,790} & \textbf{1,176} & \textbf{1,176} \\
+        \bottomrule
+    \end{tabular}
 \end{table}

@@ -118,12 +118,13 @@ The identified communications involved several types of personal data, including
 
 \begin{table}[ht]
     \centering
+    \small
     \caption{Personal data types identified in communications towards anycast infrastructures. Percentages are calculated with respect to the 195,786 communications containing personal data and targeting anycast IP addresses.}
     \label{tab:anycast_pii_communications_type}
     \begin{tabular}{lrr}
-        \hline
+        \toprule
         \textbf{Personal data type} & \textbf{Communications} & \textbf{Percentage} \\
-        \hline
+        \midrule
         Google Advertising ID & 74,162 & 37.88\% \\
         Device Model & 58,741 & 30.00\% \\
         Build Number & 36,960 & 18.88\% \\
@@ -134,9 +135,9 @@ The identified communications involved several types of personal data, including
         Device Location & 312 & 0.16\% \\
         Coarse Device Location & 312 & 0.16\% \\
         Fingerprint & 5 & 0.00\% \\
-        \hline
+        \midrule
         \textbf{Total} & \textbf{195,786} & \textbf{100.00\%} \\
-        \hline
+        \bottomrule
     \end{tabular}
 \end{table}
 
@@ -225,42 +226,61 @@ Table~\ref{tab:anycast_tpls_privacy_destinations} summarises the TPLs identified
 
 \begin{table}[ht]
     \centering
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
     \caption{Third-Party Libraries associated with personal-data communications towards anycast infrastructures, their privacy-policy disclosures, and observed destination countries.}
     \label{tab:anycast_tpls_privacy_destinations}
-    \resizebox{\textwidth}{!}{%
-    \begin{tabular}{l c c c c c c}
-        \hline
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.3cm} r r c c >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+        \toprule
         \textbf{TPL} &
-        \textbf{Applications} &
-        \textbf{Connections} &
-        \textbf{Privacy Policy} &
-        \textbf{10M+ Apps} &
-        \textbf{Policy Countries} &
-        \textbf{Observed Destinations} \\
-        \hline
-            Unity Ads & 162 & 35,072 & Yes & 100--1000 & US, CA, JP, NZ, KR, CH, GB & GB, CH \\
-            BidMachine SDK for Android & 7 & 9,200 & Yes & 10--100 & US & US, GB, RU, UA, RS \\
-            Google Mobile Ads (GMA) SDK & 121 & 6,978 & Yes & 100--1000 & None & GB, CH, RU, UA, RS \\
-            Adjust SDK & 55 & 3,470 & Yes & 100--1000 & None & US \\
-            Appodeal SDK for Android & 14 & 3,127 & Yes & -- & US & GB, CH, RU \\
-            Chartboost Monetization SDK & 11 & 1,068 & Yes & 10--100 & US & GB, CH \\
-            MobSDK & 49 & 568 & No & -- & None & GB \\
-            AdColony SDK & 29 & 430 & Yes & 10--100 & US & GB \\
-            AppLovin SDK & 97 & 405 & Yes & 100--1000 & None & US, GB \\
-            Kochava V4 & 6 & 278 & No & 1--10 & None & GB, CH \\
-            OneSignal & 83 & 233 & Yes & 10--100 & US & GB, CH, RS \\
-            bugsnag-android & 26 & 178 & Yes & 10--100 & US & GB \\
-            New Relic Mobile for Android & 11 & 178 & Yes & 10--100 & None & US, GB, CH \\
-            Official Mixpanel Android SDK & 8 & 85 & No & 10--100 & None & GB, CH \\
-            Dynatrace OneAgent SDK & 1 & 73 & Yes & 10--100 & US & GB, UA \\
-            Airship SDK & 3 & 38 & Yes & 10--100 & US, FR, DE, GB, SG, IN & GB \\
-            Sentry Android & 3 & 32 & Yes & 10--100 & US, DE, CA & GB, CH, RU, RS \\
-            EmarsysSDK & 2 & 16 & Yes & -- & None & GB \\
-            Fyber FairBid SDK & 4 & 10 & No & 1--10 & None & GB \\
-            Leanplum SDK FCM Module & 2 & 4 & Yes & 1--10 & US & GB \\
-        \hline
-    \end{tabular}%
-    }
+        \textbf{Apps} &
+        \begin{tabular}[b]{@{}r@{}}\textbf{Connec-}\\\textbf{tions}\end{tabular} &
+        \begin{tabular}[b]{@{}c@{}}\textbf{Privacy}\\\textbf{policy}\end{tabular} &
+        \begin{tabular}[b]{@{}c@{}}\textbf{10M+}\\\textbf{apps}\end{tabular} &
+        \textbf{Policy countries} &
+        \textbf{Observed destinations} \\
+        \midrule
+        Unity Ads & 162 & 35,072 & Yes & 100--1000 & US, CA, JP, NZ, KR, CH, GB & GB, CH \\
+        \rowsep{7}
+        BidMachine SDK for Android & 7 & 9,200 & Yes & 10--100 & US & US, GB, RU, UA, RS \\
+        \rowsep{7}
+        Google Mobile Ads (GMA) SDK & 121 & 6,978 & Yes & 100--1000 & None & GB, CH, RU, UA, RS \\
+        \rowsep{7}
+        Adjust SDK & 55 & 3,470 & Yes & 100--1000 & None & US \\
+        \rowsep{7}
+        Appodeal SDK for Android & 14 & 3,127 & Yes & -- & US & GB, CH, RU \\
+        \rowsep{7}
+        Chartboost Monetization SDK & 11 & 1,068 & Yes & 10--100 & US & GB, CH \\
+        \rowsep{7}
+        MobSDK & 49 & 568 & No & -- & None & GB \\
+        \rowsep{7}
+        AdColony SDK & 29 & 430 & Yes & 10--100 & US & GB \\
+        \rowsep{7}
+        AppLovin SDK & 97 & 405 & Yes & 100--1000 & None & US, GB \\
+        \rowsep{7}
+        Kochava V4 & 6 & 278 & No & 1--10 & None & GB, CH \\
+        \rowsep{7}
+        OneSignal & 83 & 233 & Yes & 10--100 & US & GB, CH, RS \\
+        \rowsep{7}
+        bugsnag-android & 26 & 178 & Yes & 10--100 & US & GB \\
+        \rowsep{7}
+        New Relic Mobile for Android & 11 & 178 & Yes & 10--100 & None & US, GB, CH \\
+        \rowsep{7}
+        Official Mixpanel Android SDK & 8 & 85 & No & 10--100 & None & GB, CH \\
+        \rowsep{7}
+        Dynatrace OneAgent SDK & 1 & 73 & Yes & 10--100 & US & GB, UA \\
+        \rowsep{7}
+        Airship SDK & 3 & 38 & Yes & 10--100 & US, FR, DE, GB, SG, IN & GB \\
+        \rowsep{7}
+        Sentry Android & 3 & 32 & Yes & 10--100 & US, DE, CA & GB, CH, RU, RS \\
+        \rowsep{7}
+        EmarsysSDK & 2 & 16 & Yes & -- & None & GB \\
+        \rowsep{7}
+        Fyber FairBid SDK & 4 & 10 & No & 1--10 & None & GB \\
+        \rowsep{7}
+        Leanplum SDK FCM Module & 2 & 4 & Yes & 1--10 & US & GB \\
+        \bottomrule
+    \end{tabularx}
 \end{table}
 
 The distribution across applications was heterogeneous. Unity was associated with 162 applications, followed by AppLovin with 97 and OneSignal with 83, while several other TPLs were identified in fewer than ten applications. The number of applications associated with individual TPLs is not additive, as a single application may integrate multiple TPLs.
@@ -327,19 +347,20 @@ After filtering incomplete traces and non-responsive paths, and applying the cri
 
 \begin{table}[ht]
     \centering
+    \small
     \caption{Summary of the global anycast measurement campaign.}
     \label{tab:global_hunter_summary}
     \begin{tabular}{lr}
-        \hline
+        \toprule
         \textbf{Metric} & \textbf{Value} \\
-        \hline
+        \midrule
         Applications analysed & 379 \\
         Anycast IP addresses & 195 \\
         Countries covered & 183 \\
         Valid routing tracks & 504,690 \\
         Cross-border tracks & 58.36\% \\
         IP addresses with cross-border routing & 99.49\% \\
-        \hline
+        \bottomrule
     \end{tabular}
 \end{table}
 

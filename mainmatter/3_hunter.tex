@@ -291,17 +291,18 @@ The validation experiment evaluated Hunter under real-world Internet conditions 
 
 The results obtained indicate that Hunter provides highly reliable country-level inference for anycast communications under real-world Internet conditions. Across all evaluated measurements, Hunter achieved a precision of 97.67\% and an accuracy of 78.09\%. The complete distribution of Positive, Negative, and Indeterminate results, together with the corresponding baseline results obtained using the direct geolocation of the last hop, is presented in Table~\ref{tab:hunter_validation_results}.
 
-\begin{table}[h]
+\begin{table}[ht]
     \centering
+    \small
     \caption{Summary of Hunter validation results.}
     \label{tab:hunter_validation_results}
-    \begin{tabular}{lcc}
+    \begin{tabular}{lr}
         \toprule
-        Metric & Hunter \\
+        \textbf{Metric} & \textbf{Hunter} \\
         \midrule
         Countries evaluated & 29 \\
-        Measurements & 2739 \\
-        Positive results & 2139 \\
+        Measurements & 2,739 \\
+        Positive results & 2,139 \\
         Negative results & 51 \\
         Indeterminate results & 549 \\
         Precision & 97.67\% \\
@@ -309,6 +310,7 @@ The results obtained indicate that Hunter provides highly reliable country-level
         \bottomrule
     \end{tabular}
 \end{table}
+
 
 The results demonstrate that Hunter successfully minimises incorrect country attributions while still identifying the geographic destination of a substantial proportion of communications. The difference between precision and accuracy reflects the conservative nature of the methodology, which intentionally prioritises soundness over completeness by returning \textit{Indeterminate} results whenever sufficient confidence cannot be achieved.
 
@@ -318,13 +320,14 @@ A detailed analysis of the Negative results reveals that 94.12\% of all incorrec
 
 Additionally, the experiments showed that repeated measurements over time can mitigate these inconsistencies. When considering the complete set of destination countries inferred for each source, no incorrect attributions were observed in the scenarios evaluated. However, individual measurement paths may still produce negative or erroneous results. For this analysis, destination countries accounting for less than 5\% of the country-level results obtained by repeated executions were excluded from the error calculation, as they were considered statistically unstable.
 
-\begin{table*}[t]
+\begin{table}[ht]
     \centering
+    \small
     \caption{Distribution of Hunter validation results by country.}
     \label{tab:hunter_validation_results_country}
     \begin{tabular}{lrrrr}
         \toprule
-        Country & Measurements & Positive & Negative & Indeterminate \\
+        \textbf{Country} & \textbf{Measurements} & \textbf{Positive} & \textbf{Negative} & \textbf{Indeterminate} \\
         \midrule
         Austria & 56 & 49 & 0 & 7 \\
         Belgium & 112 & 57 & 0 & 55 \\
@@ -357,10 +360,11 @@ Additionally, the experiments showed that repeated measurements over time can mi
         Spain & 110 & 97 & 0 & 13 \\
         Sweden & 44 & 39 & 0 & 5 \\
         \midrule
-        Total & 2739 & 2139 & 51 & 549 \\
+        \textbf{Total} & \textbf{2,739} & \textbf{2,139} & \textbf{51} & \textbf{549} \\
         \bottomrule
     \end{tabular}
-\end{table*}
+\end{table}
+
 
 \subsection{Cross-border Communications during Validation}
 
