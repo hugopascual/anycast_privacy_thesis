@@ -496,10 +496,7 @@ Table~\ref{tab:rcadns_median_rtt} compares, for each region, the median RTT obse
 
 These results show that the latency cost of jurisdictional confinement is determined by the availability and distribution of infrastructure within the protected region rather than by the RCA-DNS mechanism itself. Where providers offer dense regional footprints, confinement is obtained at no cost or even with a performance gain; where they do not, the cost is the price of not being able to use infrastructure located in other jurisdictions. This trade-off is inherent to any form of data localisation, but RCA-DNS makes it explicit and allows each service to decide, region by region, whether to accept it.
 
-\begin{comment}
-\hugo{Por ahora lo vamos a dejar por tiempo, aunque puede ser un buen añadido.}
-\paragraph{Users outside the protected region.} \hugo{TODO: add a short paragraph and, ideally, a table with the median RTT observed by probes located outside each region when accessing its regional name (e.g.\ non-EEA probes towards \texttt{eea-extended}), compared with the global name. The article states that latency increases primarily affect users located outside the constrained region; quantifying it here supports the travelling-user scenario described at the beginning of the section.}
-\end{comment}
+\paragraph{Users outside the protected region.} Users located outside a region who are nevertheless assigned to it, such as a European resident travelling abroad, bear the cost of confinement. For instance, probes located outside the EEA-Extended region observed a median RTT of 348.94~ms when accessing \texttt{eea-extended.anycastprivacy.org}, compared with 47.98~ms for probes inside the region. This cost is inherent to the policy rather than to the mechanism: if a service requires that the communications of a user be processed in the EEA, they must reach EEA infrastructure wherever the user is.
 
 % ============================================================
 \section{Discussion and Limitations}
