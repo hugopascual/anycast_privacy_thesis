@@ -59,7 +59,7 @@
     {\textbf{6}\; TCP + TLS handshake to \texttt{203.0.113.20} (SNI \texttt{eea-extended\ldots})} (rep.south |- 0,-76mm);
 \node[font=\scriptsize\itshape, align=center, text=blue!70!black, fill=white, inner sep=1pt]
     at ($(rep.south |- 0,-76mm)+(-24mm,-4.5mm)$)
-    {BGP delivers the packets to the closest in-region instance};
+    {BGP routes lead the packets to the closest in-region instance};
 
 \draw[encrypted] (app.south |- 0,-90mm) -- node[msglabel, above=0.5mm]
     {\textbf{7}\; HTTPS request (personal data)} (rep.south |- 0,-90mm);

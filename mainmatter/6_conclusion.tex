@@ -5,8 +5,10 @@ This thesis investigated the implications of anycast routing for data sovereignt
 
 This chapter summarises the main contributions of the thesis, evaluates the fulfilment of the research objectives, discusses the principal limitations of the conducted work, and outlines several directions for future research.
 
+% ============================================================
 \section{Research Objectives and Main Findings}
 \label{sc:conclusion_objectives}
+% ============================================================
 
 Anycast routing plays a fundamental role in modern Internet infrastructures, yet its implications for data sovereignty, international data transfers, and geographic control have received comparatively limited attention. The research presented in this thesis addresses this gap by studying the geographic behaviour of anycast communications and its consequences for transparency, regulatory compliance, and jurisdictional exposure.
 
@@ -14,14 +16,16 @@ To address this gap, the first objective of the thesis was to determine whether 
 
 The second objective was to assess the extent to which anycast infrastructures participate in international personal data transfers and whether such transfers are transparently disclosed to users. The large-scale analysis presented in Chapter~\ref{ch:experiments} identified 195,786 communications containing personal data and targeting anycast IP addresses, corresponding to 80.74\% of the communications containing personal data observed during the dynamic analysis. The results also showed that 98.65\% of the analysed applications do not explicitly disclose these destinations in their privacy policies (Section~\ref{sc:anycast_experiments_undisclosed}), creating challenges to transparency in environments subject to geographic data processing requirements.
 
-A third objective was to understand whether the observed jurisdictional exposure is an isolated phenomenon affecting specific applications or a broader characteristic of operational anycast deployments. The global measurement campaigns conducted throughout this research demonstrated that cross-border routing and jurisdictional variability are common properties of anycast systems, affecting a large fraction of the analysed infrastructures and geographic regions. In particular, 82.09\% of the IP-origin pairs analysed in the TPL-related experiment (Section~\ref{sc:anycast_experiments_observed_pii_anycast_communications}) reached destination countries different from the source country, while 89.19\% of the IP-origin pairs analysed in the global anycast experiment (Section~\ref{sc:anycast_experiments_global_anycast}) exhibited cross-border destinations.
+A third objective was to understand whether the observed jurisdictional exposure is an isolated phenomenon affecting specific applications or a broader characteristic of operational anycast deployments \chema{El tercer objetivo que mencionabas en 1.4 era "Analyse the role of software ecosystems and external dependencies in international data transfers", que parece un poco distinto a lo que pones aquí.}. The global measurement campaigns conducted throughout this research demonstrated that cross-border routing and jurisdictional variability are common properties of anycast systems, affecting a large fraction of the analysed infrastructures and geographic regions. In particular, 82.09\% of the IP-origin pairs analysed in the TPL-related experiment (Section~\ref{sc:anycast_experiments_observed_pii_anycast_communications}) reached destination countries different from the source country, while 89.19\% \chema{De dónde salen estos porcentajes? Comprueba que son los que deberían ser.} of the IP-origin pairs analysed in the global anycast experiment (Section~\ref{sc:anycast_experiments_global_anycast}) exhibited cross-border destinations.
 
 Finally, the thesis sought to determine whether geographic control could be achieved without abandoning the operational benefits of anycast. The RCA-DNS architecture presented in Chapter~\ref{ch:rcadns} demonstrated that making the region an explicit parameter of each communication, selected by the service before DNS resolution, deterministically restricts anycast communications to the infrastructure of the selected region, while load distribution and failover within the region continue to be handled by anycast. The evaluation of a prototype deployed in 39 Google Cloud locations showed that, where regional infrastructure is dense, as in the EEA, confinement comes at no latency cost: the median RTT decreased by 5.99\% and the 95th percentile dropped from 1{,}252.37~ms to 111.25~ms compared with a global deployment on the same infrastructure. In sparsely provisioned regions, the latency penalty reflects the lack of local infrastructure rather than the mechanism itself.
 
 The results obtained throughout this research demonstrate that the geographic destination should not be regarded as a static property of anycast communications. Instead, it emerges as a dynamic characteristic influenced by routing decisions, network conditions, and infrastructure deployment strategies. Consequently, any meaningful assessment of data sovereignty and international transfers in anycast environments requires both visibility into routing behaviour and mechanisms capable of influencing geographic service selection.
 
+% ============================================================
 \section{Scientific Contributions}
 \label{sc:conclusion_contributions}
+% ============================================================
 
 The research presented in this thesis contributes to the study of anycast infrastructures, geographic control, and data sovereignty through three complementary lines of work that span measurement, empirical analysis, and system design.
 
@@ -33,8 +37,10 @@ The third contribution is the design and experimental evaluation of Region-Const
 
 Taken together, these contributions establish a research framework that connects the measurement of geographic routing behaviour with the empirical analysis of its consequences and the design of mechanisms capable of enforcing geographic constraints. The thesis therefore moves from observing and characterising jurisdictional exposure to providing an architectural approach for controlling it. This perspective extends the traditional understanding of anycast by treating geographic destination as an operational property that can be measured, analysed, and, under appropriate architectural constraints, controlled.
 
+% ============================================================
 \section{Impact of the Research}
 \label{sc:conclusion_impact}
+% ============================================================
 
 The research conducted throughout this thesis has also contributed to a broader set of scientific activities, including research collaborations, scientific publications, international research activities, and the supervision of student projects. These activities have provided opportunities to disseminate the results of the thesis, apply the knowledge developed to related research problems, and contribute to the training of other researchers.
 
@@ -59,7 +65,7 @@ The dissemination activities were complemented by participation in the peer-revi
 \subsection{International Research Activities}
 \label{sc:conclusion_internationalisation}
 
-As part of the internationalisation of the research developed during this thesis, an international research stay was conducted at Queen Mary University of London from 6 May to 13 August of 2025. The stay provided an opportunity to collaborate with researchers in an international academic environment and to extend the research developed throughout the thesis to related problems. The research conducted during this period resulted in the design and evaluation of the RCA-DNS architecture presented in Chapter~\ref{ch:rcadns}, which is described in a manuscript that, at the time of writing, is under review at a Q1 journal.
+As part of the internationalisation of the research developed during this thesis, an international research stay was conducted at Queen Mary University of London from 6 May to 13 August of 2025. The stay provided an opportunity to collaborate with researchers in an international academic environment and to extend the research developed throughout the thesis to related problems. The research conducted during this period resulted in the design of the RCA-DNS architecture presented in Chapter~\ref{ch:rcadns}, which is described in a manuscript that, at the time of writing, is under review at a Q1 journal.
 
 \subsection{Supervised Student Projects}
 \label{sc:conclusion_student_projects}
@@ -68,8 +74,10 @@ The research activities developed during the thesis also provided a basis for su
 
 Although this project addresses a specific problem different from the main research questions in this thesis, it is related to the broader themes of distributed infrastructure management, security, and controlled access to digital services. Its development also provided an opportunity to transfer the knowledge and methodologies developed during the research to the supervision and training of undergraduate students.
 
+% ============================================================
 \section{Limitations}
 \label{sc:conclusion_limitations}
+% ============================================================
 
 The destination inference methodology developed in this thesis relies on active network measurements and geolocation information. As discussed throughout Chapter~\ref{ch:hunter}, although Hunter achieved high accuracy and precision during its validation, destination inference remains inherently dependent on the quality of the underlying measurement data and geolocation sources. Internet routing dynamics, incomplete measurement visibility, and inaccuracies in public geolocation databases may affect individual inferences. Nevertheless, the large-scale nature of the experiments and the repeated measurements performed throughout the study mitigate the impact of isolated errors on the overall conclusions.
 
@@ -83,8 +91,10 @@ The evaluation of RCA-DNS was conducted on a single provider, Google Cloud, usin
 
 Despite these limitations, the methodologies, measurements, and analyses presented throughout this thesis consistently reveal a previously underexplored relationship between anycast routing, international data transfers, and geographic control. Although the exact magnitude of the observed phenomena may vary under different experimental conditions, the results obtained across multiple datasets, measurement campaigns, and methodological approaches provide consistent evidence supporting the main conclusions of this thesis. Taken together, these findings provide strong evidence that geographic destination is a dynamic property of anycast communications and that routing behaviour must be considered when analysing data sovereignty and jurisdictional exposure in modern Internet infrastructures.
 
+% ============================================================
 \section{Future Research Directions}
 \label{sc:conclusion_future}
+% ============================================================
 
 The destination inference methodology developed in this thesis can be extended in several directions. Although Hunter demonstrated high accuracy in identifying the destination countries of anycast communications, additional improvements could be achieved by incorporating new measurement sources, routing datasets, or geolocation techniques. Future work could also investigate mechanisms for continuously monitoring anycast deployments and automatically detecting changes in their geographic footprint over time. Such capabilities would be particularly valuable for organisations seeking to assess jurisdictional exposure in dynamic network environments.
 
@@ -102,8 +112,10 @@ Alternative approaches to geographic control also deserve further investigation.
 
 More broadly, the results of this thesis suggest that geographic awareness is likely to become an increasingly important design consideration for distributed Internet services. As global infrastructures continue to expand and regulatory requirements surrounding data sovereignty evolve, understanding and controlling the geographic behaviour of networked systems will remain an important and challenging area of research.
 
+% ============================================================
 \section{Reproducibility and Open Science}
 \label{sc:conclusion_reproducibility}
+% ============================================================
 
 Reproducibility and open science have been considered throughout the development of this thesis as part of the research methodology. In accordance with the Design Science Research approach adopted in this work and described in Section~\ref{sc:introduction_methodology}, the research process includes the development and evaluation of reusable artefacts that can support independent verification and further research. Consequently, whenever permitted by ethical, legal, and licensing constraints, the software, datasets, and experimental artefacts developed throughout this thesis have been made publicly available.
 
@@ -167,8 +179,10 @@ Nevertheless, reproducibility in experiments on the Internet presents inherent c
 
 Therefore, reproducibility in this context should not be understood as obtaining identical measurements but rather as enabling independent researchers to execute the same methodologies, analyse comparable data, and assess whether the conclusions remain consistent under equivalent experimental conditions. The public availability of the software artefacts, datasets, and experimental procedures developed throughout this thesis provides a foundation for such independent verification and future research.
 
+% ============================================================
 \section{Closing Remarks}
 \label{sc:conclusion_closing}
+% ============================================================
 
 Anycast has become a fundamental building block of modern Internet infrastructure. Its ability to improve performance, scalability, and resilience has led to its widespread adoption by cloud providers, content delivery networks, security services, and countless online platforms. However, as this thesis has shown, the geographic consequences of anycast routing extend beyond traditional networking concerns and directly influence where communications are processed and, ultimately, under which jurisdictions data may be exposed. In the current geopolitical context, data sovereignty has become an increasingly important strategic and legal concern, as control over the jurisdictions in which data is processed is closely linked to national autonomy, regulatory compliance, and the protection of sensitive information.
 

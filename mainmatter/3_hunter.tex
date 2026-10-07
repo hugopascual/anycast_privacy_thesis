@@ -1,8 +1,6 @@
 \chapter{Hunter: Tracing Anycast}
 \label{ch:hunter}
 
-\chema{El capítuo está muy bien, pero echo en falta una última sección a modo de conclusión. Puede llamarse Summary and Next Steps y tiene una doble función: 1) Presenta un resumen muy breve de lo contado (un párrafo corto), indicando si ha habido alguna publicación relacionada, la primera de Hunter (añadir la cita o describirla); y 2) orientar al lector sobre cómo lo contado enlaza con los siguiente. De hecho, los dos últimos párrafos de este capítulo ya se parecen a eso, pero yo haría el esfuerzo de ponerlos como apartado independiente, porque eso hace que aparezcan en la tabla de contenidos y ayudan a un lector que quiere ir rápido. Por favor, añádela a todas las secciones de contribuciones.}
-
 As discussed in previous chapters, anycast infrastructures introduce significant challenges regarding geographic transparency and control over Internet communications. Since multiple geographically distributed servers share the same IP address, determining the actual physical destination of a communication becomes substantially more complex than in traditional unicast environments. Routing decisions may change over time as routing policies, connectivity, and network conditions evolve, making the geographic behaviour of anycast communications difficult to predict and verify. This lack of geographic determinism has direct implications for privacy, data protection, and data sovereignty. In particular, organisations and users may be unable to determine whether personal data remains within specific jurisdictions or is unintentionally transferred across national borders. Consequently, understanding the actual geographic destinations reached by anycast communications becomes a fundamental requirement for evaluating compliance with modern data protection regulations.
 
 However, identifying the physical destination of anycast communications is a non-trivial problem. Traditional IP geolocation databases are insufficient to determine the geographic destination of individual communications to anycast services. A single anycast IP address corresponds to multiple geographically distributed replicas, whereas IP geolocation databases typically associate the address with a single representative geographic location. Some modern databases, such as IPinfo \cite{IPIPinfo}, explicitly identify IP addresses as anycast, but this classification does not resolve the geographic ambiguity: the reported location still represents a single location for the IP address rather than the replica that served a particular communication. Consequently, IP geolocation alone cannot determine which geographic destination was reached by a specific anycast communication. Furthermore, the destination reached by a communication may dynamically vary depending on the origin network and current routing conditions.
@@ -20,8 +18,10 @@ Figure~\ref{fig:hunter_flow_with_map} summarises the different stages of the Hun
     \label{fig:hunter_flow_with_map}
 \end{figure}
 
+% ============================================================
 \section{Tracing the Anycast Path}
 \label{sc:hunter_tracing_anycast_path}
+% ============================================================
 
 The first step of Hunter consists of analysing the routing path followed by packets towards the target infrastructure. Because multiple anycast replicas share the same destination IP address, the objective is to identify the network elements closest to the replica that serves the traffic from a given origin network.
 
@@ -38,8 +38,10 @@ One of the key assumptions underlying the proposed methodology is that the last 
 
 The rationale behind this assumption is that routers located near the edge of the destination infrastructure are commonly deployed within the same metropolitan area, Internet Exchange Point (IXP), or regional network environment as the serving replica. Although the exact internal topology of anycast providers generally remains unknown, the geographic distance between the last observable router and the destination infrastructure is typically significantly smaller than the overall end-to-end communication path. Consequently, the last hop provides a substantially more constrained geographic reference than the anycast IP address itself.
 
+% ============================================================
 \section{Multilateration}
 \label{sc:hunter_multilateration}
+% ============================================================
 
 After identifying the last hop associated with the anycast communication, the methodology estimates the geographic region where the serving replica is likely deployed. This estimation is performed through multilateration techniques using latency measurements collected from geographically distributed vantage points.
 
@@ -89,8 +91,10 @@ The resulting expression does not admit a closed-form analytic inverse that allo
 
 Since the model itself constitutes an approximation of real Internet routing behaviour, the distance estimations obtained inherently introduce a certain degree of error. Nevertheless, the results shown in section \textit{6.2. Results} of the VerLoc paper \cite{Kohls2022VerLoc:Systems}, show that this approach provides substantially more realistic geographic constraints than ideal propagation models based solely on optical fibre transmission speed.
 
+% ============================================================
 \section{Country Determination}
 \label{sc:hunter_country_determination}
+% ============================================================
 
 Once the multilateration phase produces a geographic region compatible with the observed latency constraints, the final stage of the methodology consists of determining the jurisdiction associated with the anycast communication.
 
@@ -108,8 +112,10 @@ In certain cases, no airport may be located directly within the overlapping area
 
 By prioritising conservative country-level attribution over precise coordinate estimation, Hunter minimises false positive geographic assignments while maintaining sufficient accuracy for the analysis of international data transfers and jurisdictional exposure in anycast communications.
 
+% ============================================================
 \section{Limitations}
 \label{sc:hunter_limitations}
+% ============================================================
 
 The methodology proposed in this chapter relies on active Internet measurements, routing-path analysis, and latency-based geographic inference to estimate the destination jurisdictions associated with anycast communications. Although the validation results obtained \ref{sc:hunter_validation} demonstrate that Hunter provides reliable country-level inference under real-world conditions, the methodology is inherently affected by several limitations associated with measurements at the Internet-scale and operational routing infrastructures.
 
@@ -233,8 +239,10 @@ Consequently, Hunter does not attempt highly precise geographic attribution and 
 
 These limitations highlight the inherent uncertainty associated with Internet-scale geographic inference. Nevertheless, the validation results \ref{sc:hunter_validation} demonstrate that, despite these constraints, Hunter provides sufficient reliable country-level attribution capabilities to support large-scale analysis of international data transfers over anycast infrastructures.
 
+% ============================================================
 \section{Validation}
 \label{sc:hunter_validation}
+% ============================================================
 
 The proposed methodology and its software implementation, Hunter, were validated under real-world Internet conditions in order to evaluate their capability to infer the geographic destination of anycast communications. Since the primary objective of Hunter is to determine the jurisdiction associated with a communication, the validation process focuses on country-level attribution rather than precise coordinate-level geolocation.
 
@@ -389,4 +397,11 @@ Finally, episodic transfers correspond to occasional routing deviations observed
 
 These observations demonstrate that the geographic destination of anycast communications may vary substantially depending on transient routing conditions, traffic engineering decisions, and BGP dynamics. Consequently, determining the actual jurisdiction reached by a communication requires continuous observation and active measurement rather than relying exclusively on static infrastructure assumptions or conventional IP geolocation databases.
 
-The validation results obtained confirm that Hunter provides sufficiently reliable geographic inference capabilities for studying international data transfers over anycast infrastructures. Building upon these results, the following chapters employ Hunter to analyse real-world mobile ecosystems and evaluate the impact of anycast communications on data protection and jurisdictional exposure.
+% ============================================================
+\section{Summary and Next Steps}
+\label{sc:hunter_summary}
+% ============================================================
+
+This chapter has presented Hunter, a methodology for inferring the country in which an anycast communication terminates. Hunter identifies the last hop before the anycast replica through traceroute analysis, constrains its location through latency-based multilateration from RIPE Atlas probes, and determines the destination country conservatively, returning an indeterminate result whenever the available evidence does not support a reliable attribution. The validation conducted in 29 EEA countries over 2,739 measurements yielded a precision of 97.67\% and an accuracy of 78.09\%, and already revealed recurrent, frequent, and episodic transfers towards countries outside the EEA. Hunter and its validation have been published in the article \emph{Hunter: Tracing anycast communications to uncover cross-border personal data transfers} \cite{Pascual2024Hunter:Transfers}.
+
+These results show that Hunter provides sufficiently reliable geographic inference to study international data transfers over anycast infrastructures, and that the destination of these communications cannot be determined from static assumptions about the infrastructure. Building upon these capabilities, Chapter~\ref{ch:experiments} applies Hunter to the personal-data communications generated by Android applications and their Third-Party Libraries, compares the destinations reached with those disclosed in privacy policies, and extends the analysis to operational anycast infrastructures worldwide.

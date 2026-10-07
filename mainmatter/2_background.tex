@@ -3,10 +3,12 @@
 
 The research presented in this thesis lies at the intersection of Internet architecture, network measurements, mobile ecosystems, and the legal frameworks governing international data transfers. In particular, this work focuses on the implications that anycast-based infrastructures have on data protection.
 
-Understanding these implications requires combining knowledge from multiple domains, which are reviewed in the following sections. First, it requires understanding how Internet routing works and how anycast determines which replica serves each communication (Section~\ref{sec:background_internet_routing}). Second, it requires understanding how the geographic location of Internet infrastructure can be inferred through network measurements, and the limitations of existing geolocation techniques when applied to anycast (Section~\ref{sec:background_geolocation}). Third, it requires knowledge of the data protection regulations that govern international transfers of personal data, including the transparency and information obligations imposed on data controllers (Section~\ref{sc:background_privacy}). Finally, it requires understanding the software development practices that determine which services an application communicates with, such as the integration of TPLs in Android applications, which constitute the case study of this thesis (Section~\ref{sec:background_mobile_applications}). Although Android applications are used as the case study, the destination inference techniques and the regulatory analysis presented in this thesis do not depend on the platform, which makes it possible to extend this work to other ecosystems, such as iOS applications or web services.
+Understanding these implications requires combining knowledge from multiple domains, which are reviewed in the following sections. First, it requires understanding how Internet routing works and how anycast determines which replica serves each communication (Section~\ref{sec:background_internet_routing}). Second, it requires understanding how the geographic location of Internet infrastructure can be inferred through network measurements, and the limitations of existing geolocation techniques when applied to anycast (Section~\ref{sc:background_location_measurements}). Third, it requires knowledge of the data protection regulations that govern international transfers of personal data, including the transparency and information obligations imposed on data controllers (Section~\ref{sc:background_privacy}). Finally, it requires understanding the software development practices that determine which services an application communicates with, such as the integration of TPLs in Android applications, which constitute the case study of this thesis (Section~\ref{sec:background_mobile_applications}). Although Android applications are used as the case study, the destination inference techniques and the regulatory analysis presented in this thesis do not depend on the platform, which makes it possible to extend this work to other ecosystems, such as iOS applications or web services.
 
+% ============================================================
 \section{Internet Routing and Anycast Communications}
 \label{sec:background_internet_routing}
+% ============================================================
 
 \subsection{Internet Routing Fundamentals}
 \label{sc:background_internet_routing_fundamentals}
@@ -98,8 +100,10 @@ Cloud providers and DDoS mitigation platforms also rely on distributed anycast i
 
 In these deployments, the same logical service may therefore be provided from multiple geographic locations, while routing mechanisms determine which location handles a particular communication. These architectures further illustrate the broad adoption of anycast across Internet services and the resulting separation between a service's logical identity and the geographic location of the infrastructure handling individual communications.
 
+% ============================================================
 \section{Geographic Location and Internet Measurements}
 \label{sc:background_location_measurements}
+% ============================================================
 
 \subsection{IP Geolocation}
 \label{sc:background_location_measurements_ip_geolocation}
@@ -154,8 +158,10 @@ The platform is maintained by the RIPE Network Coordination Centre (RIPE NCC), t
 
 The availability of geographically distributed vantage points makes platforms such as RIPE Atlas particularly valuable for studies involving routing behaviour, latency analysis, geolocation, and anycast infrastructures. Consequently, RIPE Atlas has been extensively employed in research addressing Internet topology, traffic engineering, geographic inference, and the characterisation of distributed services.
 
+% ============================================================
 \section{Privacy, Data Sovereignty, and International Data Transfers}
 \label{sc:background_privacy}
+% ============================================================
 
 \subsection{Privacy Regulations}
 \label{sc:background_privacy_regulations}
@@ -214,8 +220,10 @@ This lack of observability creates an important accountability challenge. Regula
 
 Consequently, improving geographic transparency requires mechanisms capable of observing and characterising the actual destinations reached by communications rather than relying solely on administrative configurations, provider declarations, or static geolocation information. In the context of anycast systems, methodologies capable of tracing and characterising the geographic destinations of communications can therefore provide valuable evidence for assessing transparency, accountability, and compliance in modern Internet ecosystems.
 
+% ============================================================
 \section{Mobile Applications and Third-Party Libraries}
 \label{sec:background_mobile_applications}
+% ============================================================
 
 Mobile applications constitute an important environment for the collection and processing of personal data. Modern applications frequently rely on external services to provide functionality such as analytics, advertising, authentication, crash reporting, social-media integration, and content delivery. As a result, data generated through a mobile application may be processed not only by the application developer but also by multiple external service providers.
 
@@ -227,8 +235,10 @@ However, existing approaches generally do not consider the network-level geograp
 
 This gap is particularly relevant to the problem studied in this thesis. Android applications provide a natural environment in which personal-data processing, third-party dependencies, international data transfers, and globally distributed Internet infrastructures intersect. By combining the analysis of Android application traffic and TPLs with network-level inference of anycast destinations, this thesis investigates the geographic dimension of international data transfers that is not captured by existing application and policy-level analyses.
 
+% ============================================================
 \section{Summary and Research Motivation}
 \label{sec:background_summary}
+% ============================================================
 
 The background presented in this chapter highlights the increasing complexity of understanding and controlling the geographic behaviour of Internet communications. Internet routing is governed by policies and network conditions rather than geographic proximity, while anycast further decouples the logical identity of a service from the geographic location of the infrastructure that handles a communication. These characteristics create challenges for geographic control and data sovereignty, particularly in the context of privacy regulations that impose requirements on international data transfers and transparency towards data subjects. At the same time, mobile applications increasingly rely on TPLs and globally distributed services, creating additional dependencies between application-level data processing and network-level infrastructure. Consequently, determining and controlling where personal data are actually processed requires considering not only the application and the entities involved in its processing, but also the network mechanisms that determine the geographic destination of individual communications.
 

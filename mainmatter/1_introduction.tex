@@ -1,8 +1,10 @@
 \chapter{Introduction}
 \label{ch:introduction}
 
+% ============================================================
 \section{Context and Motivation}
 \label{sc:introduction_context_motivation}
+% ============================================================
 
 The rapid evolution of digital services has led to an increasingly distributed Internet architecture. To ensure high availability, low latency, scalability, and resilience against large-scale DDoS attacks, modern Internet services rely heavily on anycast routing \cite{Abley2006OperationServices,McPherson2014ArchitecturalAnycast}. Anycast allows multiple geographically dispersed servers to share a single IP address, directing user traffic to the nearest instance according to the Internet routing topology. This paradigm has become fundamental for critical Internet services such as Content Delivery Networks (CDNs), Domain Name System (DNS) infrastructures, cloud providers, anti-DDoS platforms, and edge computing services.
 
@@ -20,8 +22,10 @@ As a consequence, application developers may unintentionally delegate sensitive 
 
 In this context, understanding the relationship between anycast infrastructures, third-party ecosystems, and data protection regulations becomes essential. This thesis addresses this challenge from three complementary perspectives. First, it develops methodologies capable of accurately tracing the geographic destinations of anycast communications. Second, it evaluates the real-world privacy implications of anycast within mobile ecosystems and third-party dependencies. Finally, it proposes new architectural frameworks aimed at restoring deterministic geographic control over anycast communications while preserving the scalability and resilience benefits that motivated anycast adoption in the first place.
 
+% ============================================================
 \section{Relevance}
 \label{sc:introduction_relevance}
+% ============================================================
 
 The research presented in this thesis addresses problems whose importance extends beyond the specific study of anycast routing. The increasing reliance on Cloud Computing, CDNs, edge infrastructures, and globally distributed services has transformed anycast into a fundamental building block of the modern Internet. As more applications and services depend on geographically distributed infrastructures, understanding the actual destinations reached by communications becomes increasingly relevant not only from the perspective of performance and resilience, but also in terms of privacy, data protection, international data transfers, and data sovereignty.
 
@@ -35,8 +39,10 @@ At the national level, the Spanish Strategy for Science, Technology and Innovati
 
 From this perspective, the contributions of this thesis extend beyond the study of a particular routing mechanism. By analysing how anycast routing influences the jurisdictions reached by communications and by proposing mechanisms capable of introducing geographic constraints into service deployments, this work contributes to the broader objective of enabling distributed Internet infrastructures that simultaneously satisfy performance, resilience, transparency, and geographic control requirements. As data sovereignty and international data governance become increasingly relevant topics, understanding and controlling the geographic behaviour of Internet infrastructures is likely to become an important research challenge for both academia and industry.
 
+% ============================================================
 \section{Research Questions}
 \label{sc:introduction_rqs}
+% ============================================================
 
 To address the aforementioned problem, this thesis seeks to answer the following research questions:
 
@@ -52,8 +58,10 @@ To address the aforementioned problem, this thesis seeks to answer the following
 
 \end{itemize}
 
+% ============================================================
 \section{Thesis Objectives}
 \label{sc:introduction_objectives}
+% ============================================================
 
 \subsection{Main Objective}
 \label{sc:introduction_objectives_main}
@@ -95,10 +103,10 @@ To achieve the main objective, the following specific goals are pursued:
     \end{itemize}
 \end{enumerate}
 
-
-
+% ============================================================
 \section{Research Methodology}
 \label{sc:introduction_methodology}
+% ============================================================
 
 The research presented in this thesis follows the Design Science Research (DSR) paradigm. DSR originated in the field of information systems as a complement to behavioural research: whereas behavioural research seeks to explain phenomena, DSR seeks to solve relevant problems by creating and evaluating artefacts \cite{Hevner2004DesignResearch}. In this context, an artefact is any purposeful construction intended to address a problem, and March and Smith classify artefacts into four types: constructs, which provide the vocabulary of a domain; models, which represent problems and solutions; methods, which define processes for solving them; and instantiations, which implement the previous artefacts in working systems \cite{March1995DesignTechnology}. DSR research is therefore organised around two complementary activities, building artefacts and evaluating them, and its contributions lie both in the artefacts themselves and in the knowledge obtained from their evaluation.
 
@@ -134,8 +142,10 @@ This thesis completes two DSRM iterations, both initiated by the identification 
 
 Each activity relies on research methods appropriate to the artefact concerned. Active network measurements, performed through the RIPE Atlas platform, support both the design and validation of Hunter and the evaluation of RCA-DNS. The empirical studies combine dynamic traffic analysis of Android applications, the identification of personal data in network communications, the attribution of communications to TPLs, and the analysis of privacy policies, whose results are contrasted with the destinations inferred by Hunter. The specific methodology of each study is detailed in the corresponding chapter.
 
+% ============================================================
 \section{Original Contributions}
 \label{sc:introduction_contributions}
+% ============================================================
 
 The first contribution of this thesis is the design and validation of Hunter, a method capable of inferring the destination country associated with communications towards anycast replicas. Hunter combines traceroute analysis, last-hop identification, latency-based multilateration, and geographic inference techniques to provide country-level attribution of anycast destinations. This contribution addresses RQ1 and provides the measurement capabilities required for the remainder of the thesis.
 
@@ -147,8 +157,10 @@ Finally, the thesis proposes Region-Constrained Anycast over DNS (RCA-DNS), an a
 
 Taken together, these contributions provide both a measurement framework for studying the geographic behaviour of anycast systems and a practical mechanism for improving geographic control over communications in environments subject to data protection and sovereignty concerns.
 
+% ============================================================
 \section{Thesis Outline}
 \label{sc:introduction_outline}
+% ============================================================
 
 The remainder of this dissertation is organised as follows. Chapter~\ref{ch:background} introduces the background concepts required for the rest of the thesis, covering anycast routing, international data transfers, data protection regulations, and related work. Chapter~\ref{ch:hunter} presents Hunter, a methodology for inferring the geographic destinations reached by communications towards anycast infrastructures, together with its design and validation. Chapter~\ref{ch:experiments} applies this methodology to study international data transfers involving personal data, analysing the prevalence of anycast communications, transparency issues, the role of software ecosystems and external dependencies, and the broader implications of jurisdictional exposure. Chapter~\ref{ch:rcadns} introduces RCA-DNS, a mechanism designed to improve geographic control over services with anycast communications, and evaluates its feasibility through experimental deployments. Finally, Chapter~\ref{ch:conclusion} summarises the main findings of this work, presents its scientific contributions, discusses its limitations, addresses reproducibility and open science, and outlines future research directions.
 
