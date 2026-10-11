@@ -19,6 +19,75 @@ Figure~\ref{fig:hunter_flow_with_map} summarises the different stages of the Hun
 \end{figure}
 
 % ============================================================
+\section{State of the Art}
+\label{sc:hunter_sota}
+% ============================================================
+
+Section~\ref{sc:background_location_measurements} introduced the techniques on which the geolocation of Internet infrastructure relies. This section reviews the works that apply these techniques to locate the destination of network communications and identifies why none of them can determine the location reached by a specific anycast communication. Table~\ref{tab:hunter_sota_comparison} summarises the comparison.
+
+\subsection{IP Geolocation Databases}
+\label{sc:hunter_sota_databases}
+
+The most common way of locating the destination of a communication is to query an IP geolocation database. These databases associate each IP address, or each prefix, with a single location derived from registry information, routing data, or measurements. Their accuracy has repeatedly been questioned, even for unicast addresses \cite{Poese2011IPUnreliable, Ding2015AnSub-networks}, and Cozar et al. showed that different commercial databases frequently disagree on the country assigned to the same address, which makes them unreliable for assessing international data transfers \cite{Cozar2022ReliabilityTransfers}. For anycast addresses, the limitation is structural rather than a matter of accuracy: a single location cannot represent an address served from many countries. Some services, such as IPinfo \cite{IPIPinfo}, flag addresses as anycast, but they still return a single location, so they cannot indicate which replica serves a particular communication.
+
+\subsection{Latency-Based Geolocation of Unicast Addresses}
+\label{sc:hunter_sota_unicast}
+
+Measurement-based approaches locate an address by combining latency measurements from vantage points whose location is known. Multilateration techniques estimate the maximum distance compatible with each round-trip time and intersect the resulting areas to bound the location of the target \cite{Ciavarrini2018GeolocationBound, Dan2021IPInterpolation}. VerLoc applies this principle to verify the location claims of nodes in distributed systems \cite{Kohls2022VerLoc:Systems}, and recent work has shown that RIPE Atlas can be used to geolocate Internet infrastructure at scale \cite{Candela2025UsingInfrastructure}. Traceroute has also been combined with latency measurements to improve the location of unicast hosts \cite{Cicalese2016Latency-BasedSets}. All these approaches assume that the target address corresponds to a single physical location. With anycast, this assumption breaks down: probes in different places reach different replicas, so their measurements describe different machines, and intersecting them yields an empty or misleading region.
+
+\subsection{Anycast Detection and Enumeration}
+\label{sc:hunter_sota_enumeration}
+
+A second line of work addresses anycast explicitly, with the goal of identifying anycast addresses and enumerating their replicas. iGreedy detects whether an address is anycast by finding latency measurements from different vantage points that cannot be explained by a single location, and then estimates the location of each replica \cite{Cicalese2015AGeolocation}. MAnycast2 performs censuses of the IPv4 address space to identify anycast prefixes \cite{Sommese2020MAnycast2:Anycast}, and RIPE IPmap reports when an address appears to have multiple locations \cite{RIPEIPmap}. These tools answer the question of where an anycast service is deployed, producing the set of replica locations of an address. However, they do not determine which of these replicas is reached by the communications of a given client, which is the information required to know where a specific communication terminates.
+
+\subsection{Anycast Catchment Mapping and Performance Analysis}
+\label{sc:hunter_sota_catchments}
+
+The question of which replica serves which clients has been studied from the perspective of anycast operators, under the name of catchment mapping. Verfploeter maps the catchment of each replica by sending probes from the anycast prefix towards a large set of addresses and observing at which replica the replies arrive \cite{deVries2017Verfploeter}. Calder et al. and Koch et al. analysed the performance of large anycast services and found that a fraction of clients is systematically served by distant replicas \cite{Calder2015AnalyzingCDN, Koch2021AnycastSystems}, and Bian et al. showed how remote peering can cause traffic to be routed to unexpected locations \cite{Bian2019TowardsPeering}. These works confirm that the replica serving a client is not necessarily the geographically closest one, which is the premise of this thesis. However, catchment mapping requires control of the anycast prefix, and performance studies characterise aggregate behaviour. Neither provides a way for an external party, such as a user, a data controller, or an auditor, to determine where a specific communication from a given location terminates.
+
+\subsection{Geography of Routing Paths}
+\label{sc:hunter_sota_paths}
+
+Other works have analysed the geographic properties of Internet routing paths, for instance identifying international detours in which traffic between two points of the same country traverses another country \cite{Shah2016TowardsDetours}, or detecting autonomous systems whose routes deviate from the expected ones \cite{Comarela2016DetectingApplications}. These studies focus on the countries traversed by packets on their way to the destination. From a data protection perspective, however, the transit of encrypted traffic through third countries is generally not considered problematic \cite{RecommendationsBoard}, whereas the location in which communications terminate determines the jurisdiction to which the data are exposed. The relevant question for this thesis is therefore where communications terminate, not which countries they traverse.
+
+\subsection{Positioning of Hunter}
+\label{sc:hunter_sota_positioning}
+
+Hunter addresses the gap left by the previous approaches: it infers, from the point of view of a given client and without control of the anycast prefix, the country in which a specific anycast communication terminates. It reuses techniques from the works reviewed above, namely traceroute analysis to identify the last hop before the destination and latency-based multilateration to bound its location, but applies them to the element actually reached by the communication rather than to the anycast address as a whole.
+
+Like the rest of the approaches reviewed in this section, Hunter operates at the network level. What it locates is the last element of the IP-level connection towards the anycast address, whatever that element is. When the service relies on a cloud or CDN provider, this element is usually the first element of the provider's infrastructure that terminates the connection, and the processing that takes place behind it cannot be observed through network measurements. This limitation is shared by every external measurement technique, Section~\ref{sc:hunter_limitations_ingress}.
+
+Before describing these stages, Section~\ref{sc:hunter_sota} reviews the existing approaches for locating the destination of network communications and positions Hunter with respect to them.
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Comparison of approaches for locating the destination of network communications. $\checkmark$: supported; $\sim$: partially supported; $\times$: not supported.}
+    \label{tab:hunter_sota_comparison}
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X cccc}
+        \toprule
+        \textbf{Approach} &
+        \begin{tabular}[c]{@{}c@{}}\textbf{Handles}\\\textbf{anycast}\end{tabular} &
+        \begin{tabular}[c]{@{}c@{}}\textbf{Per-communication}\\\textbf{destination}\end{tabular} &
+        \begin{tabular}[c]{@{}c@{}}\textbf{No control of}\\\textbf{the prefix}\end{tabular} &
+        \begin{tabular}[c]{@{}c@{}}\textbf{Country-level}\\\textbf{output}\end{tabular} \\
+        \midrule
+        IP geolocation databases \cite{Cozar2022ReliabilityTransfers, IPIPinfo} & $\times$ & $\times$ & $\checkmark$ & $\checkmark$ \\
+        \rowsep{5}
+        Latency-based geolocation of unicast addresses \cite{Ciavarrini2018GeolocationBound, Kohls2022VerLoc:Systems, Candela2025UsingInfrastructure} & $\times$ & $\times$ & $\checkmark$ & $\checkmark$ \\
+        \rowsep{5}
+        Anycast detection and enumeration \cite{Cicalese2015AGeolocation, Sommese2020MAnycast2:Anycast, RIPEIPmap} & $\checkmark$ & $\times$ & $\checkmark$ & $\checkmark$ \\
+        \rowsep{5}
+        Anycast catchment mapping \cite{deVries2017Verfploeter} & $\checkmark$ & $\sim$ & $\times$ & $\sim$ \\
+        \rowsep{5}
+        Routing path geography \cite{Shah2016TowardsDetours, Comarela2016DetectingApplications} & $\sim$ & $\times$ & $\checkmark$ & $\checkmark$ \\
+        \midrule
+        \textbf{Hunter} (this chapter) & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+% ============================================================
 \section{Tracing the Anycast Path}
 \label{sc:hunter_tracing_anycast_path}
 % ============================================================
