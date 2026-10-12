@@ -1,7 +1,7 @@
 % --------------------------
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL /tmp/ycs2mTqFPx/latexdiff-vc-main/main.tex   Sun Oct 11 21:24:43 2026
-%DIF ADD main.tex                                     Fri Oct  9 22:52:33 2026
+%DIF DEL /tmp/OhyDOJPuU_/latexdiff-vc-main/main.tex   Mon Oct 12 14:22:58 2026
+%DIF ADD main.tex                                     Mon Oct 12 12:58:18 2026
 % Document class
 % --------------------------
 \documentclass[
@@ -777,6 +777,10 @@ En conjunto, estas contribuciones muestran que el destino geográfico de las com
 \item [SNI] Server Name Indication
 \item [\DIFaddbegin \DIFadd{TLS}] \DIFadd{Transport Layer Security
 }\item [\DIFaddend TPLs] Third Party Libraries
+\DIFdelbegin %DIFDELCMD < \item [%%%
+\DIFdel{URL}%DIFDELCMD < ] %%%
+\DIFdel{Uniform Resource Locator
+}\DIFdelend 
 
 \end{description}
 
@@ -3121,9 +3125,9 @@ In all three levels, the network path between the client and the provider is det
 }
 
 \DIFadd{In level (b), the connection is received outside the region by the edge of the provider. In terms of the kind of information observed, this edge is equivalent to any intermediate network, but it differs from a transit network in three respects. First, it observes every connection directed to the regional address in both directions, whereas an intermediate network may only observe part of the traffic. Second, it knows which service and which customer each connection belongs to. Third, it may log these metadata or actively forward them: AWS Global Accelerator, for instance, can convey the original client address to the regional endpoint in an }\texttt{\DIFadd{X-Forwarded-For}} \DIFadd{header \mbox{%DIFAUXCMD
-\cite{AWSGAClientIP}}\hskip0pt%DIFAUXCMD
+\cite{HowAcceleratorb}}\hskip0pt%DIFAUXCMD
 , and transport-layer proxies commonly do so through the PROXY protocol \mbox{%DIFAUXCMD
-\cite{ProxyProtocol}}\hskip0pt%DIFAUXCMD
+\cite{The2}}\hskip0pt%DIFAUXCMD
 . The edge therefore handles client metadata on behalf of the service, in the sense of a processor under Article~4(8) of the GDPR \mbox{%DIFAUXCMD
 \cite{REGULATIONSRelevance}}\hskip0pt%DIFAUXCMD
 , and it does so outside the region. Level (b) thus confines the content of communications, but leaves a risk associated with the processing of identifying metadata by the provider in other jurisdictions.
@@ -3132,7 +3136,7 @@ In all three levels, the network path between the client and the provider is det
 \DIFadd{In level (c), by contrast, the provider only receives traffic inside the region, so the metadata that it can use to identify and associate communications with a service are collected within the designated region. Outside the region, packets only traverse third-party transit networks, which observe the metadata of the packets they forward, as in any Internet communication, but neither terminate the connection nor act on behalf of the service. This corresponds to the situation of data merely transiting third countries addressed by the recommendations of the European Data Protection Board \mbox{%DIFAUXCMD
 \cite{RecommendationsBoard}}\hskip0pt%DIFAUXCMD
 . Where the metadata collected by the provider are subsequently stored depends, in both levels, on its logging configuration; providers themselves treat these logs as sensitive, and Cloudflare, for instance, offers a Customer Metadata Boundary that keeps the logs containing traffic metadata that can identify end users within a selected region, which may otherwise be stored in core data centers globally \mbox{%DIFAUXCMD
-\cite{CloudflareMetadataBoundary}}\hskip0pt%DIFAUXCMD
+\cite{CustomerDocs}}\hskip0pt%DIFAUXCMD
 . Consequently, level (c) confines both the content of communications and the collection of identifying metadata by the provider to the designated region, leaving outside it only the exposure inherent to transit across the Internet, which is why it constitutes the strongest form of confinement.
 }
 
