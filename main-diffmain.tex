@@ -1,6 +1,6 @@
 % --------------------------
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL /tmp/5J8bzegA1g/latexdiff-vc-main/main.tex   Sun Oct 11 21:24:43 2026
+%DIF DEL /tmp/ycs2mTqFPx/latexdiff-vc-main/main.tex   Sun Oct 11 21:24:43 2026
 %DIF ADD main.tex                                     Fri Oct  9 22:52:33 2026
 % Document class
 % --------------------------
@@ -1267,7 +1267,7 @@ This complexity is further amplified in mobile environments. Modern applications
 Several studies have demonstrated that privacy disclosures often do not provide accurate information regarding such complex data-sharing ecosystems \cite{DelAlamo2021PrivacyStudy, DelAlamo2022APolicies}. However, most previous analyses focus on organisational relationships and declared third parties rather than on the actual network-level geographic behaviour of communications \cite{Guaman2021GDPRApps}. This thesis extends prior work by analysing international data transfers from a network-layer perspective when anycast infrastructures participate in the delivery process.
 
 \DIFaddbegin \DIFadd{Network-layer observations and legal qualifications must nevertheless be kept apart, and this thesis uses three distinct terms accordingly. A }\textit{\DIFadd{cross-border communication}} \DIFadd{is a communication whose destination, as inferred through network measurements, is located in a country different from that of its origin. When such a communication carries personal data and terminates outside the EEA, it is referred to as a }\textit{\DIFadd{potential international transfer}}\DIFadd{. Whether it actually constitutes an international transfer in the sense of Chapter~V of the GDPR depends on the entities that send and receive the data and on the role they play \mbox{%DIFAUXCMD
-\cite{EDPB2023Guidelines052021}}\hskip0pt%DIFAUXCMD
+\cite{GuidelinesBoard}}\hskip0pt%DIFAUXCMD
 , and whether it is lawful depends on the transfer mechanism applied, such as an adequacy decision \mbox{%DIFAUXCMD
 \cite{DataCountries} }\hskip0pt%DIFAUXCMD
 or appropriate safeguards. Finally, a destination country that is not mentioned in a privacy policy indicates a }\textit{\DIFadd{potential transparency gap}}\DIFadd{: Article~13(1)(f) of the GDPR requires informing data subjects of the intention to transfer personal data to a third country and of the transfer mechanism relied upon, and the transparency guidelines state that, in accordance with the principle of fairness, this information should be as meaningful as possible, which ``will generally mean that the third countries be named'' \mbox{%DIFAUXCMD
@@ -1357,7 +1357,11 @@ A second line of work addresses anycast explicitly, with the goal of identifying
 \subsection{Anycast Catchment Mapping and Performance Analysis}
 \label{sc:hunter_sota_catchments}
 
-The question of which replica serves which clients has been studied from the perspective of anycast operators, under the name of catchment mapping. Verfploeter maps the catchment of each replica by sending probes from the anycast prefix towards a large set of addresses and observing at which replica the replies arrive \cite{deVries2017Verfploeter}. Calder et al. and Koch et al. analysed the performance of large anycast services and found that a fraction of clients is systematically served by distant replicas \cite{Calder2015AnalyzingCDN, Koch2021AnycastSystems}, and Bian et al. showed how remote peering can cause traffic to be routed to unexpected locations \cite{Bian2019TowardsPeering}. These works confirm that the replica serving a client is not necessarily the geographically closest one, which is the premise of this thesis. However, catchment mapping requires control of the anycast prefix, and performance studies characterise aggregate behaviour. Neither provides a way for an external party, such as a user, a data controller, or an auditor, to determine where a specific communication from a given location terminates.
+The question of which replica serves which clients has been studied from the perspective of anycast operators, under the name of catchment mapping. Verfploeter maps the catchment of each replica by sending probes from the anycast prefix towards a large set of addresses and observing at which replica the replies arrive \DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{deVries2017Verfploeter}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
+\cite{DeVries2017BroadVerfploeter}}\hskip0pt%DIFAUXCMD
+}\DIFaddend . Calder et al. and Koch et al. analysed the performance of large anycast services and found that a fraction of clients is systematically served by distant replicas \cite{Calder2015AnalyzingCDN, Koch2021AnycastSystems}, and Bian et al. showed how remote peering can cause traffic to be routed to unexpected locations \cite{Bian2019TowardsPeering}. These works confirm that the replica serving a client is not necessarily the geographically closest one, which is the premise of this thesis. However, catchment mapping requires control of the anycast prefix, and performance studies characterise aggregate behaviour. Neither provides a way for an external party, such as a user, a data controller, or an auditor, to determine where a specific communication from a given location terminates.
 
 \subsection{Geography of Routing Paths}
 \label{sc:hunter_sota_paths}
@@ -1378,7 +1382,29 @@ Before describing these stages, Section~\ref{sc:hunter_sota} reviews the existin
     \small
     \caption{Comparison of approaches for locating the destination of network communications. $\checkmark$: supported; $\sim$: partially supported; $\times$: not supported.}
     \label{tab:hunter_sota_comparison}
-    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X cccc}
+    \DIFdelbeginFL %DIFDELCMD < \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X cccc}
+%DIFDELCMD <         \toprule
+%DIFDELCMD <         \textbf{Approach} &
+%DIFDELCMD <         \begin{tabular}[c]{@{}c@{}}\textbf{Handles}\\\textbf{anycast}\end{tabular} &
+%DIFDELCMD <         \begin{tabular}[c]{@{}c@{}}\textbf{Per-communication}\\\textbf{destination}\end{tabular} &
+%DIFDELCMD <         \begin{tabular}[c]{@{}c@{}}\textbf{No control of}\\\textbf{the prefix}\end{tabular} &
+%DIFDELCMD <         \begin{tabular}[c]{@{}c@{}}\textbf{Country-level}\\\textbf{output}\end{tabular} \\
+%DIFDELCMD <         \midrule
+%DIFDELCMD <         IP geolocation databases \cite{Cozar2022ReliabilityTransfers, IPIPinfo} & $\times$ & $\times$ & $\checkmark$ & $\checkmark$ \\
+%DIFDELCMD <         \rowsep{5}
+%DIFDELCMD <         Latency-based geolocation of unicast addresses \cite{Ciavarrini2018GeolocationBound, Kohls2022VerLoc:Systems, Candela2025UsingInfrastructure} & $\times$ & $\times$ & $\checkmark$ & $\checkmark$ \\
+%DIFDELCMD <         \rowsep{5}
+%DIFDELCMD <         Anycast detection and enumeration \cite{Cicalese2015AGeolocation, Sommese2020MAnycast2:Anycast, RIPEIPmap} & $\checkmark$ & $\times$ & $\checkmark$ & $\checkmark$ \\
+%DIFDELCMD <         \rowsep{5}
+%DIFDELCMD <         Anycast catchment mapping \cite{deVries2017Verfploeter} & $\checkmark$ & $\sim$ & $\times$ & $\sim$ \\
+%DIFDELCMD <         \rowsep{5}
+%DIFDELCMD <         Routing path geography \cite{Shah2016TowardsDetours, Comarela2016DetectingApplications} & $\sim$ & $\times$ & $\checkmark$ & $\checkmark$ \\
+%DIFDELCMD <         \midrule
+%DIFDELCMD <         \textbf{Hunter} (this chapter) & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+%DIFDELCMD <         \bottomrule
+%DIFDELCMD <     \end{tabularx}
+%DIFDELCMD < %%%
+\DIFdelendFL \DIFaddbeginFL \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X cccc}
         \toprule
         \textbf{Approach} &
         \begin{tabular}[c]{@{}c@{}}\textbf{Handles}\\\textbf{anycast}\end{tabular} &
@@ -1392,14 +1418,14 @@ Before describing these stages, Section~\ref{sc:hunter_sota} reviews the existin
         \rowsep{5}
         Anycast detection and enumeration \cite{Cicalese2015AGeolocation, Sommese2020MAnycast2:Anycast, RIPEIPmap} & $\checkmark$ & $\times$ & $\checkmark$ & $\checkmark$ \\
         \rowsep{5}
-        Anycast catchment mapping \cite{deVries2017Verfploeter} & $\checkmark$ & $\sim$ & $\times$ & $\sim$ \\
+        Anycast catchment mapping \cite{DeVries2017BroadVerfploeter} & $\checkmark$ & $\sim$ & $\times$ & $\sim$ \\
         \rowsep{5}
         Routing path geography \cite{Shah2016TowardsDetours, Comarela2016DetectingApplications} & $\sim$ & $\times$ & $\checkmark$ & $\checkmark$ \\
         \midrule
         \textbf{Hunter} (this chapter) & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
         \bottomrule
     \end{tabularx}
-\end{table}
+\DIFaddendFL \end{table}
 
 % ============================================================
 \section{Tracing the Anycast Path}
@@ -1903,7 +1929,7 @@ Validating anycast geolocation mechanisms presents an important challenge, as ob
 In particular, two anycast IP addresses belonging to the Cloudflare CDN were selected as validation targets. The first address, 192.5.5.241, belongs to a root DNS service, while the second address, 104.16.123.96, serves Cloudflare's official website. HTTP responses from these services include the \textit{CF-RAY} header, which contains the IATA airport code associated with the Cloudflare datacenter \DIFdelbegin \DIFdel{handling the request. Since this code identifies the metropolitan region that serves the communication, it can be used as a reliable approximation of the actual }\DIFdelend \DIFaddbegin \DIFadd{processing the request, that is, the datacenter that terminates TLS and decrypts its content. In most cases, this is also the datacenter through which the request enters the Cloudflare network, so the header provides a reliable reference for the }\DIFaddend destination reached by \DIFdelbegin \DIFdel{traffic}\DIFdelend \DIFaddbegin \DIFadd{the communication}\DIFaddend .
 
 \DIFaddbegin \DIFadd{However, both locations may occasionally differ. Cloudflare may forward individual connections at the transport layer from an overloaded datacenter to a nearby one with available capacity, where they are decrypted and processed \mbox{%DIFAUXCMD
-\cite{CloudflareTrafficManager}}\hskip0pt%DIFAUXCMD
+\cite{HowBlog}}\hskip0pt%DIFAUXCMD
 . In such cases, Hunter locates the ingress datacenter while the ground truth reports a different one, which typically results in a }\textit{\DIFadd{Negative}} \DIFadd{or }\textit{\DIFadd{Indeterminate}} \DIFadd{outcome even when Hunter has correctly located the ingress point. A }\textit{\DIFadd{Positive}} \DIFadd{outcome would only arise if an error in Hunter's inference happened to coincide with the country of the datacenter to which the connection was forwarded. The expected effect of these forwarding mechanisms on the measured precision is therefore downward, and each }\textit{\DIFadd{Positive}} \DIFadd{result indicates that the country inferred by Hunter coincides with the country in which Cloudflare decrypted the communication.
 }
 
@@ -3090,7 +3116,7 @@ Table~\ref{tab:rcadns_enforcement_comparison} summarises the differences between
 In all three levels, the network path between the client and the provider is determined by inter-domain routing and may cross third countries; neither RCA-DNS nor any other mechanism that leaves BGP unchanged can prevent this. Encryption is what makes this residual exposure acceptable. When the communication uses TLS and decryption is only possible inside the protected region, as in levels (b) and (c), intermediate networks only handle ciphertext\DIFaddbegin \DIFadd{, together with connection metadata such as the client IP address}\DIFaddend . The European Data Protection Board considers exactly this situation, encrypted data merely transiting third countries with decryption possible only outside them, as a scenario in which transport encryption is an effective supplementary measure \cite{RecommendationsBoard}. Combined with HTTPS, RCA-DNS thus controls the location where data can be read and processed, which is the location that matters for data protection, while transit through other countries is neutralised by encryption. In level (a), \DIFdelbegin \DIFdel{the same reasoning only holds if the edge proxy does not terminate TLS, }\DIFdelend \DIFaddbegin \DIFadd{by contrast, the edge proxy necessarily terminates TLS, so the content is available in clear at the point of presence where the communication enters the provider's network, }\DIFaddend which is why the choice of enforcement level is part of the deployment decision analysed in Section~\ref{sc:rcadns_feasibility}.
 
 \DIFaddbegin \paragraph{\DIFadd{Metadata outside the region.}} \DIFadd{Levels (b) and (c) both ensure that the content of communications can only be read inside the region, but they differ in how connection metadata are handled outside it. These metadata include the IP addresses of the communication, the TCP headers, the unencrypted fields of the TLS handshake, such as the SNI, and the size and timing of the messages. The client IP address is particularly relevant, since the Court of Justice of the European Union has held that dynamic IP addresses may constitute personal data \mbox{%DIFAUXCMD
-\cite{CJEU2016Breyer}}\hskip0pt%DIFAUXCMD
+\cite{InfoCuriaEuropeenne}}\hskip0pt%DIFAUXCMD
 .
 }
 
