@@ -250,7 +250,7 @@ The description above assumes that the regional address is served only from insi
 \begin{figure}[ht]
     \centering
     \resizebox{\textwidth}{!}{\input{figures/tikz/rcadns_enforcement_levels}}
-    \caption{Levels at which an RCA-DNS deployment can enforce geographic confinement, for a user located in the protected region whose traffic would enter the provider's network outside it.}
+    \caption{Levels at which an RCA-DNS deployment can enforce geographic confinement, for a user located in the protected region whose traffic would enter the provider's network outside it. For each level, the upper lane shows the TLS sessions and the lower lane the IP-level connections. Level (b) is illustrated with a layer-4 proxy; with a pass-through load balancer, the edge does not terminate the IP connection either.}
     \label{fig:rcadns_enforcement_levels}
 \end{figure}
 
