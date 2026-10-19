@@ -1,6 +1,6 @@
 % --------------------------
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL /tmp/jU_7AewVKK/latexdiff-vc-main/main.tex   Mon Oct 12 14:22:58 2026
+%DIF DEL /tmp/nHuBrGL5C3/latexdiff-vc-main/main.tex   Mon Oct 12 14:22:58 2026
 %DIF ADD main.tex                                     Mon Oct 12 12:58:18 2026
 % Document class
 % --------------------------
@@ -971,7 +971,7 @@ Regarding notation, IP addresses shown in illustrative figures and examples belo
 
 The research presented in this thesis lies at the intersection of Internet architecture, network measurements, mobile ecosystems, and the legal frameworks governing international data transfers. In particular, this work focuses on the implications that anycast-based infrastructures have on data protection.
 
-Understanding these implications requires combining knowledge from multiple domains, which are reviewed in the following sections. First, it requires understanding how Internet routing works and how anycast determines which replica serves each communication (Section~\ref{sec:background_internet_routing}). Second, it requires understanding how the geographic location of Internet infrastructure can be inferred through network measurements, and the limitations of existing geolocation techniques when applied to anycast (Section~\ref{sc:background_location_measurements}). Third, it requires knowledge of the data protection regulations that govern international transfers of personal data, including the transparency and information obligations imposed on data controllers (Section~\ref{sc:background_privacy}). Finally, it requires understanding the software development practices that determine which services an application communicates with, such as the integration of TPLs in Android applications, which constitute the case study of this thesis (Section~\ref{sec:background_mobile_applications}). Although Android applications are used as the case study, the destination inference techniques and the regulatory analysis presented in this thesis do not depend on the platform, which makes it possible to extend this work to other ecosystems, such as iOS applications or web services.
+Understanding these implications requires combining knowledge from multiple domains, which are reviewed in the following sections. First, it requires understanding how Internet routing works\DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend how anycast determines which replica serves each communication\DIFaddbegin \DIFadd{, and which element of the serving infrastructure terminates the connection and decrypts its content }\DIFaddend (Section~\ref{sec:background_internet_routing}). Second, it requires understanding how the geographic location of Internet infrastructure can be inferred through network measurements, and the limitations of existing geolocation techniques when applied to anycast (Section~\ref{sc:background_location_measurements}). Third, it requires knowledge of the data protection regulations that govern international transfers of personal data, including the transparency and information obligations imposed on data controllers (Section~\ref{sc:background_privacy}). Finally, it requires understanding the software development practices that determine which services an application communicates with, such as the integration of TPLs in Android applications, which constitute the case study of this thesis (Section~\ref{sec:background_mobile_applications}). Although Android applications are used as the case study, the destination inference techniques and the regulatory analysis presented in this thesis do not depend on the platform, which makes it possible to extend this work to other ecosystems, such as iOS applications or web services.
 
 % ============================================================
 \section{Internet Routing and Anycast Communications}
@@ -1163,7 +1163,194 @@ Cloud providers and DDoS mitigation platforms also rely on distributed anycast i
 
 In these deployments, the same logical service may therefore be provided from multiple geographic locations, while routing mechanisms determine which location handles a particular communication. These architectures further illustrate the broad adoption of anycast across Internet services and the resulting separation between a service's logical identity and the geographic location of the infrastructure handling individual communications.
 
+\DIFaddbegin \subsection{\DIFadd{Termination Points in Anycast Deployments}}
+\label{sc:background_anycast_scenarios}
+
+\DIFadd{A communication with an anycast service involves two endpoints that do not necessarily coincide: the element that terminates the IP-level connection initiated by the client, and the element that terminates the TLS session, that is, the one that negotiates the session keys and decrypts the content. Which element plays each role depends on how the service is deployed, and it determines where the content of a communication becomes readable and, therefore, to which jurisdictions it is exposed. Consider a user whose traffic is routed by BGP to an edge of the provider located outside the jurisdiction whose rules protect the communication, such as the EEA, a situation that Chapter~\ref{ch:experiments} shows to be common. Three scenarios can be distinguished, illustrated in Figure~\ref{fig:background_anycast_scenarios}.
+}
+
+\begin{figure}[ht]
+    \centering
+    \resizebox{\textwidth}{!}{\begin{tikzpicture}[
+    >=Latex,
+    font=\small,
+    lanelabel/.style={font=\scriptsize\bfseries, text=black!60, anchor=east},
+    sessionend/.style={circle, fill=#1, inner sep=1.3pt},
+    tlsend/.style={circle, fill=#1, draw=white, line width=0.6pt, inner sep=2.4pt},
+    ipconn/.style={draw=blue!70!black, line width=1.1pt, ->, >=Latex, shorten >=3.4pt},
+    tlsconn/.style={draw=violet!85, line width=1.4pt, ->, >=Latex, shorten >=3.4pt},
+    lanetext/.style={font=\scriptsize, fill=white, inner sep=1pt},
+    huntermark/.style={draw=orange!80!black, fill=orange!25, circle, font=\scriptsize\bfseries, inner sep=0.6pt, minimum size=4.2mm},
+    clearnode/.style={fill=red!12, draw=red!60!black}
+]
+
+% ------------------------------------------------------------
+% Background columns
+% ------------------------------------------------------------
+
+\fill[red!4]   (30mm,8mm) rectangle (86mm,-122mm);
+\fill[green!5] (88mm,8mm) rectangle (166mm,-122mm);
+\node[header] at (58mm,4mm)  {Outside the protected region};
+\node[header] at (125mm,4mm) {Inside the protected region};
+\node[header] at (12mm,4mm)  {Client};
+
+% Horizontal positions
+\def\xc{12mm}   % client
+\def\xe{58mm}   % edge PoP outside the region
+\def\xr{106mm}  % first element inside the region
+\def\xb{148mm}  % regional backend
+
 % ============================================================
+% Row (a): backend confinement
+% ============================================================
+\def\y{-24mm}
+\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(a) Termination at a layer-7 edge};
+
+\node[endpoint, minimum width=20mm, font=\footnotesize] (ca) at (\xc,\y) {User\\in the region};
+\node[ixp, clearnode, minimum width=30mm, minimum height=10mm, font=\footnotesize] (ea) at (\xe,\y) {Edge PoP\\content in clear};
+\node[replica, minimum width=28mm, font=\footnotesize] (ba) at (\xb,\y) {Regional backend\\(processing)};
+
+\node[lanelabel] at (-2mm,\y+8.5mm) {TLS};
+\node[lanelabel] at (-2mm,\y-8.5mm) {IP};
+
+% TLS: two sessions, the first ends at the edge
+\draw[tlsconn] (\xc,\y+8.5mm) -- node[lanetext, above=0.5mm] {TLS session 1} (\xe,\y+8.5mm);
+\draw[tlsconn] (\xe,\y+8.5mm) -- node[lanetext, above=0.5mm] {TLS session 2 (re-encrypted)} (\xb,\y+8.5mm);
+\node[tlsend=violet!85] at (\xc,\y+8.5mm) {};
+\node[tlsend=red!70!black] at (\xe,\y+8.5mm) {};
+\node[tlsend=violet!85] at (\xb,\y+8.5mm) {};
+
+% IP: two connections, the first ends at the edge
+\draw[ipconn] (\xc,\y-8.5mm) -- node[lanetext, below=0.5mm, pos=0.42] {IP connection 1 (dst: anycast IP)} (\xe,\y-8.5mm);
+\draw[ipconn] (\xe,\y-8.5mm) -- node[lanetext, below=0.5mm] {IP connection 2} (\xb,\y-8.5mm);
+\node[tlsend=blue!70!black] at (\xc,\y-8.5mm) {};
+\node[tlsend=blue!70!black] at (\xe,\y-8.5mm) {};
+\node[tlsend=blue!70!black] at (\xb,\y-8.5mm) {};
+\node[huntermark] at ($(\xe,\y-8.5mm)+(0,-4.5mm)$) {H};
+
+% ============================================================
+% Row (b): in-region termination
+% ============================================================
+\def\y{-61mm}
+\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(b) Forwarding to a remote TLS endpoint};
+
+\node[endpoint, minimum width=20mm, font=\footnotesize] (cb) at (\xc,\y) {User\\in the region};
+\node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize] (eb) at (\xe,\y) {Edge PoP\\(layer-4 proxy)};
+\node[ixp, minimum width=26mm, minimum height=10mm, font=\footnotesize, fill=green!12] (tb) at (\xr,\y) {In-region\\TLS end};
+\node[replica, minimum width=28mm, font=\footnotesize] (bb) at (\xb,\y) {Regional backend\\(processing)};
+\draw[link, ->] (tb) -- (bb);
+
+\node[lanelabel] at (-2mm,\y+8.5mm) {TLS};
+\node[lanelabel] at (-2mm,\y-8.5mm) {IP};
+
+% TLS: a single session, transparent to the edge
+\draw[tlsconn] (\xc,\y+8.5mm) -- node[lanetext, above=0.5mm, pos=0.5] {single TLS session, transparent to the edge} (\xr,\y+8.5mm);
+\node[tlsend=violet!85] at (\xc,\y+8.5mm) {};
+\node[tlsend=violet!85] at (\xr,\y+8.5mm) {};
+
+% IP: the proxy terminates the first connection and opens a second one
+\draw[ipconn] (\xc,\y-8.5mm) -- node[lanetext, below=0.5mm, pos=0.42] {IP connection 1 (dst: anycast IP)} (\xe,\y-8.5mm);
+\draw[ipconn] (\xe,\y-8.5mm) -- node[lanetext, below=0.5mm] {IP connection 2} (\xr,\y-8.5mm);
+\node[tlsend=blue!70!black] at (\xc,\y-8.5mm) {};
+\node[tlsend=blue!70!black] at (\xe,\y-8.5mm) {};
+\node[tlsend=blue!70!black] at (\xr,\y-8.5mm) {};
+\node[huntermark] at ($(\xe,\y-8.5mm)+(0,-4.5mm)$) {H};
+
+% ============================================================
+% Row (c): announcement confinement
+% ============================================================
+\def\y{-98mm}
+\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(c) Termination at the announcing site};
+
+\node[endpoint, minimum width=20mm, font=\footnotesize] (cc) at (\xc,\y) {User\\in the region};
+\node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize, fill=gray!8, text=black!50, dashed] (ec) at (\xe,\y)
+    {Edge PoP\\(prefix not announced)};
+\node[ixp, minimum width=26mm, minimum height=10mm, font=\footnotesize, fill=green!12] (ic) at (\xr,\y) {In-region\\ingress + TLS end};
+\node[replica, minimum width=28mm, font=\footnotesize] (bc) at (\xb,\y) {Regional backend\\(processing)};
+\draw[link, ->] (ic) -- (bc);
+
+\node[lanelabel] at (-2mm,\y+8.5mm) {TLS};
+\node[lanelabel] at (-2mm,\y-8.5mm) {IP};
+
+% TLS and IP: a single session and a single connection, ending inside the region
+\draw[tlsconn] (\xc,\y+8.5mm) -- node[lanetext, above=0.5mm] {single TLS session} (\xr,\y+8.5mm);
+\node[tlsend=violet!85] at (\xc,\y+8.5mm) {};
+\node[tlsend=violet!85] at (\xr,\y+8.5mm) {};
+
+\draw[ipconn] (\xc,\y-8.5mm) -- node[lanetext, below=0.5mm] {single IP connection (across third-party transit networks)} (\xr,\y-8.5mm);
+\node[tlsend=blue!70!black] at (\xc,\y-8.5mm) {};
+\node[tlsend=blue!70!black] at (\xr,\y-8.5mm) {};
+\node[huntermark] at ($(\xr,\y-8.5mm)+(0,-4.5mm)$) {H};
+
+% ============================================================
+% Legend
+% ============================================================
+\def\y{-128mm}
+\draw[tlsconn] (-12mm,\y) -- ++(8mm,0);
+\node[font=\scriptsize, anchor=west] at (-3mm,\y) {TLS session (content encrypted)};
+\draw[ipconn] (46mm,\y) -- ++(8mm,0);
+\node[font=\scriptsize, anchor=west] at (55mm,\y) {IP-level connection};
+\node[tlsend=red!70!black] at (97mm,\y) {};
+\node[font=\scriptsize, anchor=west] at (99mm,\y) {content decrypted outside the region};
+\node[huntermark] at (-8mm,\y-6mm) {H};
+\node[font=\scriptsize, anchor=west] at (-3mm,\y-6mm) {last element of the IP-level connection, as located by Hunter};
+
+\end{tikzpicture}}
+    \caption{\DIFaddFL{Termination points of an anycast communication in the three deployment scenarios, for a user located in the protected region whose traffic enters the provider's network outside it. For each scenario, the upper lane shows the TLS sessions and the lower lane the IP-level connections. Scenario (b) is illustrated with a layer-4 proxy; with a pass-through load balancer, the edge does not terminate the IP connection either.}}
+    \label{fig:background_anycast_scenarios}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{\DIFadd{(a) Termination at a layer-7 edge.}} \DIFadd{The edge that receives the connection terminates both the IP-level connection and the TLS session. Layer-7 proxies, such as CDN edges and application load balancers, must read each HTTP request in order to route, cache, or filter it, so they hold the private key of the certificate, negotiate the session keys with the client, and decrypt the request. The content of every communication is therefore available in clear at the point of presence where it entered the provider's network. The request may then be forwarded, through separate connections, to other locations such as upper cache tiers or application backends.
+}
+
+    \item \textbf{\DIFadd{(b) Forwarding to a remote TLS endpoint.}} \DIFadd{The edge terminates or relays the IP-level connection, but forwards the encrypted stream to an endpoint located elsewhere, where TLS is terminated. Since the session keys are negotiated through an ephemeral key exchange between the client and that endpoint, the edge holds neither the private key nor the session keys and only handles ciphertext. This is the behaviour of layer-4 accelerators and load balancers, and of services that restrict decryption to selected locations.
+}
+
+    \item \textbf{\DIFadd{(c) Termination at the announcing site.}} \DIFadd{The element that announces the prefix and receives the packets is itself the TLS endpoint, as when the operator's servers announce the prefix directly or when a prefix is only originated by selected sites. No element of the provider precedes it, and outside it packets only traverse third-party transit networks.
+}\end{itemize}
+
+\DIFadd{In all three scenarios, the elements that forward the communication can observe its metadata: the IP addresses, the TCP headers, the unencrypted fields of the TLS handshake, such as the SNI, and the size and timing of the messages. The client IP address is particularly relevant, since the Court of Justice of the European Union has held that dynamic IP addresses may constitute personal data \mbox{%DIFAUXCMD
+\cite{InfoCuriaEuropeenne}}\hskip0pt%DIFAUXCMD
+. Transit networks merely carry packets addressed to others, which corresponds to the situation of encrypted data merely transiting third countries addressed by the recommendations of the European Data Protection Board \mbox{%DIFAUXCMD
+\cite{RecommendationsBoard}}\hskip0pt%DIFAUXCMD
+. The edge of the provider in scenario (b), however, differs from a transit network in three respects: it observes every connection directed to the address in both directions, it knows which service and which customer each connection belongs to, and it may log these metadata or actively forward them, for instance to convey the client address to the TLS endpoint in an }\texttt{\DIFadd{X-Forwarded-For}} \DIFadd{header, as AWS Global Accelerator can do \mbox{%DIFAUXCMD
+\cite{HowAcceleratorb}}\hskip0pt%DIFAUXCMD
+, or through the PROXY protocol \mbox{%DIFAUXCMD
+\cite{The2}}\hskip0pt%DIFAUXCMD
+. It therefore handles client metadata on behalf of the service, in the sense of a processor under Article~4(8) of the GDPR \mbox{%DIFAUXCMD
+\cite{REGULATIONSRelevance}}\hskip0pt%DIFAUXCMD
+. Providers themselves treat these metadata as sensitive: Cloudflare, for instance, offers a Customer Metadata Boundary that keeps the logs containing traffic metadata that can identify end users within a selected region \mbox{%DIFAUXCMD
+\cite{CustomerDocs}}\hskip0pt%DIFAUXCMD
+.
+}
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{\DIFaddFL{Termination points and exposure in the three anycast deployment scenarios, for a communication protected by TLS.}}
+    \label{tab:background_anycast_scenarios}
+    \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.4cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+        \toprule
+        & \textbf{(a) Layer-7 edge} & \textbf{(b) Remote TLS endpoint} & \textbf{(c) Announcing site} \\
+        \midrule
+        IP-level connection terminated at & Edge & Edge (proxy) or remote endpoint (pass-through) & Announcing site \\
+        \rowsep{4}
+        TLS terminated at & Edge & Remote endpoint & Announcing site \\
+        \rowsep{4}
+        Handled by the edge & Content and metadata & Ciphertext and metadata & No separate edge \\
+        \rowsep{4}
+        Located by external IP-level measurements & Edge, where content is first decrypted & Edge, not where content is decrypted & Site where content is decrypted \\
+        \rowsep{4}
+        Examples & CDN proxies, application load balancers & Layer-4 accelerators and load balancers & Operators announcing their own prefixes, regional anycast \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\DIFadd{These scenarios have two implications for this thesis. From a data protection perspective, the location that determines the jurisdiction to which the content is exposed is the one where TLS is terminated: the edge in scenario (a), together with any location to which the request is subsequently forwarded, the remote endpoint in scenario (b), and the announcing site in scenario (c). From a measurement perspective, traceroute and latency measurements only reach the element that terminates the IP-level connection, so external measurements locate the point where content is decrypted in scenarios (a) and (c), but not in scenario (b), as summarised in Table~\ref{tab:background_anycast_scenarios}. These scenarios frame the interpretation of Hunter in Chapter~\ref{ch:hunter}, the estimate of their prevalence among the destinations analysed in Chapter~\ref{ch:experiments}, and the enforcement levels of the architecture proposed in Chapter~\ref{ch:rcadns}.
+}
+
+\DIFaddend % ============================================================
 \section{Geographic Location and Internet Measurements}
 \label{sc:background_location_measurements}
 % ============================================================
@@ -1312,7 +1499,8 @@ This gap is particularly relevant to the problem studied in this thesis. Android
 \label{sec:background_summary}
 % ============================================================
 
-The background presented in this chapter highlights the increasing complexity of understanding and controlling the geographic behaviour of Internet communications. Internet routing is governed by policies and network conditions rather than geographic proximity, while anycast further decouples the logical identity of a service from the geographic location of the infrastructure that handles a communication. These characteristics create challenges for geographic control and data sovereignty, particularly in the context of privacy regulations that impose requirements on international data transfers and transparency towards data subjects. At the same time, mobile applications increasingly rely on TPLs and globally distributed services, creating additional dependencies between application-level data processing and network-level infrastructure. Consequently, determining and controlling where personal data are actually processed requires considering not only the application and the entities involved in its processing, but also the network mechanisms that determine the geographic destination of individual communications.
+The background presented in this chapter highlights the increasing complexity of understanding and controlling the geographic behaviour of Internet communications. Internet routing is governed by policies and network conditions rather than geographic proximity, while anycast further decouples the logical identity of a service from the geographic location of the infrastructure that handles a communication. These characteristics create challenges for geographic control and data sovereignty, particularly in the context of privacy regulations that impose requirements on international data transfers and transparency towards data subjects. At the same time, mobile applications increasingly rely on TPLs and globally distributed services, creating additional dependencies between application-level data processing and network-level infrastructure. Consequently, determining and controlling where personal data are actually processed requires considering not only the application and the entities involved in its processing, but also the network mechanisms that determine the geographic destination of individual communications. \DIFaddbegin \DIFadd{Moreover, the element that terminates the IP-level connection does not always coincide with the one that decrypts the content, so the jurisdictions to which a communication is exposed depend on how each anycast service is deployed.
+}\DIFaddend 
 
 These observations motivate the central problem addressed in this thesis: understanding the geographic destination of communications in distributed Internet services and determining the implications of this behaviour for privacy and geographic control. The thesis progressively investigates this problem from three complementary perspectives. First, it develops techniques to identify and trace the geographic destinations of anycast communications. Second, it applies these techniques to mobile applications and TPLs to investigate the implications of anycast routing for international data transfers. Finally, building on the limitations identified in the previous analyses, it investigates whether geographic control mechanisms can be used to constrain the destinations of anycast communications and evaluates their feasibility as a potential mitigation.
  \newpage 
@@ -1752,7 +1940,7 @@ Nevertheless, latency-derived distances should not be interpreted as exact geogr
 \DIFaddbegin \subsection{\DIFadd{IP-Level Endpoint versus Processing Location}}
 \label{sc:hunter_limitations_ingress}
 
-\DIFadd{Hunter traces the last element of the IP-level connection towards the anycast address, whatever that element is. When the service is delivered directly by the servers that announce the address, this element is the server itself. When the service relies on a cloud or CDN provider, this element is usually the first element of the provider's infrastructure that terminates the connection, which could not coincide in all cases with the place where the content of the communication is decrypted and processed. The relationship between both depends on how the service is deployed, as illustrated by the enforcement levels discussed in Section~\ref{sc:rcadns_enforcement}.
+\DIFadd{Hunter traces the last element of the IP-level connection towards the anycast address, whatever that element is. When the service is delivered directly by the servers that announce the address, this element is the server itself. When the service relies on a cloud or CDN provider, this element is usually the first element of the provider's infrastructure that terminates the connection, which could not coincide in all cases with the place where the content of the communication is decrypted and processed. The relationship between both depends on how the service is deployed, as described by the deployment scenarios introduced in Section~\ref{sc:background_anycast_scenarios}.
 }
 
 \DIFadd{In services built on layer-7 proxies, such as CDNs and application load balancers, the edge element that answers the anycast address terminates TLS in order to read each request. The country inferred by Hunter is then the first country in which the content is available in clear. However, the request may subsequently be forwarded to other locations, such as upper cache tiers or application backends, which cannot be observed from outside, so the inferred country constitutes a lower bound of the jurisdictions involved. In services built on layer-4 accelerators or load balancers, the edge element may forward the encrypted stream to an endpoint located elsewhere, where TLS is terminated. In that case, the inferred country is a place where only connection metadata, such as the client IP address, is handled, and the location where the content is decrypted remains unobserved.
@@ -2419,7 +2607,7 @@ Overall, the results \DIFdelbegin \DIFdel{demonstrate that international transfe
 \DIFaddbegin \subsection{\DIFadd{Infrastructure Behind the Inferred Destinations}}
 \label{sc:anycast_experiments_scenarios}
 
-\DIFadd{As discussed in Section~\ref{sc:hunter_limitations_ingress}, Hunter locates the last element of the IP-level connection, which coincides with the place where the content of a communication is decrypted when that element terminates TLS, as in layer-7 infrastructures, but not when it forwards the encrypted stream to an endpoint located elsewhere, as in layer-4 infrastructures. To assess how often each situation occurs, the 200 anycast IP addresses that received personal data in this experiment were classified according to the infrastructure that served them, combining three sources of evidence.
+\DIFadd{As discussed in Sections~\ref{sc:background_anycast_scenarios} and~\ref{sc:hunter_limitations_ingress}, Hunter locates the last element of the IP-level connection, which coincides with the place where the content of a communication is decrypted when that element terminates TLS, as in layer-7 infrastructures, but not when it forwards the encrypted stream to an endpoint located elsewhere, as in layer-4 infrastructures. To assess how often each situation occurs, the 200 anycast IP addresses that received personal data in this experiment were classified according to the infrastructure that served them, combining three sources of evidence.
 }
 
 \DIFadd{The first source is the set of IP ranges that providers publish for their products, retrieved from public archives of their historical versions at the dates of the measurements. These ranges distinguish, for instance, AWS CloudFront, a layer-7 CDN, from AWS Global Accelerator, a layer-4 accelerator, and the services of Google, served by its layer-7 front ends, from the load balancers of Google Cloud customers. The operator of the remaining addresses was obtained from routing data of the same dates \mbox{%DIFAUXCMD
@@ -3105,11 +3293,11 @@ The selected region remains valid until the policy produces a different result, 
 \subsection{Enforcement Levels and the Role of Encryption}
 \label{sc:rcadns_enforcement}
 
-The description above assumes that the regional address is served only from inside the region. In practice, the point at which this guarantee is enforced depends on how the provider implements anycast, and three levels can be distinguished. Figure~\ref{fig:rcadns_enforcement_levels} illustrates them for a user located in the protected region whose traffic would, under BGP, enter the provider's network at a point of presence (PoP) outside the region, a situation that Chapter~\ref{ch:experiments} showed to be common.
+The description above assumes that the regional address is served only from inside the region. In practice, the \DIFdelbegin \DIFdel{point at which this guarantee is enforced depends on how the provider implements anycast, and three levels can be distinguished}\DIFdelend \DIFaddbegin \DIFadd{guarantee that an RCA-DNS deployment offers depends on which of the deployment scenarios introduced in Section~\ref{sc:background_anycast_scenarios} applies, and each scenario yields a different enforcement level}\DIFaddend . Figure~\DIFdelbegin \DIFdel{\ref{fig:rcadns_enforcement_levels} }\DIFdelend \DIFaddbegin \DIFadd{\ref{fig:background_anycast_scenarios} }\DIFaddend illustrates them for a user located in the protected region whose traffic would, under BGP, enter the provider's network at a point of presence \DIFdelbegin \DIFdel{(PoP) }\DIFdelend outside the region, a situation that Chapter~\ref{ch:experiments} showed to be common.
 
-\begin{figure}[ht]
-    \centering
-    \DIFdelbeginFL %DIFDELCMD < \resizebox{\textwidth}{!}{\begin{tikzpicture}[
+\DIFdelbegin %DIFDELCMD < \begin{figure}[ht]
+%DIFDELCMD <     \centering
+%DIFDELCMD <     \resizebox{\textwidth}{!}{\begin{tikzpicture}[
 %DIFDELCMD <     >=Latex,
 %DIFDELCMD <     font=\small
 %DIFDELCMD < ]
@@ -3191,144 +3379,25 @@ The description above assumes that the regional address is served only from insi
 %DIFDELCMD < \end{tikzpicture}
 %DIFDELCMD < }
 %DIFDELCMD <     %%%
-\DIFdelendFL \DIFaddbeginFL \resizebox{\textwidth}{!}{\begin{tikzpicture}[
-    >=Latex,
-    font=\small,
-    lanelabel/.style={font=\scriptsize\bfseries, text=black!60, anchor=east},
-    sessionend/.style={circle, fill=#1, inner sep=1.3pt},
-    tlsend/.style={circle, fill=#1, draw=white, line width=0.6pt, inner sep=2.4pt},
-    ipconn/.style={draw=blue!70!black, line width=1.1pt, ->, >=Latex, shorten >=3.4pt},
-    tlsconn/.style={draw=violet!85, line width=1.4pt, ->, >=Latex, shorten >=3.4pt},
-    lanetext/.style={font=\scriptsize, fill=white, inner sep=1pt},
-    huntermark/.style={draw=orange!80!black, fill=orange!25, circle, font=\scriptsize\bfseries, inner sep=0.6pt, minimum size=4.2mm},
-    clearnode/.style={fill=red!12, draw=red!60!black}
-]
+%DIFDELCMD < \caption{%
+{%DIFAUXCMD
+\DIFdelFL{Levels at which an RCA-DNS deployment can enforce geographic confinement, for a user located in the protected region whose traffic would enter the provider's network outside it.}}
+    %DIFAUXCMD
+%DIFDELCMD < \label{fig:rcadns_enforcement_levels}
+%DIFDELCMD < \end{figure}
+%DIFDELCMD < 
 
-% ------------------------------------------------------------
-% Background columns
-% ------------------------------------------------------------
+%DIFDELCMD < %%%
+\DIFdelend \begin{itemize}
+    \item \textbf{(a) Backend confinement.} \DIFaddbegin \DIFadd{This level corresponds to scenario (a). }\DIFaddend The regional address is announced from the provider's global edge, and the provider forwards requests only to backends located in the region, so the application logic and any associated storage are confined to the region. However, \DIFdelbegin \DIFdel{a layer-7 load balancer must read each request in order to route it, so }\DIFdelend the edge proxy that receives the connection necessarily \DIFdelbegin \DIFdel{acts as the TLSendpoint: it holds the private key of the certificate, negotiates the session keys with the client, and decrypts the request before opening a separate connection towards the regional backend. The }\DIFdelend \DIFaddbegin \DIFadd{terminates TLS, so the }\DIFaddend content of every request is \DIFdelbegin \DIFdel{therefore }\DIFdelend available in clear at the point of presence where it entered the provider's network, which may be outside the region. This is the behaviour of global layer-7 load balancers.
 
-\fill[red!4]   (30mm,8mm) rectangle (86mm,-122mm);
-\fill[green!5] (88mm,8mm) rectangle (166mm,-122mm);
-\node[header] at (58mm,4mm)  {Outside the protected region};
-\node[header] at (125mm,4mm) {Inside the protected region};
-\node[header] at (12mm,4mm)  {Client};
+    \item \textbf{(b) In-region termination.} \DIFaddbegin \DIFadd{This level corresponds to scenario (b), with the TLS endpoint located inside the region. }\DIFaddend The address is still announced globally, but the elements outside the region forward the encrypted stream without decrypting it, \DIFdelbegin \DIFdel{either by relaying packets or by proxying the transport connection, and the TLS endpoint is located only }\DIFdelend \DIFaddbegin \DIFadd{so the content can only be read }\DIFaddend inside the region. \DIFdelbegin \DIFdel{Since the session keys are negotiated through an ephemeral key exchange between the client and this endpoint, and the elements outside the region hold neither the private key nor the session keys, they only handle ciphertext. They can nevertheless observe metadata, such as the client IP address, the size and timing of the messages, and the server name indicated in the TLS handshake. }\DIFdelend The in-region TLS endpoint may be the application server itself or a component of the provider located in the region, so this level determines where content can be decrypted, not whether the provider can access it.
 
-% Horizontal positions
-\def\xc{12mm}   % client
-\def\xe{58mm}   % edge PoP outside the region
-\def\xr{106mm}  % first element inside the region
-\def\xb{148mm}  % regional backend
-
-% ============================================================
-% Row (a): backend confinement
-% ============================================================
-\def\y{-24mm}
-\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(a) Backend confinement};
-
-\node[endpoint, minimum width=20mm, font=\footnotesize] (ca) at (\xc,\y) {User\\in the region};
-\node[ixp, clearnode, minimum width=30mm, minimum height=10mm, font=\footnotesize] (ea) at (\xe,\y) {Edge PoP\\content in clear};
-\node[replica, minimum width=28mm, font=\footnotesize] (ba) at (\xb,\y) {Regional backend\\(processing)};
-
-\node[lanelabel] at (-2mm,\y+8.5mm) {TLS};
-\node[lanelabel] at (-2mm,\y-8.5mm) {IP};
-
-% TLS: two sessions, the first ends at the edge
-\draw[tlsconn] (\xc,\y+8.5mm) -- node[lanetext, above=0.5mm] {TLS session 1} (\xe,\y+8.5mm);
-\draw[tlsconn] (\xe,\y+8.5mm) -- node[lanetext, above=0.5mm] {TLS session 2 (re-encrypted)} (\xb,\y+8.5mm);
-\node[tlsend=violet!85] at (\xc,\y+8.5mm) {};
-\node[tlsend=red!70!black] at (\xe,\y+8.5mm) {};
-\node[tlsend=violet!85] at (\xb,\y+8.5mm) {};
-
-% IP: two connections, the first ends at the edge
-\draw[ipconn] (\xc,\y-8.5mm) -- node[lanetext, below=0.5mm, pos=0.42] {IP connection 1 (dst: anycast IP)} (\xe,\y-8.5mm);
-\draw[ipconn] (\xe,\y-8.5mm) -- node[lanetext, below=0.5mm] {IP connection 2} (\xb,\y-8.5mm);
-\node[tlsend=blue!70!black] at (\xc,\y-8.5mm) {};
-\node[tlsend=blue!70!black] at (\xe,\y-8.5mm) {};
-\node[tlsend=blue!70!black] at (\xb,\y-8.5mm) {};
-\node[huntermark] at ($(\xe,\y-8.5mm)+(0,-4.5mm)$) {H};
-
-% ============================================================
-% Row (b): in-region termination
-% ============================================================
-\def\y{-61mm}
-\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(b) In-region termination};
-
-\node[endpoint, minimum width=20mm, font=\footnotesize] (cb) at (\xc,\y) {User\\in the region};
-\node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize] (eb) at (\xe,\y) {Edge PoP\\(layer-4 proxy)};
-\node[ixp, minimum width=26mm, minimum height=10mm, font=\footnotesize, fill=green!12] (tb) at (\xr,\y) {In-region\\TLS end};
-\node[replica, minimum width=28mm, font=\footnotesize] (bb) at (\xb,\y) {Regional backend\\(processing)};
-\draw[link, ->] (tb) -- (bb);
-
-\node[lanelabel] at (-2mm,\y+8.5mm) {TLS};
-\node[lanelabel] at (-2mm,\y-8.5mm) {IP};
-
-% TLS: a single session, transparent to the edge
-\draw[tlsconn] (\xc,\y+8.5mm) -- node[lanetext, above=0.5mm, pos=0.5] {single TLS session, transparent to the edge} (\xr,\y+8.5mm);
-\node[tlsend=violet!85] at (\xc,\y+8.5mm) {};
-\node[tlsend=violet!85] at (\xr,\y+8.5mm) {};
-
-% IP: the proxy terminates the first connection and opens a second one
-\draw[ipconn] (\xc,\y-8.5mm) -- node[lanetext, below=0.5mm, pos=0.42] {IP connection 1 (dst: anycast IP)} (\xe,\y-8.5mm);
-\draw[ipconn] (\xe,\y-8.5mm) -- node[lanetext, below=0.5mm] {IP connection 2} (\xr,\y-8.5mm);
-\node[tlsend=blue!70!black] at (\xc,\y-8.5mm) {};
-\node[tlsend=blue!70!black] at (\xe,\y-8.5mm) {};
-\node[tlsend=blue!70!black] at (\xr,\y-8.5mm) {};
-\node[huntermark] at ($(\xe,\y-8.5mm)+(0,-4.5mm)$) {H};
-
-% ============================================================
-% Row (c): announcement confinement
-% ============================================================
-\def\y{-98mm}
-\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(c) Announcement confinement};
-
-\node[endpoint, minimum width=20mm, font=\footnotesize] (cc) at (\xc,\y) {User\\in the region};
-\node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize, fill=gray!8, text=black!50, dashed] (ec) at (\xe,\y)
-    {Edge PoP\\(prefix not announced)};
-\node[ixp, minimum width=26mm, minimum height=10mm, font=\footnotesize, fill=green!12] (ic) at (\xr,\y) {In-region\\ingress + TLS end};
-\node[replica, minimum width=28mm, font=\footnotesize] (bc) at (\xb,\y) {Regional backend\\(processing)};
-\draw[link, ->] (ic) -- (bc);
-
-\node[lanelabel] at (-2mm,\y+8.5mm) {TLS};
-\node[lanelabel] at (-2mm,\y-8.5mm) {IP};
-
-% TLS and IP: a single session and a single connection, ending inside the region
-\draw[tlsconn] (\xc,\y+8.5mm) -- node[lanetext, above=0.5mm] {single TLS session} (\xr,\y+8.5mm);
-\node[tlsend=violet!85] at (\xc,\y+8.5mm) {};
-\node[tlsend=violet!85] at (\xr,\y+8.5mm) {};
-
-\draw[ipconn] (\xc,\y-8.5mm) -- node[lanetext, below=0.5mm] {single IP connection (across third-party transit networks)} (\xr,\y-8.5mm);
-\node[tlsend=blue!70!black] at (\xc,\y-8.5mm) {};
-\node[tlsend=blue!70!black] at (\xr,\y-8.5mm) {};
-\node[huntermark] at ($(\xr,\y-8.5mm)+(0,-4.5mm)$) {H};
-
-% ============================================================
-% Legend
-% ============================================================
-\def\y{-128mm}
-\draw[tlsconn] (-12mm,\y) -- ++(8mm,0);
-\node[font=\scriptsize, anchor=west] at (-3mm,\y) {TLS session (content encrypted)};
-\draw[ipconn] (46mm,\y) -- ++(8mm,0);
-\node[font=\scriptsize, anchor=west] at (55mm,\y) {IP-level connection};
-\node[tlsend=red!70!black] at (97mm,\y) {};
-\node[font=\scriptsize, anchor=west] at (99mm,\y) {content decrypted outside the region};
-\node[huntermark] at (-8mm,\y-6mm) {H};
-\node[font=\scriptsize, anchor=west] at (-3mm,\y-6mm) {last element of the IP-level connection, as located by Hunter};
-
-\end{tikzpicture}}
-    \DIFaddendFL \caption{Levels at which an RCA-DNS deployment can enforce geographic confinement, for a user located in the protected region whose traffic would enter the provider's network outside it. \DIFaddbeginFL \DIFaddFL{For each level, the upper lane shows the TLS sessions and the lower lane the IP-level connections. Level (b) is illustrated with a layer-4 proxy; with a pass-through load balancer, the edge does not terminate the IP connection either.}\DIFaddendFL }
-    \label{fig:rcadns_enforcement_levels}
-\end{figure}
-
-\begin{itemize}
-    \item \textbf{(a) Backend confinement.} The regional address is announced from the provider's global edge, and the provider forwards requests only to backends located in the region, so the application logic and any associated storage are confined to the region. However, a layer-7 load balancer must read each request in order to route it, so the edge proxy that receives the connection necessarily acts as the TLS endpoint: it holds the private key of the certificate, negotiates the session keys with the client, and decrypts the request before opening a separate connection towards the regional backend. The content of every request is therefore available in clear at the point of presence where it entered the provider's network, which may be outside the region. This is the behaviour of global layer-7 load balancers. 
-
-    \item \textbf{(b) In-region termination.} The address is still announced globally, but the elements outside the region forward the encrypted stream without decrypting it, either by relaying packets or by proxying the transport connection, and the TLS endpoint is located only inside the region. Since the session keys are negotiated through an ephemeral key exchange between the client and this endpoint, and the elements outside the region hold neither the private key nor the session keys, they only handle ciphertext. They can nevertheless observe metadata, such as the client IP address, the size and timing of the messages, and the \DIFdelbegin \DIFdel{server name indicated }\DIFdelend \DIFaddbegin \DIFadd{SNI included }\DIFaddend in the TLS handshake. The in-region TLS endpoint may be the application server itself or a component of the provider located in the region, so this level determines where content can be decrypted, not whether the provider can access it.
-
-    \item \textbf{(c) Announcement confinement.} The regional prefix is originated only by replicas inside the region. Although the prefix remains reachable from anywhere, the routes selected by BGP can only lead to those replicas, so the first element of the provider that receives the packets, and the TLS endpoint, are necessarily located inside the region. Outside the region, packets only traverse third-party transit networks, which handle ciphertext and the same metadata as in level (b). This is the strictest form of confinement and corresponds to the original definition of regional anycast. Route leaks or hijacks could still divert traffic to other networks, a risk that origin validation through RPKI mitigates and that, in any case, would only expose ciphertext.
+    \item \textbf{(c) Announcement confinement.} \DIFdelbegin \DIFdel{The regional prefix is }\DIFdelend \DIFaddbegin \DIFadd{This level corresponds to scenario (c), with the regional prefix }\DIFaddend originated only by replicas inside the region. Although the prefix remains reachable from anywhere, the routes selected by BGP can only lead to those replicas, so the first element of the provider that receives the packets, and the TLS endpoint, are necessarily located inside the region. \DIFdelbegin \DIFdel{Outside the region, packets only traverse third-party transit networks, which handle ciphertext and the same metadata as in level (b). }\DIFdelend This is the strictest form of confinement and corresponds to the original definition of regional anycast. Route leaks or hijacks could still divert traffic to other networks, a risk that origin validation through RPKI mitigates and that, in any case, would only expose ciphertext.
 \end{itemize}
 
-Table~\ref{tab:rcadns_enforcement_comparison} summarises the differences between the three levels and the limits of each of them
+Table~\ref{tab:rcadns_enforcement_comparison} summarises the differences between the three levels and the limits of each of them\DIFaddbegin \DIFadd{.
+}\DIFaddend 
 
 \begin{table}[ht]
     \centering
@@ -3354,25 +3423,7 @@ Table~\ref{tab:rcadns_enforcement_comparison} summarises the differences between
 
 In all three levels, the network path between the client and the provider is determined by inter-domain routing and may cross third countries; neither RCA-DNS nor any other mechanism that leaves BGP unchanged can prevent this. Encryption is what makes this residual exposure acceptable. When the communication uses TLS and decryption is only possible inside the protected region, as in levels (b) and (c), intermediate networks only handle ciphertext\DIFaddbegin \DIFadd{, together with connection metadata such as the client IP address}\DIFaddend . The European Data Protection Board considers exactly this situation, encrypted data merely transiting third countries with decryption possible only outside them, as a scenario in which transport encryption is an effective supplementary measure \cite{RecommendationsBoard}. Combined with HTTPS, RCA-DNS thus controls the location where data can be read and processed, which is the location that matters for data protection, while transit through other countries is neutralised by encryption. In level (a), \DIFdelbegin \DIFdel{the same reasoning only holds if the edge proxy does not terminate TLS, }\DIFdelend \DIFaddbegin \DIFadd{by contrast, the edge proxy necessarily terminates TLS, so the content is available in clear at the point of presence where the communication enters the provider's network, }\DIFaddend which is why the choice of enforcement level is part of the deployment decision analysed in Section~\ref{sc:rcadns_feasibility}.
 
-\DIFaddbegin \paragraph{\DIFadd{Metadata outside the region.}} \DIFadd{Levels (b) and (c) both ensure that the content of communications can only be read inside the region, but they differ in how connection metadata are handled outside it. These metadata include the IP addresses of the communication, the TCP headers, the unencrypted fields of the TLS handshake, such as the SNI, and the size and timing of the messages. The client IP address is particularly relevant, since the Court of Justice of the European Union has held that dynamic IP addresses may constitute personal data \mbox{%DIFAUXCMD
-\cite{InfoCuriaEuropeenne}}\hskip0pt%DIFAUXCMD
-.
-}
-
-\DIFadd{In level (b), the connection is received outside the region by the edge of the provider. In terms of the kind of information observed, this edge is equivalent to any intermediate network, but it differs from a transit network in three respects. First, it observes every connection directed to the regional address in both directions, whereas an intermediate network may only observe part of the traffic. Second, it knows which service and which customer each connection belongs to. Third, it may log these metadata or actively forward them: AWS Global Accelerator, for instance, can convey the original client address to the regional endpoint in an }\texttt{\DIFadd{X-Forwarded-For}} \DIFadd{header \mbox{%DIFAUXCMD
-\cite{HowAcceleratorb}}\hskip0pt%DIFAUXCMD
-, and transport-layer proxies commonly do so through the PROXY protocol \mbox{%DIFAUXCMD
-\cite{The2}}\hskip0pt%DIFAUXCMD
-. The edge therefore handles client metadata on behalf of the service, in the sense of a processor under Article~4(8) of the GDPR \mbox{%DIFAUXCMD
-\cite{REGULATIONSRelevance}}\hskip0pt%DIFAUXCMD
-, and it does so outside the region. Level (b) thus confines the content of communications, but leaves a risk associated with the processing of identifying metadata by the provider in other jurisdictions.
-}
-
-\DIFadd{In level (c), by contrast, the provider only receives traffic inside the region, so the metadata that it can use to identify and associate communications with a service are collected within the designated region. Outside the region, packets only traverse third-party transit networks, which observe the metadata of the packets they forward, as in any Internet communication, but neither terminate the connection nor act on behalf of the service. This corresponds to the situation of data merely transiting third countries addressed by the recommendations of the European Data Protection Board \mbox{%DIFAUXCMD
-\cite{RecommendationsBoard}}\hskip0pt%DIFAUXCMD
-. Where the metadata collected by the provider are subsequently stored depends, in both levels, on its logging configuration; providers themselves treat these logs as sensitive, and Cloudflare, for instance, offers a Customer Metadata Boundary that keeps the logs containing traffic metadata that can identify end users within a selected region, which may otherwise be stored in core data centers globally \mbox{%DIFAUXCMD
-\cite{CustomerDocs}}\hskip0pt%DIFAUXCMD
-. Consequently, level (c) confines both the content of communications and the collection of identifying metadata by the provider to the designated region, leaving outside it only the exposure inherent to transit across the Internet, which is why it constitutes the strongest form of confinement.
+\DIFaddbegin \paragraph{\DIFadd{Metadata outside the region.}} \DIFadd{Levels (b) and (c) both ensure that the content of communications can only be read inside the region, but they differ in how connection metadata are handled outside it. As discussed in Section~\ref{sc:background_anycast_scenarios}, the edge of the provider in scenario (b) handles client metadata, including the client IP address, on behalf of the service, whereas transit networks merely carry packets addressed to others. Level (b) therefore confines the content of communications, but leaves a risk associated with the processing of identifying metadata by the provider in other jurisdictions. In level (c), by contrast, the provider only receives traffic inside the region, so the metadata that it can use to identify and associate communications with a service are collected within the designated region, and only the exposure inherent to transit across the Internet remains outside it. Where these metadata are subsequently stored depends, in both levels, on the logging configuration of the provider. Level (c) thus confines both the content of communications and the collection of identifying metadata by the provider, which is why it constitutes the strongest form of confinement.
 }
 
 \DIFaddend \subsection{Failure Handling and Operational Considerations}
