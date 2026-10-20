@@ -18,7 +18,7 @@ This conflict between Internet-scale routing optimisation and legal requirements
 
 Although this problem potentially affects a broad range of Internet services, this thesis focuses specifically on the Android ecosystem. Mobile applications represent one of the most pervasive sources of personal data collection in modern digital environments. Furthermore, Android applications heavily depend on Third-Party Libraries (TPLs) for functionalities such as analytics, advertising delivery, crash reporting, authentication, content distribution, and performance optimisation. These TPLs frequently have their own treatment of personal data and communicate with globally distributed infrastructures that rely on anycast-based routing mechanisms.
 
-As a consequence, application developers may unintentionally delegate sensitive communications to third-party infrastructures whose geographic behaviour is unknown or non-deterministic. This creates a complex supply-chain privacy problem in which neither users nor developers can reliably determine where data is being transferred. In many cases, the inclusion of a single third-party dependency may silently trigger international data transfers that are not properly disclosed in privacy policies or that violate regional data protection constraints.
+As a consequence, application developers may unintentionally delegate sensitive communications to third-party infrastructures whose geographic behaviour is unknown or non-deterministic. This creates a complex supply-chain privacy problem in which neither users nor developers can reliably determine where data is being transferred. In many cases, the inclusion of a single third-party dependency may silently cause personal data to reach jurisdictions that are not disclosed in privacy policies or that conflict with regional data protection requirements.
 
 In this context, understanding the relationship between anycast infrastructures, third-party ecosystems, and data protection regulations becomes essential. This thesis addresses this challenge from three complementary perspectives. First, it develops methodologies capable of accurately tracing the geographic destinations of anycast communications. Second, it evaluates the real-world privacy implications of anycast within mobile ecosystems and third-party dependencies. Finally, it proposes new architectural frameworks aimed at restoring deterministic geographic control over anycast communications while preserving the scalability and resilience benefits that motivated anycast adoption in the first place.
 
@@ -66,7 +66,7 @@ To address the aforementioned problem, this thesis seeks to answer the following
 \subsection{Main Objective}
 \label{sc:introduction_objectives_main}
 
-The main objective of this thesis is to characterise, quantify, and mitigate the impact of unintended international transfers of personal data over anycast communications. This objective is pursued through the development of high-accuracy tracing methodologies, large-scale empirical analyses of mobile ecosystems and third-party dependencies, and the design of architectural frameworks that improve geographic control in anycast systems.
+The main objective of this thesis is to characterise, quantify, and mitigate the unintended cross-border exposure of personal data over anycast communications, which may give rise to international transfers of personal data. This objective is pursued through the development of high-accuracy tracing methodologies, large-scale empirical analyses of mobile ecosystems and third-party dependencies, and the design of architectural frameworks that improve geographic control in anycast systems.
 
 \subsection{Specific Objectives}
 \label{sc:introduction_objectives_specific}
@@ -91,7 +91,7 @@ To achieve the main objective, the following specific goals are pursued:
     \item \textbf{Analyse the role of software ecosystems and external dependencies in international data transfers}
     \begin{itemize}
         \item Investigate how software components and external dependencies interact with anycast-enabled infrastructures.
-        \item Identify the entities responsible for communications involving international transfers of personal data.
+        \item Identify the entities responsible for cross-border communications involving personal data.
         \item Assess the risks that software ecosystems and third-party supply chains introduce with respect to geographic control and data protection.
     \end{itemize}
     
@@ -149,9 +149,9 @@ Each activity relies on research methods appropriate to the artefact concerned. 
 
 The first contribution of this thesis is the design and validation of Hunter, a method capable of inferring the destination country associated with communications towards anycast replicas. Hunter combines traceroute analysis, last-hop identification, latency-based multilateration, and geographic inference techniques to provide country-level attribution of anycast destinations. This contribution addresses RQ1 and provides the measurement capabilities required for the remainder of the thesis.
 
-Building upon these capabilities, the second contribution consists of a large-scale empirical study of international transfers involving personal data and anycast infrastructures. By combining dynamic analysis of Android applications, privacy policy inspection, and destination inference, this work characterises the prevalence of international transfers and evaluates the extent to which the jurisdictions reached by communications are transparently disclosed to users. This contribution primarily addresses RQ2.
+Building upon these capabilities, the second contribution consists of a large-scale empirical study of cross-border communications carrying personal data towards anycast infrastructures. By combining dynamic analysis of Android applications, privacy policy inspection, and destination inference, this work characterises the prevalence of these communications and evaluates the extent to which the jurisdictions reached by communications are transparently disclosed to users. This contribution primarily addresses RQ2.
 
-The third contribution concerns the analysis of software ecosystems and external dependencies. The results reveal that a significant fraction of the observed communications originate from third-party software components, highlighting the role of software supply chains in generating international transfers and exposing personal data to multiple jurisdictions. This contribution addresses RQ3 and extends the analysis beyond individual applications.
+The third contribution concerns the analysis of software ecosystems and external dependencies. The results reveal that a significant fraction of the observed communications originate from third-party software components, highlighting the role of software supply chains in generating cross-border communications and exposing personal data to multiple jurisdictions. This contribution addresses RQ3 and extends the analysis beyond individual applications.
 
 Finally, the thesis proposes Region-Constrained Anycast over DNS (RCA-DNS), an architecture designed to introduce geographic constraints into anycast service deployments. Through experimental evaluation, the proposed architecture demonstrates that meaningful geographic control can be introduced while preserving the scalability and resilience properties that motivate the use of anycast infrastructures. This contribution addresses RQ4.
 
