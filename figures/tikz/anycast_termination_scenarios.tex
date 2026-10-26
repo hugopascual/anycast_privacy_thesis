@@ -34,7 +34,7 @@
 
 \node[endpoint, minimum width=20mm, font=\footnotesize] at (\xc,\y) {Client};
 \node[ixp, clearnode, minimum width=30mm, minimum height=10mm, font=\footnotesize] at (\xe,\y) {Edge (layer-7 proxy)\\content in clear};
-\node[replica, minimum width=28mm, font=\footnotesize] at (\xb,\y) {Origin server\\(processing)};
+\node[replica, minimum width=28mm, font=\footnotesize] at (\xb,\y) {Backend\\(processing)};
 
 \node[lanelabel] at (-2mm,\y+8.5mm) {TLS};
 \node[lanelabel] at (-2mm,\y-8.5mm) {IP};
@@ -61,7 +61,7 @@
 \node[endpoint, minimum width=20mm, font=\footnotesize] at (\xc,\y) {Client};
 \node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize] at (\xe,\y) {Edge\\(layer-4 proxy)};
 \node[ixp, minimum width=26mm, minimum height=10mm, font=\footnotesize] (tb) at (\xr,\y) {TLS endpoint\\(e.g.\ load balancer)};
-\node[replica, minimum width=28mm, font=\footnotesize] (bb) at (\xb,\y) {Origin server\\(processing)};
+\node[replica, minimum width=28mm, font=\footnotesize] (bb) at (\xb,\y) {Backend\\(processing)};
 \draw[link, ->] (tb) -- (bb);
 
 \node[lanelabel] at (-2mm,\y+8.5mm) {TLS};
@@ -82,10 +82,10 @@
 % (c) Termination at the origin server
 % ============================================================
 \def\y{-98mm}
-\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(c) Termination at the origin server};
+\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(c) Termination at the backend};
 
 \node[endpoint, minimum width=20mm, font=\footnotesize] at (\xc,\y) {Client};
-\node[replica, minimum width=32mm, minimum height=10mm, font=\footnotesize] at (\xe,\y) {Origin server\\(processing)};
+\node[replica, minimum width=32mm, minimum height=10mm, font=\footnotesize] at (\xe,\y) {Backend\\(processing)};
 
 \node[lanelabel] at (-2mm,\y+8.5mm) {TLS};
 \node[lanelabel] at (-2mm,\y-8.5mm) {IP};

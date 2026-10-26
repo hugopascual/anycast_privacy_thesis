@@ -48,7 +48,7 @@ All these studies assign a single location to each server address. Most of them 
 \subsection{Geography of Anycast Infrastructures}
 \label{sc:anycast_experiments_sota_anycast}
 
-From the networking side, the geographic behaviour of anycast has been studied mainly from the perspective of performance. Calder et al. and Koch et al. measured how often clients of large anycast services are served by distant replicas \cite{Calder2015AnalyzingCDN, Koch2021AnycastSystems}, Bian et al. showed the effect of remote peering on anycast routing \cite{Bian2019TowardsPeering}, and Shah et al. characterised international detours in routing paths \cite{Shah2016TowardsDetours}. These studies consider latency, routing efficiency, or the countries traversed by packets, but not the jurisdiction in which communications terminate, and they do not relate their findings to the personal data carried by the communications.
+From the networking side, the geographic behaviour of anycast has been studied mainly from the perspective of performance. Calder et al. and Koch et al. measured how often clients of large anycast services are served by distant replicas \cite{Calder2015AnalyzingCDN, Koch2021AnycastSystems}, Bian et al. showed the effect of remote peering on anycast routing \cite{Bian2019TowardsPeering}, and Shah et al. characterised international detours in routing paths \cite{Shah2016TowardsDetours}. These studies consider latency, routing efficiency, or the countries traversed by packets, but not the country in which the IP-level endpoints of communications are located, and they do not relate their findings to the personal data carried by the communications.
 
 \subsection{Positioning of this Chapter}
 \label{sc:anycast_experiments_sota_positioning}
@@ -156,7 +156,7 @@ The comparison between the jurisdictions declared in privacy policies and the de
 \subsection{Anycast Destination Inference}
 \label{sc:anycast_experiments_hunter_integration}
 
-The final phase of the methodology focuses on determining the geographic destinations associated with the identified anycast communications. Since the destination reached by an anycast communication depends on the origin network and the dynamic state of Internet routing, identifying the physical location of the serving infrastructure requires active network measurements and geographic inference techniques. To address this problem, the experiments took advantage of Hunter, the methodology presented in Chapter~\ref{ch:hunter}. Hunter combines traceroute analysis, last-hop identification, latency-based multilateration, and country inference techniques to estimate the physical destination country associated with communications towards anycast infrastructures.
+The final phase of the methodology focuses on determining the geographic destinations associated with the identified anycast communications. Since the replica reached by an anycast communication depends on the origin network and the dynamic state of Internet routing, identifying the location of its IP-level endpoint requires active network measurements and geographic inference techniques. To address this problem, the experiments took advantage of Hunter, the methodology presented in Chapter~\ref{ch:hunter}. Hunter combines traceroute analysis, last-hop identification, latency-based multilateration, and country inference techniques to estimate the destination country of communications towards anycast infrastructures.
 
 For each anycast IP address identified during the dynamic analysis phase, distributed measurements were executed from geographically distributed vantage points across the EEA using RIPE Atlas probes \cite{HomeAtlas}. The experiments focused on EEA countries because the GDPR establishes explicit transparency and adequacy requirements regarding international transfers of personal data outside the EEA jurisdictional space.
 
@@ -263,14 +263,14 @@ For example, communications originating from Greece and Belgium were observed to
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{figures/images/transfers_from_EEA_to_RU_and_more.png}
-        \caption{Communications from EEA countries reaching anycast servers in Ukraine (yellow), Serbia (blue), and Russia (red).}
+        \caption{Communications from EEA countries whose IP-level endpoints were located in Ukraine (yellow), Serbia (blue), and Russia (red).}
         \label{fig:transfers_from_EEA_to_RU_and_more}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{figures/images/transfers_from_EEA_to_UK_and_SW.png}
-        \caption{Communications from EEA countries reaching anycast servers in the United Kingdom (green) and Switzerland (purple).}
+        \caption{Communications from EEA countries whose IP-level endpoints were located in the United Kingdom (green) and Switzerland (purple).}
         \label{fig:transfers_from_EEA_to_UK_and_SW}
     \end{subfigure}
     \caption{Personal-data communications from EEA countries reaching non-EEA destinations identified during the experiments.}
