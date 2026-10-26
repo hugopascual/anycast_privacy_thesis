@@ -31,7 +31,7 @@
 % Row (a): backend confinement
 % ============================================================
 \def\y{-24mm}
-\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(a) Termination at a layer-7 edge};
+\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(a) Backend confinement};
 
 \node[endpoint, minimum width=20mm, font=\footnotesize] (ca) at (\xc,\y) {User\\in the region};
 \node[ixp, clearnode, minimum width=30mm, minimum height=10mm, font=\footnotesize] (ea) at (\xe,\y) {Edge PoP\\content in clear};
@@ -59,7 +59,7 @@
 % Row (b): in-region termination
 % ============================================================
 \def\y{-61mm}
-\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(b) Forwarding to a remote TLS endpoint};
+\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(b) In-region termination};
 
 \node[endpoint, minimum width=20mm, font=\footnotesize] (cb) at (\xc,\y) {User\\in the region};
 \node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize] (eb) at (\xe,\y) {Edge PoP\\(layer-4 proxy)};
@@ -87,7 +87,7 @@
 % Row (c): announcement confinement
 % ============================================================
 \def\y{-98mm}
-\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(c) Termination at the announcing site};
+\node[font=\footnotesize\bfseries, anchor=west] at (-14mm,\y+15mm) {(c) Announcement confinement};
 
 \node[endpoint, minimum width=20mm, font=\footnotesize] (cc) at (\xc,\y) {User\\in the region};
 \node[ixp, minimum width=30mm, minimum height=10mm, font=\footnotesize, fill=gray!8, text=black!50, dashed] (ec) at (\xe,\y)
